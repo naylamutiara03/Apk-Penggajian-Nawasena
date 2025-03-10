@@ -72,8 +72,8 @@ switch ($view) {
         break;
 
     // ==============================
-// CASE: FORM TAMBAH ADMIN
-// ==============================
+    // CASE: FORM TAMBAH ADMIN
+    // ==============================
     case 'tambah':
         ?>
         <div class="flex items-center justify-center h-screen bg-gray-100">

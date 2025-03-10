@@ -54,5 +54,3 @@ elseif ($act == 'delete') {
     echo "<script>alert('Admin berhasil dihapus!'); window.location='data_admin.php';</script>";
 }
 ?>
-
-buat ketika login pakai admin baru yang ditambahkan itu bisa
