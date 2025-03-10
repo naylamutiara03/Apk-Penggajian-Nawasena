@@ -45,7 +45,6 @@
 
                 $user = trim($_POST['username']);
                 $pass = trim($_POST['password']);
-                $p = md5($pass);
 
                 if (empty($user) || empty($pass)) {
                     echo '<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-4">
@@ -53,11 +52,11 @@
                 <p>Form belum lengkap.</p>
               </div>';
                 } else {
-                    $sqlLogin = mysqli_query($konek, "SELECT * FROM admin WHERE username='$user' AND password='$p'");
-                    $jml = mysqli_num_rows($sqlLogin);
-                    $d = mysqli_fetch_array($sqlLogin);
+                    // Ambil data admin berdasarkan username
+                    $sqlLogin = mysqli_query($konek, "SELECT * FROM admin WHERE username='$user'");
+                    $d = mysqli_fetch_assoc($sqlLogin);
 
-                    if ($jml > 0) {
+                    if ($d && password_verify($pass, $d['password'])) { // Cek password dengan password_verify
                         $_SESSION['login'] = TRUE;
                         $_SESSION['id'] = $d['idadmin'];
                         $_SESSION['username'] = $d['username'];
@@ -73,7 +72,6 @@
                 }
             }
             ?>
-
 
             <form action="" method="post">
                 <div class="mb-4">
