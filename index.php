@@ -2,7 +2,7 @@
 
     <!-- Hero Section -->
     <header class="bg-blue-500 text-white text-center py-16 mt-16">
-        <h1 class="text-3xl md:text-4xl font-bold">Selamat Datang di Aplikasi Penggajian</h1>
+        <h1 class="text-3xl md:text-4xl font-bold">Aplikasi Penggajian Nawasena</h1>
         <p class="text-lg mt-2">Kelola data gaji karyawan dengan mudah, cepat, dan aman.</p>
         <a href="dashboard.php"
             class="mt-4 inline-block bg-white hover:bg-yellow-300 text-blue-800 font-semibold py-2 px-6 rounded-lg shadow-md transition">
@@ -12,7 +12,7 @@
 
     <!-- Fitur Unggulan -->
     <section id="features" class="container mx-auto px-4 py-10">
-        <h2 class="text-center text-2xl font-bold text-gray-700">Poin - poin</h2>
+        <h2 class="text-center text-2xl font-bold text-gray-700">Fitur - fitur</h2>
         <div class="grid md:grid-cols-3 gap-6 mt-6">
 
             <!-- Card 1 -->
