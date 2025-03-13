@@ -1,3 +1,13 @@
+<?php
+session_start();
+if(!isset($_SESSION["login"])){
+    header("Location: login.php");
+    exit;
+}
+?>
+
+
+
 <head>
     <title>Halaman Utama</title>
     <script src="https://cdn.tailwindcss.com"></script>
