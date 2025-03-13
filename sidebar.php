@@ -7,6 +7,13 @@ if (!isset($_SESSION["login"])) {
 $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
 ?>
 
+<?php
+$current_page = basename($_SERVER['PHP_SELF']);
+$master_data_pages = ['data_pegawai.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
+$is_master_data_active = in_array($current_page, $master_data_pages);
+?>
+
+
 <!-- Tombol untuk membuka sidebar di layar kecil -->
 <button onclick="openSidebar()" class="sm:block lg:hidden fixed top-4 left-4 bg-gray-900 text-white p-2 rounded">
     <ion-icon name="menu-outline" class="text-2xl"></ion-icon>
@@ -26,36 +33,54 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
         <div class="my-2 bg-gray-600 h-[1px]"></div>
     </div>
 
-    <div
-        class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer bg-blue-600 hover:bg-blue-600 text-white">
+    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
+    <?php echo ($current_page == 'dashboard.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
         <ion-icon name="speedometer-outline" class="text-xl"></ion-icon>
         <a href="dashboard.php" class="text-[15px] ml-4 text-gray-200 font-bold">Dashboard</a>
     </div>
-    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
-        onclick="dropdown()">
+    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
+    <?php echo ($is_master_data_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white" onclick="dropdown()">
         <ion-icon name="folder-outline" class="text-xl"></ion-icon>
         <div class="flex justify-between w-full items-center">
             <span class="text-[15px] ml-4 text-gray-200 font-bold">Master Data</span>
-            <span class="text-sm rotate-180" id="arrow">
+            <span class="text-sm <?php echo ($is_master_data_active) ? 'rotate-180' : ''; ?>" id="arrow">
                 <ion-icon name="chevron-down-outline"></ion-icon>
             </span>
         </div>
     </div>
-    <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold hidden" id="submenu">
-        <a href="data_pegawai.php" class="block cursor-pointer p-2 hover:bg-blue-600 rounded-md mt-1">Data Pegawai</a>
-        <a href="data_jabatan.php" class="block cursor-pointer p-2 hover:bg-blue-600 rounded-md mt-1">Data Jabatan</a>
-        <a href="data_tukang.php" class="block cursor-pointer p-2 hover:bg-blue-600 rounded-md mt-1">Data Tukang</a>
-        <a href="data_admin.php" class="block cursor-pointer p-2 hover:bg-blue-600 rounded-md mt-1">Data Admin</a>
+
+    <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
+    <?php echo ($is_master_data_active) ? '' : 'hidden'; ?>" id="submenu">
+        <a href="data_pegawai.php" class="block cursor-pointer p-2 rounded-md mt-1 
+        <?php echo ($current_page == 'data_pegawai.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+            Data Pegawai
+        </a>
+        <a href="data_jabatan.php" class="block cursor-pointer p-2 rounded-md mt-1 
+        <?php echo ($current_page == 'data_jabatan.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+            Data Jabatan
+        </a>
+        <a href="data_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 
+        <?php echo ($current_page == 'data_tukang.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+            Data Tukang
+        </a>
+        <a href="data_admin.php" class="block cursor-pointer p-2 rounded-md mt-1 
+        <?php echo ($current_page == 'data_admin.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+            Data Admin
+        </a>
     </div>
-    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+
+    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
+    <?php echo ($current_page == 'transaksi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
         <ion-icon name="cash-outline" class="text-xl"></ion-icon>
         <a href="transaksi.php" class="text-[15px] ml-4 text-gray-200 font-bold">Transaksi</a>
     </div>
-    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
+    <?php echo ($current_page == 'laporan.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
         <ion-icon name="document-text-outline" class="text-xl"></ion-icon>
         <a href="laporan.php" class="text-[15px] ml-4 text-gray-200 font-bold">Laporan</a>
     </div>
-    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+    <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
+    <?php echo ($current_page == 'ubah_password.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
         <ion-icon name="lock-closed-outline" class="text-xl"></ion-icon>
         <a href="ubah_password.php" class="text-[15px] ml-4 text-gray-200 font-bold">Ubah Password</a>
     </div>

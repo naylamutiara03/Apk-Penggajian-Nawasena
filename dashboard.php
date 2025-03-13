@@ -33,9 +33,9 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
                 <div class="flex items-center mt-4 lg:mt-0">
                     <span class="mr-4">Selamat Datang <?php echo htmlspecialchars($username); ?></span>
-                    <img alt="User profile picture" class="rounded-full" height="40" width="40"
-                        src="https://storage.googleapis.com/a1aa/image/3jRT-0_QPH7LfTWNSNuiHkkLsXmoHFLJJiOyNITxVaE.jpg" />
+                    <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
+
             </div>
         </div>
 
