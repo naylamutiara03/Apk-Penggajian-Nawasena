@@ -28,7 +28,7 @@
 <body class="flex items-center justify-center min-h-screen">
 
     <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
-        <div class="bg-blue-500 text-white text-center py-4 rounded-t-lg flex items-center justify-center gap-2">
+        <div class="bg-gray-900 text-white text-center py-4 rounded-t-lg flex items-center justify-center gap-2">
             <ion-icon name="lock-closed-outline" class="text-2xl"></ion-icon>
             <h3 class="text-lg font-semibold">LOGIN APLIKASI PENGGAJIAN</h3>
         </div>
@@ -61,7 +61,7 @@
                         $_SESSION['id'] = $d['idadmin'];
                         $_SESSION['username'] = $d['username'];
                         $_SESSION['namalengkap'] = $d['namalengkap'];
-                        header('Location: ./index.php');
+                        header('Location: ./dashboard.php');
                         exit;
                     } else {
                         echo '<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-4">
@@ -84,7 +84,7 @@
                 </div>
                 <div class="mt-4">
                     <button type="submit"
-                        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-md transition duration-300">Login</button>
+                        class="w-full bg-gray-900 hover:bg-blue-600 text-white font-semibold py-2 rounded-md transition duration-300">Login</button>
                 </div>
             </form>
         </div>

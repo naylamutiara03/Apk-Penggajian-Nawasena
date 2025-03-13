@@ -21,7 +21,7 @@ include("koneksi.php"); ?>
             <!-- Header Data Admin -->
             <div
                 class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-10 rounded-lg shadow-lg flex items-center px-6">
-                <a href="index.php" class="text-white text-2xl flex items-center gap-2 hover:text-gray-300 transition ml-16">
+                <a href="dashboard.php" class="text-white text-2xl flex items-center gap-2 hover:text-gray-300 transition ml-16">
                     <ion-icon name="arrow-back-outline"></ion-icon> <!-- Ikon Back -->
                 </a>
                 <h1 class="text-3xl md:text-4xl font-bold text-center flex-1">Data Admin</h1>
