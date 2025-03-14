@@ -69,10 +69,29 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         </a>
     </div>
 
+    <!-- Transaksi -->
     <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
-    <?php echo ($current_page == 'transaksi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
+    <?php echo ($is_transaksi_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
+        onclick="toggleDropdown('submenuTransaksi', 'arrowTransaksi')">
         <ion-icon name="cash-outline" class="text-xl"></ion-icon>
-        <a href="transaksi.php" class="text-[15px] ml-4 text-gray-200 font-bold">Transaksi</a>
+        <div class="flex justify-between w-full items-center">
+            <span class="text-[15px] ml-4 text-gray-200 font-bold">Transaksi</span>
+            <span class="text-sm <?php echo ($is_transaksi_active) ? 'rotate-180' : ''; ?>" id="arrowTransaksi">
+                <ion-icon name="chevron-down-outline"></ion-icon>
+            </span>
+        </div>
+    </div>
+
+    <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
+    <?php echo ($is_transaksi_active) ? '' : 'hidden'; ?>" id="submenuTransaksi">
+        <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 
+        <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+            Data Absensi
+        </a>
+        <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 
+        <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+            Data Gaji
+        </a>
     </div>
     <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
     <?php echo ($current_page == 'laporan.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
@@ -111,5 +130,10 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
 
     function closeLogoutModal() {
         document.getElementById("logoutModal").classList.add("hidden");
+    }
+
+    function toggleDropdown(submenuId, arrowId) {
+        document.getElementById(submenuId).classList.toggle("hidden");
+        document.getElementById(arrowId).classList.toggle("rotate-180");
     }
 </script>

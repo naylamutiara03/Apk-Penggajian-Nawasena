@@ -14,19 +14,15 @@ include("sidebar.php");
 </head>
 
 <body class="bg-gray-100 flex">
-    <div class="flex-1 p-6 ml-70">
+    <div class="p-6 lg:ml-[300px]">
         <?php
         $view = isset($_GET["view"]) ? $_GET["view"] : null;
         switch ($view) {
             default:
                 ?>
                 <div
-                    class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-6 px-6 rounded-lg shadow-lg flex items-center justify-between">
-                    <a href="dashboard.php" class="text-white text-2xl hover:text-gray-300 transition">
-                        <ion-icon name="arrow-back-outline"></ion-icon>
-                    </a>
+                    class="flex items-center justify-end bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 px-6 rounded-lg shadow-lg mx-4 mt-4 h-16">
                     <h1 class="text-3xl font-bold">Data Admin</h1>
-                    <span class="w-10"></span>
                 </div>
 
                 <div class="bg-white p-6 mt-4 shadow-lg rounded-lg">
