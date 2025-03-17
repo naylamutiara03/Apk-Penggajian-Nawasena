@@ -13,58 +13,73 @@ include("sidebar.php");
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 
-<body class="bg-gray-100 flex">
-    <div class="p-6 lg:ml-[300px]">
+<body class="bg-gray-100">
+    <div class="p-6 lg:ml-[300px] flex-grow">
+        <div class="bg-white p-4 rounded shadow mb-6">
+            <div class="flex flex-col lg:flex-row justify-between items-center">
+                <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
+                <div class="flex items-center mt-4 lg:mt-0">
+                    <span class="mr-4">Selamat Datang, <?php echo htmlspecialchars($username); ?></span>
+                    <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
+                </div>
+
+            </div>
+        </div>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold ml-2">
+                Data Admin
+            </h1>
+            <span class="text-gray-500 mr-2">
+                <?php echo date('d F Y'); ?>
+            </span>
+        </div>
         <?php
         $view = isset($_GET["view"]) ? $_GET["view"] : null;
         switch ($view) {
             default:
                 ?>
-                <div
-                    class="flex items-center justify-end bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 px-6 rounded-lg shadow-lg mx-4 mt-4 h-16">
-                    <h1 class="text-3xl font-bold">Data Admin</h1>
-                </div>
-
-                <div class="bg-white p-6 mt-4 shadow-lg rounded-lg">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
-                            <thead class="bg-blue-600 text-white text-sm uppercase font-semibold">
-                                <tr>
-                                    <th class="py-4 px-6 text-center">No</th>
-                                    <th class="py-4 px-6 text-left">Username</th>
-                                    <th class="py-4 px-6 text-left">Nama Lengkap</th>
-                                    <th class="py-4 px-6 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-700 text-sm">
-                                <?php
-                                $no = 1;
-                                $sql = mysqli_query($konek, "SELECT * FROM admin ORDER BY username ASC");
-                                while ($d = mysqli_fetch_array($sql)) {
-                                    echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-                                        <td class='py-4 px-6 text-center'>$no</td>
-                                        <td class='py-4 px-6'>{$d['username']}</td>
-                                        <td class='py-4 px-6'>{$d['namalengkap']}</td>
-                                        <td class='py-4 px-6 text-center flex gap-2 justify-center'>
-                                            <a href='data_admin.php?view=edit&id={$d['idadmin']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600'>
-                                                <ion-icon name='pencil-outline'></ion-icon> Edit
-                                            </a>
-                                            <a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600'>
-                                                <ion-icon name='trash-outline'></ion-icon> Hapus
-                                            </a>
-                                        </td>
-                                    </tr>";
-                                    $no++;
-                                }
-                                ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-6 flex justify-center">
-                        <a href="data_admin.php?view=tambah"
-                            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                            <ion-icon name="person-add-outline"></ion-icon> Tambah Admin
-                        </a>
+                <div class="flex justify-center">
+                    <div class="bg-white p-6 mt-4 shadow-lg rounded-lg w-full max-w-7xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full bg-white border border-gray-300 rounded-lg shadow-md">
+                                <thead class="bg-blue-600 text-white text-sm uppercase font-semibold">
+                                    <tr>
+                                        <th class="py-4 px-6 text-center">No</th>
+                                        <th class="py-4 px-6 text-left">Username</th>
+                                        <th class="py-4 px-6 text-left">Nama Lengkap</th>
+                                        <th class="py-4 px-6 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-700 text-sm">
+                                    <?php
+                                    $no = 1;
+                                    $sql = mysqli_query($konek, "SELECT * FROM admin ORDER BY idadmin ASC");
+                                    while ($d = mysqli_fetch_array($sql)) {
+                                        echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
+                                <td class='py-4 px-6 text-center'>$no</td>
+                                <td class='py-4 px-6'>{$d['username']}</td>
+                                <td class='py-4 px-6'>{$d['namalengkap']}</td>
+                                <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
+                                    <a href='data_admin.php?view=edit&id={$d['idadmin']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                                        <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                                    </a>
+                                    <a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                                        <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                                    </a>
+                                </td>
+                            </tr>";
+                                        $no++;
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-6 flex justify-center">
+                            <a href="data_admin.php?view=tambah"
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                                <ion-icon name="person-add-outline" class="mr-1"></ion-icon> Tambah Admin
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <?php
@@ -75,11 +90,11 @@ include("sidebar.php");
             // ==============================
             case 'tambah':
                 ?>
-                <div class="flex items-center justify-center h-screen bg-gray-100">
-                    <div class="max-w-lg w-full p-6 bg-white shadow-lg rounded-lg mb-10">
+                <div class="flex justify-center bg-gray-100">
+                    <div class="max-w-7xl w-full p-6 bg-white shadow-lg rounded-lg mb-10">
                         <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Tambah Admin</h2>
 
-                        <form action="aksi_admin.php?act=tambah" method="POST">
+                        <form id="addAdminForm" action="aksi_admin.php?act=tambah" method="POST">
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Username</label>
                                 <input type="text" name="username" required
@@ -105,7 +120,7 @@ include("sidebar.php");
                                     class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">
                                     Batal
                                 </a>
-                                <button type="submit"
+                                <button type="button" onclick="tambahAdmin(event)"
                                     class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
                                     Simpan
                                 </button>
@@ -115,6 +130,34 @@ include("sidebar.php");
                 </div>
 
                 <script>
+                    function tambahAdmin(event) {
+                        event.preventDefault(); // Mencegah refresh halaman
+
+                        let formData = new FormData(document.getElementById("addAdminForm"));
+                        let password = formData.get("password");
+
+                        // Validasi panjang password
+                        if (password.length < 8) {
+                            alert("Password harus terdiri dari minimal 8 karakter.");
+                            return; // Hentikan eksekusi jika validasi gagal
+                        }
+
+                        fetch("aksi_admin.php?act=tambah", {
+                            method: "POST",
+                            body: formData
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert("Admin berhasil ditambahkan!");
+                                    document.getElementById("addAdminForm").reset();
+                                    window.location.href = "data_admin.php"; // Ganti dengan URL yang sesuai
+                                } else {
+                                    alert("Gagal menambahkan admin!");
+                                }
+                            });
+                    }
+
                     function togglePassword() {
                         let passwordField = document.getElementById("password");
                         let eyeIcon = document.getElementById("eyeIcon");
@@ -144,8 +187,9 @@ include("sidebar.php");
                     exit;
                 }
                 ?>
-                <div class="flex items-center justify-center h-screen bg-gray-100">
-                    <div class="max-w-lg w-full p-6 bg-white shadow-lg rounded-lg mb-10">
+                <div class="flex justify-center bg-gray-100">
+                    <div class="max-w-7xl w-full p-6 bg-white shadow-lg rounded-lg mb-10">
+                        <!-- Ubah max-w-lg menjadi max-w-3xl -->
                         <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Edit Admin</h2>
 
                         <form action="aksi_admin.php?act=update" method="POST">
@@ -163,7 +207,7 @@ include("sidebar.php");
                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
 
-                            <div class="mb-4 relative">
+                            <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Password (Kosongkan jika tidak
                                     diubah)</label>
                                 <input type="password" id="password" name="password"
@@ -232,7 +276,9 @@ include("sidebar.php");
                 window.location.href = deleteUrl; // Redirect to the delete URL
             };
         </script>
+        <?php include 'footer.php'; ?>
     </div>
+
 </body>
 
 </html>

@@ -6,16 +6,30 @@ $act = $_GET['act'];
 // ==============================
 // FUNGSI: TAMBAH ADMIN
 // ==============================
-if ($act == 'tambah') {
+if ($_GET['act'] == 'tambah') {
     $username = $_POST['username'];
     $namalengkap = $_POST['namalengkap'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Enkripsi password
+    $password = $_POST['password'];
 
-    $query = "INSERT INTO admin (username, namalengkap, password) VALUES ('$username', '$namalengkap', '$password')";
-    mysqli_query($konek, $query);
+    // Validasi panjang password
+    if (strlen($password) < 8) {
+        echo json_encode(["success" => false, "message" => "Password harus terdiri dari minimal 8 karakter."]);
+        exit;
+    }
 
-    echo "<script>alert('Admin berhasil ditambahkan!'); window.location='data_admin.php';</script>";
+    $password = password_hash($password, PASSWORD_DEFAULT);
+
+    $query = mysqli_query($konek, "INSERT INTO admin (username, namalengkap, password) VALUES ('$username', '$namalengkap', '$password')");
+
+    if ($query) {
+        $last_id = mysqli_insert_id($konek);
+        echo json_encode(["success" => true, "idadmin" => $last_id, "username" => $username, "namalengkap" => $namalengkap]);
+    } else {
+        echo json_encode(["success" => false]);
+    }
+    exit;
 }
+
 
 // ==============================
 // FUNGSI: UPDATE ADMIN
