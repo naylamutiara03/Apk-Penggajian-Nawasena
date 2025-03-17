@@ -23,9 +23,9 @@ if ($_GET['act'] == 'tambah') {
 
     if ($query) {
         $last_id = mysqli_insert_id($konek);
-        echo json_encode(["success" => true, "idadmin" => $last_id, "username" => $username, "namalengkap" => $namalengkap]);
+        echo json_encode(["success" => true, "message" => "Admin berhasil ditambahkan!", "idadmin" => $last_id]);
     } else {
-        echo json_encode(["success" => false]);
+        echo json_encode(["success" => false, "message" => "Gagal menambahkan admin!"]);
     }
     exit;
 }
@@ -47,9 +47,12 @@ elseif ($act == 'update') {
         $query = "UPDATE admin SET username='$username', namalengkap='$namalengkap' WHERE idadmin='$id'";
     }
 
-    mysqli_query($konek, $query);
-
-    echo "<script>alert('Admin berhasil diperbarui!'); window.location='data_admin.php';</script>";
+    if (mysqli_query($konek, $query)) {
+        echo json_encode(["success" => true, "message" => "Admin berhasil diperbarui!"]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Gagal memperbarui admin!"]);
+    }
+    exit;
 }
 
 // ==============================
@@ -60,11 +63,12 @@ elseif ($act == 'delete') {
 
     $cek = mysqli_query($konek, "SELECT * FROM admin WHERE idadmin='$id'");
     if (mysqli_num_rows($cek) == 0) {
-        echo "<script>alert('Admin tidak ditemukan!'); window.location='data_admin.php';</script>";
+        echo json_encode(["success" => false, "message" => "Admin tidak ditemukan!"]);
         exit;
     }
 
     mysqli_query($konek, "DELETE FROM admin WHERE idadmin='$id'");
-    echo "<script>alert('Admin berhasil dihapus!'); window.location='data_admin.php';</script>";
+    echo json_encode(["success" => true, "message" => "Admin berhasil dihapus!"]);
+    exit;
 }
 ?>

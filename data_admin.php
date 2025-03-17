@@ -15,6 +15,17 @@ include("sidebar.php");
 
 <body class="bg-gray-100">
     <div class="p-6 lg:ml-[300px] flex-grow">
+        <!-- Modal untuk Pesan Sukses -->
+        <div id="successModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+                <h2 class="text-lg font-bold text-gray-800" id="successTitle">Sukses!</h2>
+                <p class="text-gray-600 mt-2" id="successMessage">Pesan sukses akan ditampilkan di sini.</p>
+                <div class="mt-4">
+                    <button onclick="closeSuccessModal()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
+                </div>
+            </div>
+        </div>
         <div class="bg-white p-4 rounded shadow mb-6">
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
@@ -56,18 +67,18 @@ include("sidebar.php");
                                     $sql = mysqli_query($konek, "SELECT * FROM admin ORDER BY idadmin ASC");
                                     while ($d = mysqli_fetch_array($sql)) {
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-                                <td class='py-4 px-6 text-center'>$no</td>
-                                <td class='py-4 px-6'>{$d['username']}</td>
-                                <td class='py-4 px-6'>{$d['namalengkap']}</td>
-                                <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
-                                    <a href='data_admin.php?view=edit&id={$d['idadmin']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
-                                        <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                                    </a>
-                                    <a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                                        <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                                    </a>
-                                </td>
-                            </tr>";
+            <td class='py-4 px-6 text-center font-bold'>$no</td>
+            <td class='py-4 px-6 font-bold'>{$d['username']}</td>
+            <td class='py-4 px-6 font-bold'>{$d['namalengkap']}</td>
+            <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
+                <a href='data_admin.php?view=edit&id={$d['idadmin']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                    <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                </a>
+                <a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                    <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                </a>
+            </td>
+        </tr>";
                                         $no++;
                                     }
                                     ?>
@@ -107,7 +118,7 @@ include("sidebar.php");
                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
 
-                            <div class="mb-4 relative">
+                            <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Password</label>
                                 <input type="password" id="password" name="password" required
                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -129,16 +140,39 @@ include("sidebar.php");
                     </div>
                 </div>
 
+                <!-- Modal untuk Error Message usn, nama, pass kosong -->
+                <div id="errorModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+                    <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+                        <h2 class="text-lg font-bold text-gray-800">Error!</h2>
+                        <p class="text-gray-600 mt-2" id="errorMessage">Pesan error akan ditampilkan di sini.</p>
+                        <div class="mt-4">
+                            <button onclick="closeErrorModal()"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
+                        </div>
+                    </div>
+                </div>
+
                 <script>
                     function tambahAdmin(event) {
                         event.preventDefault(); // Mencegah refresh halaman
 
                         let formData = new FormData(document.getElementById("addAdminForm"));
+                        let username = formData.get("username");
+                        let namalengkap = formData.get("namalengkap");
                         let password = formData.get("password");
 
-                        // Validasi panjang password
-                        if (password.length < 8) {
-                            alert("Password harus terdiri dari minimal 8 karakter.");
+                        // Validasi input
+                        if (!username || !namalengkap || !password) {
+                            let message = "Semua field harus diisi.";
+                            if (!username) {
+                                message = "Username tidak boleh kosong.";
+                            } else if (!namalengkap) {
+                                message = "Nama Lengkap tidak boleh kosong.";
+                            } else if (password.length < 8) {
+                                message = "Password harus terdiri dari minimal 8 karakter.";
+                            }
+                            document.getElementById("errorMessage").innerText = message;
+                            document.getElementById("errorModal").classList.remove("hidden"); // Tampilkan modal
                             return; // Hentikan eksekusi jika validasi gagal
                         }
 
@@ -149,13 +183,21 @@ include("sidebar.php");
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success) {
-                                    alert("Admin berhasil ditambahkan!");
+                                    document.getElementById("successTitle").innerText = "Sukses!";
+                                    document.getElementById("successMessage").innerText = data.message;
+                                    document.getElementById("successModal").classList.remove("hidden"); // Tampilkan modal sukses
                                     document.getElementById("addAdminForm").reset();
-                                    window.location.href = "data_admin.php"; // Ganti dengan URL yang sesuai
+                                    setTimeout(() => {
+                                        window.location.href = "data_admin.php"; // Redirect setelah beberapa detik
+                                    }, 2000); // Redirect setelah 2 detik
                                 } else {
-                                    alert("Gagal menambahkan admin!");
+                                    alert(data.message); // Tampilkan pesan kesalahan
                                 }
                             });
+                    }
+
+                    function closeSuccessModal() {
+                        document.getElementById("successModal").classList.add("hidden"); // Sembunyikan modal
                     }
 
                     function togglePassword() {
@@ -268,12 +310,52 @@ include("sidebar.php");
                 document.getElementById('deleteModal').classList.remove('hidden'); // Show the modal
             }
 
-            document.getElementById('cancelDelete').onclick = function () {
-                document.getElementById('deleteModal').classList.add('hidden'); // Hide the modal
+            document.getElementById('confirmDelete').onclick = function () {
+                fetch(deleteUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById("successTitle").innerText = "Sukses!";
+                            document.getElementById("successMessage").innerText = data.message;
+                            document.getElementById("successModal").classList.remove("hidden"); // Tampilkan modal sukses
+                            setTimeout(() => {
+                                window.location.href = "data_admin.php"; // Redirect setelah beberapa detik
+                            }, 2000); // Redirect setelah 2 detik
+                        } else {
+                            alert(data.message); // Tampilkan pesan kesalahan
+                        }
+                    });
             };
 
-            document.getElementById('confirmDelete').onclick = function () {
-                window.location.href = deleteUrl; // Redirect to the delete URL
+            document.querySelector("form").onsubmit = function (event) {
+                event.preventDefault(); // Mencegah refresh halaman
+
+                let formData = new FormData(this);
+                fetch("aksi_admin.php?act=update", {
+                    method: "POST",
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById("successTitle").innerText = "Sukses!";
+                            document.getElementById("successMessage").innerText = data.message;
+                            document.getElementById("successModal").classList.remove("hidden"); // Tampilkan modal sukses
+                            setTimeout(() => {
+                                window.location.href = "data_admin.php"; // Redirect setelah beberapa detik
+                            }, 2000); // Redirect setelah 2 detik
+                        } else {
+                            alert(data.message); // Tampilkan pesan kesalahan
+                        }
+                    });
+            };
+
+            function closeSuccessModal() {
+                document.getElementById("successModal").classList.add("hidden"); // Sembunyikan modal
+            }
+
+            document.getElementById('cancelDelete').onclick = function () {
+                document.getElementById('deleteModal').classList.add('hidden'); // Hide the modal
             };
         </script>
         <?php include 'footer.php'; ?>
