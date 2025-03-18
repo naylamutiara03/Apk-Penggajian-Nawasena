@@ -56,7 +56,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
 
         <!-- Menu Master Data -->
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
-    <?php echo ($is_master_data_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
+<?php echo ($is_master_data_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
             onclick="toggleDropdown('submenuMaster', 'arrowMaster')">
             <ion-icon name="folder-outline" class="text-xl"></ion-icon>
             <div class="flex justify-between w-full items-center">
@@ -67,17 +67,20 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             </div>
         </div>
 
+        <!-- SubMenu Master Data -->
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
-    <?php echo ($is_master_data_active) ? '' : 'hidden'; ?>" id="submenuMaster">
-            <a href="data_pegawai.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600">Data
-                Pegawai</a>
-            <a href="data_jabatan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600">Data
-                Jabatan</a>
-            <a href="data_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600">Data Tukang</a>
-            <a href="data_admin.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600">Data Admin</a>
+<?php echo ($is_master_data_active) ? '' : 'hidden'; ?>" id="submenuMaster">
+            <a href="data_pegawai.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
+    <?php echo ($current_page == 'data_pegawai.php') ? 'bg-blue-600' : ''; ?>">Data Pegawai</a>
+            <a href="data_jabatan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
+    <?php echo ($current_page == 'data_jabatan.php') ? 'bg-blue-600' : ''; ?>">Data Jabatan</a>
+            <a href="data_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
+    <?php echo ($current_page == 'data_tukang.php') ? 'bg-blue-600' : ''; ?>">Data Tukang</a>
+            <a href="data_admin.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
+    <?php echo ($current_page == 'data_admin.php') ? 'bg-blue-600' : ''; ?>">Data Admin</a>
         </div>
 
-        <!-- Transaksi -->
+        <!-- Menu Transaksi -->
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
     <?php echo ($is_transaksi_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
             onclick="toggleDropdown('submenuTransaksi', 'arrowTransaksi')">
@@ -90,21 +93,42 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             </div>
         </div>
 
+        <!-- Submenu Transaksi -->
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
     <?php echo ($is_transaksi_active) ? '' : 'hidden'; ?>" id="submenuTransaksi">
             <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 
         <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
-                Data Absensi
+                Data Absensi Tukang
             </a>
             <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 
         <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
                 Data Gaji
             </a>
         </div>
+
+        <!-- Menu Laporan -->
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
-    <?php echo ($current_page == 'laporan.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
+    <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
+            onclick="toggleDropdown('submenuLaporan', 'arrowLaporan')">
             <ion-icon name="document-text-outline" class="text-xl"></ion-icon>
-            <a href="laporan.php" class="text-[15px] ml-4 text-gray-200 font-bold">Laporan</a>
+            <div class="flex justify-between w-full items-center">
+                <a href="laporan.php" class="text-[15px] ml-4 text-gray-200 font-bold">Laporan</a>
+                <span
+                    class="text-sm <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? 'rotate-180' : ''; ?>"
+                    id="arrowLaporan">
+                    <ion-icon name="chevron-down-outline"></ion-icon>
+                </span>
+            </div>
+        </div>
+
+        <!-- Submenu for Laporan -->
+        <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
+    <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? '' : 'hidden'; ?>"
+            id="submenuLaporan">
+            <a href="laporan_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
+    <?php echo ($current_page == 'laporan_gaji.php') ? 'bg-blue-600' : ''; ?>">Laporan Gaji</a>
+            <a href="slip_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
+    <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">Slip Gaji</a>
         </div>
 
         <!-- Menu Ubah Password -->
@@ -114,7 +138,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             <a href="ubah_password.php" class="text-[15px] ml-4 text-gray-200 font-bold">Ubah Password</a>
         </div>
 
-        <!-- Logout -->
+        <!-- Menu Logout -->
         <div onclick="openLogoutModal()"
             class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
             <ion-icon name="log-out-outline" class="text-xl"></ion-icon>
