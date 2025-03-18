@@ -27,6 +27,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
 
 <body class="bg-gray-100">
     <div class="p-6 lg:ml-[300px] flex-grow">
+        <!-- Header Section -->
         <div class="bg-white p-4 rounded shadow mb-6">
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
@@ -37,9 +38,11 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
 
             </div>
         </div>
+        <!-- END Header Section -->
 
         <body class="bg-gray-100">
             <div class="container mx-auto p-4">
+                <!-- Title & Tanggal Section -->
                 <div class="flex justify-between items-center mb-4">
                     <h1 class="text-2xl font-bold">
                         Dashboard
@@ -48,6 +51,9 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                         <?php echo date('d F Y'); ?>
                     </span>
                 </div>
+                <!-- END Title & Tanggal Section -->
+
+                <!-- Grid Section -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div class="bg-white p-4 rounded shadow">
                         <div class="flex items-center justify-between">
@@ -106,6 +112,9 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                         </div>
                     </div>
                 </div>
+                <!-- END Grid Section -->
+
+                <!-- Chart Section -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-4 rounded shadow">
                         <h2 class="text-sm font-semibold text-gray-500 mb-2">
@@ -124,6 +133,8 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                             width="600" />
                     </div>
                 </div>
+                <!-- END Chart Section -->
+                 
                 <?php include 'footer.php'; ?>
         </body>
 

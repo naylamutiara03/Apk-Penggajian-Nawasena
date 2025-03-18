@@ -26,6 +26,9 @@ include("sidebar.php");
                 </div>
             </div>
         </div>
+        <!-- END Modal untuk Pesan Sukses -->
+
+        <!-- Header Section -->
         <div class="bg-white p-4 rounded shadow mb-6">
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
@@ -33,9 +36,11 @@ include("sidebar.php");
                     <span class="mr-4">Selamat Datang, <?php echo htmlspecialchars($username); ?></span>
                     <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
-
             </div>
         </div>
+        <!-- END Header Section -->
+
+        <!-- Title & Tanggal Section -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold ml-2">
                 Data Admin
@@ -44,12 +49,15 @@ include("sidebar.php");
                 <?php echo date('d F Y'); ?>
             </span>
         </div>
+        <!-- END Title & Tanggal Section -->
+
         <?php
         $view = isset($_GET["view"]) ? $_GET["view"] : null;
         switch ($view) {
             default:
                 ?>
                 <div class="flex justify-center">
+                    <!-- Tabel Section -->
                     <div class="bg-white p-6 mt-4 shadow-lg rounded-lg w-full max-w-7xl">
                         <div class="overflow-x-auto">
                             <table class="w-full bg-white border border-gray-300 rounded-lg shadow-md">
@@ -92,6 +100,7 @@ include("sidebar.php");
                             </a>
                         </div>
                     </div>
+                    <!-- END Tabel Section -->
                 </div>
                 <?php
                 break;
@@ -191,13 +200,13 @@ include("sidebar.php");
                                         window.location.href = "data_admin.php"; // Redirect setelah beberapa detik
                                     }, 2000); // Redirect setelah 2 detik
                                 } else {
-                                    alert(data.message); // Tampilkan pesan kesalahan
+                                    alert(data.message); // Tampilkan error message
                                 }
                             });
                     }
 
                     function closeSuccessModal() {
-                        document.getElementById("successModal").classList.add("hidden"); // Sembunyikan modal
+                        document.getElementById("successModal").classList.add("hidden"); // Hide modal
                     }
 
                     function togglePassword() {
@@ -231,7 +240,6 @@ include("sidebar.php");
                 ?>
                 <div class="flex justify-center bg-gray-100">
                     <div class="max-w-7xl w-full p-6 bg-white shadow-lg rounded-lg mb-10">
-                        <!-- Ubah max-w-lg menjadi max-w-3xl -->
                         <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Edit Admin</h2>
 
                         <form action="aksi_admin.php?act=update" method="POST">
@@ -257,7 +265,6 @@ include("sidebar.php");
                                 <button type="button" onclick="togglePassword()" class="absolute top-9 right-3 text-gray-500">
                                 </button>
                             </div>
-
                             <div class="flex justify-between mt-6">
                                 <a href="data_admin.php"
                                     class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">
@@ -290,24 +297,27 @@ include("sidebar.php");
                 break;
         }
         ?>
-        <!-- Modal for Delete Confirmation -->
+        <!-- Modal konfirmasi hapus -->
         <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
             <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
                 <h2 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h2>
                 <p>Apakah Anda yakin ingin menghapus admin ini?</p>
                 <div class="flex justify-end mt-4">
-                    <button id="cancelDelete" class="px-4 py-2 bg-gray-500 text-white rounded-lg mr-2">Batal</button>
-                    <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white rounded-lg">Hapus</button>
+                    <button id="cancelDelete"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-lg mr-2 hover:bg-gray-600 transition">Batal</button>
+                    <button id="confirmDelete"
+                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Hapus</button>
                 </div>
             </div>
         </div>
 
         <script>
+            // Handle delete confirmation
             let deleteUrl = '';
 
             function openDeleteModal(url) {
                 deleteUrl = url; // Store the URL for deletion
-                document.getElementById('deleteModal').classList.remove('hidden'); // Show the modal
+                document.getElementById('deleteModal').classList.remove('hidden'); // Show delete confirmation modal
             }
 
             document.getElementById('confirmDelete').onclick = function () {
@@ -315,47 +325,26 @@ include("sidebar.php");
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            // Hide the delete modal
+                            document.getElementById('deleteModal').classList.add('hidden');
+
+                            // Show success modal for delete
                             document.getElementById("successTitle").innerText = "Sukses!";
                             document.getElementById("successMessage").innerText = data.message;
-                            document.getElementById("successModal").classList.remove("hidden"); // Tampilkan modal sukses
+                            document.getElementById("successModal").classList.remove("hidden"); // Show success modal
+
+                            // Redirect after a delay
                             setTimeout(() => {
-                                window.location.href = "data_admin.php"; // Redirect setelah beberapa detik
-                            }, 2000); // Redirect setelah 2 detik
+                                window.location.href = "data_admin.php"; // Redirect after 2 seconds
+                            }, 2000); // Redirect after 2 seconds
                         } else {
-                            alert(data.message); // Tampilkan pesan kesalahan
+                            alert(data.message); // Show error message
                         }
                     });
             };
-
-            document.querySelector("form").onsubmit = function (event) {
-                event.preventDefault(); // Mencegah refresh halaman
-
-                let formData = new FormData(this);
-                fetch("aksi_admin.php?act=update", {
-                    method: "POST",
-                    body: formData
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            document.getElementById("successTitle").innerText = "Sukses!";
-                            document.getElementById("successMessage").innerText = data.message;
-                            document.getElementById("successModal").classList.remove("hidden"); // Tampilkan modal sukses
-                            setTimeout(() => {
-                                window.location.href = "data_admin.php"; // Redirect setelah beberapa detik
-                            }, 2000); // Redirect setelah 2 detik
-                        } else {
-                            alert(data.message); // Tampilkan pesan kesalahan
-                        }
-                    });
-            };
-
-            function closeSuccessModal() {
-                document.getElementById("successModal").classList.add("hidden"); // Sembunyikan modal
-            }
 
             document.getElementById('cancelDelete').onclick = function () {
-                document.getElementById('deleteModal').classList.add('hidden'); // Hide the modal
+                document.getElementById('deleteModal').classList.add('hidden'); // Hide delete modal
             };
         </script>
         <?php include 'footer.php'; ?>
