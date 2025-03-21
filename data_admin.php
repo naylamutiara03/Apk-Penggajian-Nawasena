@@ -200,9 +200,15 @@ include("sidebar.php");
                                         window.location.href = "data_admin.php"; // Redirect setelah beberapa detik
                                     }, 2000); // Redirect setelah 2 detik
                                 } else {
-                                    alert(data.message); // Tampilkan error message
+                                    // Ganti alert dengan modal kesalahan
+                                    document.getElementById("errorMessage").innerText = data.message;
+                                    document.getElementById("errorModal").classList.remove("hidden"); // Tampilkan modal error
                                 }
                             });
+                    }
+                    
+                    function closeErrorModal() {
+                        document.getElementById("errorModal").classList.add("hidden"); // Hide modal
                     }
 
                     function closeSuccessModal() {
