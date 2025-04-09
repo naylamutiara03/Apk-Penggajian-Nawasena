@@ -9,7 +9,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
 
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
-$master_data_pages = ['data_pegawai.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
+$master_data_pages = ['data_karyawan.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
 $is_master_data_active = in_array($current_page, $master_data_pages);
 ?>
 
@@ -70,8 +70,8 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <!-- SubMenu Master Data -->
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
 <?php echo ($is_master_data_active) ? '' : 'hidden'; ?>" id="submenuMaster">
-            <a href="data_pegawai.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_pegawai.php') ? 'bg-blue-600' : ''; ?>">Data Pegawai</a>
+            <a href="data_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
+    <?php echo ($current_page == 'data_karyawan.php') ? 'bg-blue-600' : ''; ?>">Data Karyawan</a>
             <a href="data_jabatan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
     <?php echo ($current_page == 'data_jabatan.php') ? 'bg-blue-600' : ''; ?>">Data Jabatan</a>
             <a href="data_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 

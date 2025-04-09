@@ -59,7 +59,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                         <div class="flex items-center justify-between">
                             <div>
                                 <h2 class="text-sm font-semibold text-gray-500">
-                                    DATA PEGAWAI
+                                    DATA KARYAWAN
                                 </h2>
                                 <p class="text-2xl font-bold">
                                     4
