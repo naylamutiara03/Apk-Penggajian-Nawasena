@@ -248,7 +248,7 @@ include("sidebar.php");
                     <div class="max-w-7xl w-full p-6 bg-white shadow-lg rounded-lg mb-10">
                         <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Edit Admin</h2>
 
-                        <form action="aksi_admin.php?act=update" method="POST">
+                        <form id="editAdminForm" action="aksi_admin.php?act=update" method="POST">
                             <input type="hidden" name="idadmin" value="<?= $data['idadmin'] ?>">
 
                             <div class="mb-4">
@@ -269,6 +269,7 @@ include("sidebar.php");
                                 <input type="password" id="password" name="password"
                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <button type="button" onclick="togglePassword()" class="absolute top-9 right-3 text-gray-500">
+                                    <ion-icon id="eyeIcon" name="eye-off-outline"></ion-icon>
                                 </button>
                             </div>
                             <div class="flex justify-between mt-6">
@@ -276,7 +277,7 @@ include("sidebar.php");
                                     class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">
                                     Batal
                                 </a>
-                                <button type="submit"
+                                <button type="button" onclick="validasiEditAdmin(event)"
                                     class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
                                     Simpan Perubahan
                                 </button>
@@ -286,6 +287,36 @@ include("sidebar.php");
                 </div>
 
                 <script>
+                    function validasiEditAdmin(event) {
+                        event.preventDefault();
+
+                        let form = document.getElementById("editAdminForm");
+                        let formData = new FormData(form);
+
+                        fetch("aksi_admin.php?act=update", {
+                            method: "POST",
+                            body: formData
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Set success message and show success modal
+                                    document.getElementById("successTitle").innerText = "Sukses!";
+                                    document.getElementById("successMessage").innerText = data.message;
+                                    document.getElementById("successModal").classList.remove("hidden"); // Show success modal
+
+                                    // Redirect after a delay
+                                    setTimeout(() => {
+                                        window.location.href = "data_admin.php"; // Redirect after 2 seconds
+                                    }, 2000); // Redirect after 2 seconds
+                                } else {
+                                    // Ganti alert dengan modal kesalahan
+                                    document.getElementById("errorMessage").innerText = data.message;
+                                    document.getElementById("errorModal").classList.remove("hidden"); // Tampilkan modal error
+                                }
+                            });
+                    }
+
                     function togglePassword() {
                         let passwordField = document.getElementById("password");
                         let eyeIcon = document.getElementById("eyeIcon");

@@ -383,7 +383,24 @@ include("sidebar.php");
                             return;
                         }
 
-                        form.submit(); // Kirim form jika validasi lolos
+                        fetch("aksi_karyawan.php?act=update", {
+                            method: "POST",
+                            body: formData
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Set success message and show success modal
+                                    document.getElementById("successMessage").innerText = data.message; // Set success message
+                                    document.getElementById("successModal").classList.remove("hidden"); // Show success modal
+                                    // Optionally, you can redirect after a delay
+                                    setTimeout(() => {
+                                        window.location.href = "data_karyawan.php"; // Redirect setelah sukses
+                                    }, 2000); // Redirect after 2 seconds
+                                } else {
+                                    alert(data.message); // Show error message
+                                }
+                            });
                     }
                 </script>
 
