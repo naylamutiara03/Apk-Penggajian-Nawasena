@@ -206,7 +206,7 @@ include("sidebar.php");
                                 }
                             });
                     }
-                    
+
                     function closeErrorModal() {
                         document.getElementById("errorModal").classList.add("hidden"); // Hide modal
                     }

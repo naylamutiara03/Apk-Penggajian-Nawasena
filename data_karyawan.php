@@ -15,6 +15,31 @@ include("sidebar.php");
 
 <body class="bg-gray-100">
     <div class="p-6 lg:ml-[300px] flex-grow">
+        <!-- Modal untuk Pesan Sukses -->
+        <div id="successModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+                <h2 class="text-lg font-bold text-gray-800">Sukses!</h2>
+                <p class="text-gray-600 mt-2" id="successMessage">Data karyawan berhasil dihapus.</p>
+                <div class="mt-4">
+                    <button onclick="closeSuccessModal()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal untuk Pesan Sukses Tambah Karyawan -->
+        <div id="successAddModal"
+            class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+                <h2 class="text-lg font-bold text-gray-800">Sukses!</h2>
+                <p class="text-gray-600 mt-2" id="successAddMessage">Data karyawan berhasil ditambahkan.</p>
+                <div class="mt-4">
+                    <button onclick="closeSuccessAddModal()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Header Section -->
         <div class="bg-white p-4 rounded shadow mb-6">
             <div class="flex flex-col lg:flex-row justify-between items-center">
@@ -61,23 +86,26 @@ include("sidebar.php");
                                     $no = 1;
                                     $sql = mysqli_query($konek, "SELECT * FROM karyawan ORDER BY tgl_masuk ASC");
                                     while ($d = mysqli_fetch_array($sql)) {
+                                        // Menggunakan ucwords untuk menampilkan nama karyawan dengan huruf kapital di awal setiap kata
+                                        $namaKaryawan = ucwords(strtolower($d['nama_karyawan'])); // Mengubah nama karyawan menjadi format yang diinginkan
+                                        $jabatan = ucwords(strtolower($d['jabatan'])); // Mengubah jabatan menjadi format yang diinginkan
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-        <td class='py-4 px-6 text-center font-bold'>$no</td>
-        <td class='py-4 px-6 '>{$d['nik']}</td>
-        <td class='py-4 px-6 '>{$d['nama_karyawan']}</td>
-        <td class='py-4 px-6 '>{$d['jenis_kelamin']}</td>
-        <td class='py-4 px-6 '>{$d['jabatan']}</td>
-        <td class='py-4 px-6 '>" . date('d F Y', strtotime($d['tgl_masuk'])) . "</td>
-        <td class='py-4 px-6 '>{$d['status']}</td>
-        <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
-            <a href='data_karyawan.php?view=edit&id={$d['id']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
-                <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-            </a>
-            <a href='#' onclick=\"openDeleteModal('aksi_karyawan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-            </a>
-        </td>
-    </tr>";
+            <td class='py-4 px-6 text-center font-bold'>$no</td>
+            <td class='py-4 px-6 '>{$d['nik']}</td>
+            <td class='py-4 px-6 '>$namaKaryawan</td>
+            <td class='py-4 px-6 '>{$d['jenis_kelamin']}</td>
+            <td class='py-4 px-6 '>$jabatan</td>
+            <td class='py-4 px-6 '>" . date('d F Y', strtotime($d['tgl_masuk'])) . "</td>
+            <td class='py-4 px-6 '>{$d['status']}</td>
+            <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
+                <a href='data_karyawan.php?view=edit&id={$d['id']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                    <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                </a>
+                <a href='#' onclick=\"openDeleteModal('aksi_karyawan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                    <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                </a>
+            </td>
+        </tr>";
                                         $no++;
                                     }
                                     ?>
@@ -183,43 +211,66 @@ include("sidebar.php");
                         let form = document.getElementById("addKaryawanForm");
                         let formData = new FormData(form);
 
-                        // Ambil nilai semua input
+                        // Ambil nilai NIK
                         let nik = formData.get("nik").trim();
-                        let nama = formData.get("nama_karyawan").trim();
-                        let jk = formData.get("jenis_kelamin").trim();
-                        let jabatan = formData.get("jabatan").trim();
-                        let tglMasuk = formData.get("tgl_masuk").trim();
-                        let status = formData.get("status").trim();
 
-                        // Validasi input kosong
-                        if (!nik || !nama || !jk || !jabatan || !tglMasuk || !status) {
-                            document.getElementById("errorMessage").innerText = "Semua field wajib diisi.";
-                            document.getElementById("errorModal").classList.remove("hidden");
-                            return;
-                        }
-
-                        // Validasi panjang NIK
-                        if (nik.length !== 16 || isNaN(nik)) {
-                            document.getElementById("errorMessage").innerText = "NIK harus terdiri dari 16 digit angka.";
-                            document.getElementById("errorModal").classList.remove("hidden");
-                            return;
-                        }
-
-                        // Submit form via fetch
-                        fetch("aksi_karyawan.php?act=tambah", {
-                            method: "POST",
-                            body: formData
-                        })
+                        // Cek apakah NIK sudah terdaftar
+                        fetch("cek_nik.php?nik=" + nik)
                             .then(response => response.json())
                             .then(data => {
-                                if (data.success) {
-                                    alert(data.message);
-                                    window.location.href = "data_karyawan.php"; // Redirect setelah sukses
-                                } else {
-                                    document.getElementById("errorMessage").innerText = data.message;
+                                if (data.exists) {
+                                    document.getElementById("errorMessage").innerText = "NIK sudah terdaftar.";
                                     document.getElementById("errorModal").classList.remove("hidden");
+                                    return;
                                 }
+
+                                // Jika NIK tidak terdaftar, lanjutkan dengan validasi dan pengiriman data
+                                let nama = formData.get("nama_karyawan").trim();
+                                let jk = formData.get("jenis_kelamin").trim();
+                                let jabatan = formData.get("jabatan").trim();
+                                let tglMasuk = formData.get("tgl_masuk").trim();
+                                let status = formData.get("status").trim();
+
+                                // Validasi input kosong
+                                if (!nik || !nama || !jk || !jabatan || !tglMasuk || !status) {
+                                    document.getElementById("errorMessage").innerText = "Semua field wajib diisi.";
+                                    document.getElementById("errorModal").classList.remove("hidden");
+                                    return;
+                                }
+
+                                // Validasi panjang NIK
+                                if (nik.length !== 16 || isNaN(nik)) {
+                                    document.getElementById("errorMessage").innerText = "NIK harus terdiri dari 16 digit angka.";
+                                    document.getElementById("errorModal").classList.remove("hidden");
+                                    return;
+                                }
+
+                                // Submit form via fetch
+                                fetch("aksi_karyawan.php?act=tambah", {
+                                    method: "POST",
+                                    body: formData
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // Set success message and show success modal
+                                            document.getElementById("successAddMessage").innerText = data.message; // Set success message
+                                            document.getElementById("successAddModal").classList.remove("hidden"); // Show success modal
+                                            // Optionally, you can redirect after a delay
+                                            setTimeout(() => {
+                                                window.location.href = "data_karyawan.php"; // Redirect setelah sukses
+                                            }, 2000); // Redirect after 2 seconds
+                                        } else {
+                                            document.getElementById("errorMessage").innerText = data.message;
+                                            document.getElementById("errorModal").classList.remove("hidden");
+                                        }
+                                    });
                             });
+                    }
+
+                    function closeSuccessAddModal() {
+                        document.getElementById('successAddModal').classList.add('hidden'); // Hide success modal
+                        window.location.href = "data_karyawan.php"; // Redirect after closing
                     }
 
                     function closeErrorModal() {
@@ -373,8 +424,8 @@ include("sidebar.php");
                             document.getElementById('deleteModal').classList.add('hidden');
 
                             // Show success modal for delete
-                            alert(data.message); // Show success message
-                            window.location.href = "data_karyawan.php"; // Redirect after delete
+                            document.getElementById('successMessage').innerText = data.message; // Set success message
+                            document.getElementById('successModal').classList.remove('hidden'); // Show success modal
                         } else {
                             alert(data.message); // Show error message
                         }
@@ -384,6 +435,17 @@ include("sidebar.php");
             document.getElementById('cancelDelete').onclick = function () {
                 document.getElementById('deleteModal').classList.add('hidden'); // Hide delete modal
             };
+
+            function closeSuccessModal() {
+                document.getElementById('successModal').classList.add('hidden'); // Hide success modal
+                window.location.href = "data_karyawan.php"; // Redirect after closing
+            }
+
+            // Function to close success add modal
+            function closeSuccessAddModal() {
+                document.getElementById('successAddModal').classList.add('hidden'); // Hide success modal
+                window.location.href = "data_karyawan.php"; // Redirect after closing
+            }
         </script>
 
         <?php include 'footer.php'; ?>
