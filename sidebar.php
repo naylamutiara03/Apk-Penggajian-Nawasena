@@ -4,7 +4,7 @@ if (!isset($_SESSION["login"])) {
     header("Location: login.php");
     exit;
 }
-$username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
+$username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User ";
 ?>
 
 <?php
@@ -21,9 +21,36 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ionicons/5.5.2/ionicons.min.js"></script>
+    <style>
+        .loader {
+            border: 8px solid #f3f3f3;
+            /* Light grey */
+            border-top: 8px solid #3498db;
+            /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100">
+
+    <!-- Elemen Loading -->
+    <div id="loading" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="loader"></div>
+    </div>
 
     <!-- Tombol untuk membuka sidebar di layar kecil -->
     <button onclick="openSidebar()"
@@ -51,7 +78,8 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
     <?php echo ($current_page == 'dashboard.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
             <ion-icon name="speedometer-outline" class="text-xl"></ion-icon>
-            <a href="dashboard.php" class="text-[15px] ml-4 text-gray-200 font-bold">Dashboard</a>
+            <a href="dashboard.php" class="text-[15px] ml-4 text-gray-200 font-bold"
+                onclick="showLoading()">Dashboard</a>
         </div>
 
         <!-- Menu Master Data -->
@@ -61,7 +89,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             <ion-icon name="folder-outline" class="text-xl"></ion-icon>
             <div class="flex justify-between w-full items-center">
                 <span class="text-[15px] ml-4 text-gray-200 font-bold">Master Data</span>
-                <span class="text-sm <?php echo ($is_master_data_active) ? 'rotate-180' : ''; ?>" id="arrowMaster">
+                <span class="text-sm <?php echo ($is_master_data_active) ? ' rotate-180' : ''; ?>" id="arrowMaster">
                     <ion-icon name="chevron-down-outline"></ion-icon>
                 </span>
             </div>
@@ -71,13 +99,14 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
 <?php echo ($is_master_data_active) ? '' : 'hidden'; ?>" id="submenuMaster">
             <a href="data_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_karyawan.php') ? 'bg-blue-600' : ''; ?>">Data Karyawan</a>
+    <?php echo ($current_page == 'data_karyawan.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data
+                Karyawan</a>
             <a href="data_jabatan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_jabatan.php') ? 'bg-blue-600' : ''; ?>">Data Jabatan</a>
+    <?php echo ($current_page == 'data_jabatan.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data Jabatan</a>
             <a href="data_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_tukang.php') ? 'bg-blue-600' : ''; ?>">Data Tukang</a>
+    <?php echo ($current_page == 'data_tukang.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data Tukang</a>
             <a href="data_admin.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_admin.php') ? 'bg-blue-600' : ''; ?>">Data Admin</a>
+    <?php echo ($current_page == 'data_admin.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data Admin</a>
         </div>
 
         <!-- Menu Transaksi -->
@@ -97,11 +126,13 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
     <?php echo ($is_transaksi_active) ? '' : 'hidden'; ?>" id="submenuTransaksi">
             <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 
-        <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+        <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"
+                onclick="showLoading()">
                 Data Absensi Tukang
             </a>
             <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 
-        <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+        <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"
+                onclick="showLoading()">
                 Data Gaji
             </a>
         </div>
@@ -112,7 +143,8 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             onclick="toggleDropdown('submenuLaporan', 'arrowLaporan')">
             <ion-icon name="document-text-outline" class="text-xl"></ion-icon>
             <div class="flex justify-between w-full items-center">
-                <a href="laporan.php" class="text-[15px] ml-4 text-gray-200 font-bold">Laporan</a>
+                <a href="laporan.php" class="text-[15px] ml-4 text-gray-200 font-bold"
+                    onclick="showLoading()">Laporan</a>
                 <span
                     class="text-sm <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? 'rotate-180' : ''; ?>"
                     id="arrowLaporan">
@@ -126,16 +158,17 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? '' : 'hidden'; ?>"
             id="submenuLaporan">
             <a href="laporan_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'laporan_gaji.php') ? 'bg-blue-600' : ''; ?>">Laporan Gaji</a>
+    <?php echo ($current_page == 'laporan_gaji.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Laporan Gaji</a>
             <a href="slip_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">Slip Gaji</a>
+    <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Slip Gaji</a>
         </div>
 
         <!-- Menu Ubah Password -->
         <div
             class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
             <ion-icon name="lock-closed-outline" class="text-xl"></ion-icon>
-            <a href="ubah_password.php" class="text-[15px] ml-4 text-gray-200 font-bold">Ubah Password</a>
+            <a href="ubah_password.php" class="text-[15px] ml-4 text-gray-200 font-bold" onclick="showLoading()">Ubah
+                Password</a>
         </div>
 
         <!-- Menu Logout -->
@@ -177,7 +210,6 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             document.getElementById(arrowId).classList.toggle("rotate-180");
         }
 
-        // Deteksi klik di luar sidebar untuk menutupnya
         document.addEventListener("click", function (event) {
             const sidebar = document.getElementById("sidebar");
             const backdrop = document.getElementById("backdrop");
@@ -188,11 +220,15 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         });
 
         function openLogoutModal() {
-            document.getElementById("logoutModal").classList.remove("hidden"); // Tampilkan modal
+            document.getElementById("logoutModal").classList.remove("hidden");
         }
 
         function closeLogoutModal() {
-            document.getElementById("logoutModal").classList.add("hidden"); // Sembunyikan modal
+            document.getElementById("logoutModal").classList.add("hidden");
+        }
+
+        function showLoading() {
+            document.getElementById("loading").classList.remove("hidden");
         }
     </script>
 
