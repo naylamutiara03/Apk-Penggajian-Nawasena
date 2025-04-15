@@ -24,13 +24,12 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     <style>
         .loader {
             border: 8px solid #f3f3f3;
-            /* Light grey */
             border-top: 8px solid #3498db;
             /* Blue */
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            animation: spin 1s linear infinite;
+            animation: spin 4s linear infinite;
         }
 
         @keyframes spin {
@@ -78,8 +77,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
     <?php echo ($current_page == 'dashboard.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white">
             <ion-icon name="speedometer-outline" class="text-xl"></ion-icon>
-            <a href="dashboard.php" class="text-[15px] ml-4 text-gray-200 font-bold"
-                onclick="showLoading()">Dashboard</a>
+            <a href="dashboard.php" class="text-[15px] ml-4 text-gray-200 font-bold loading-link">Dashboard</a>
         </div>
 
         <!-- Menu Master Data -->
@@ -98,15 +96,15 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <!-- SubMenu Master Data -->
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
 <?php echo ($is_master_data_active) ? '' : 'hidden'; ?>" id="submenuMaster">
-            <a href="data_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_karyawan.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data
+            <a href="data_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+    <?php echo ($current_page == 'data_karyawan.php') ? 'bg-blue-600' : ''; ?>">Data
                 Karyawan</a>
-            <a href="data_jabatan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_jabatan.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data Jabatan</a>
-            <a href="data_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_tukang.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data Tukang</a>
-            <a href="data_admin.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'data_admin.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Data Admin</a>
+            <a href="data_jabatan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+    <?php echo ($current_page == 'data_jabatan.php') ? 'bg-blue-600' : ''; ?>">Data Jabatan</a>
+            <a href="data_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+    <?php echo ($current_page == 'data_tukang.php') ? 'bg-blue-600' : ''; ?>">Data Tukang</a>
+            <a href="data_admin.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+    <?php echo ($current_page == 'data_admin.php') ? 'bg-blue-600' : ''; ?>">Data Admin</a>
         </div>
 
         <!-- Menu Transaksi -->
@@ -125,14 +123,12 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <!-- Submenu Transaksi -->
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
     <?php echo ($is_transaksi_active) ? '' : 'hidden'; ?>" id="submenuTransaksi">
-            <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 
-        <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"
-                onclick="showLoading()">
+            <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 loading-link
+        <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
                 Data Absensi Tukang
             </a>
-            <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 
-        <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"
-                onclick="showLoading()">
+            <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 loading-link 
+        <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
                 Data Gaji
             </a>
         </div>
@@ -157,17 +153,17 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
     <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? '' : 'hidden'; ?>"
             id="submenuLaporan">
-            <a href="laporan_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'laporan_gaji.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Laporan Gaji</a>
-            <a href="slip_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 
-    <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>" onclick="showLoading()">Slip Gaji</a>
+            <a href="laporan_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+    <?php echo ($current_page == 'laporan_gaji.php') ? 'bg-blue-600' : ''; ?>">Laporan Gaji</a>
+            <a href="slip_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+    <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">Slip Gaji</a>
         </div>
 
         <!-- Menu Ubah Password -->
         <div
-            class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+            class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white loading-link">
             <ion-icon name="lock-closed-outline" class="text-xl"></ion-icon>
-            <a href="ubah_password.php" class="text-[15px] ml-4 text-gray-200 font-bold" onclick="showLoading()">Ubah
+            <a href="ubah_password.php" class="text-[15px] ml-4 text-gray-200 font-bold">Ubah
                 Password</a>
         </div>
 
@@ -231,6 +227,21 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             document.getElementById("loading").classList.remove("hidden");
         }
     </script>
+
+    <script>
+        document.querySelectorAll('.loading-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault(); // cegah pindah langsung
+                const url = this.getAttribute('href');
+                document.getElementById("loading").classList.remove("hidden");
+
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 1000);
+            });
+        });
+    </script>
+
 
 </body>
 
