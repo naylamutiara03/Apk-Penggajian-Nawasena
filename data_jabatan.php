@@ -86,7 +86,7 @@ include("sidebar.php");
                                         <td class='py-4 px-6'>" . number_format($d['tunjangan_jabatan'], 0, ',', '.') . "</td>
                                         <td class='py-4 px-6'>" . number_format($d['total'], 0, ',', '.') . "</td>
                                         <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
-                                            <a href='data_jabatan.php?view=edit&id={$d['id']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                                            <a href='#' onclick=\"openEditModal({$d['id']}, '{$d['jabatan']}', {$d['gapok']}, {$d['tunjangan_jabatan']}, '{$d['jenis']}')\" class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
                                                 <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
                                             </a>
                                             <a href='#' onclick=\"openDeleteModal('aksi_jabatan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
@@ -160,15 +160,17 @@ include("sidebar.php");
                         } else {
                             alert(data.message);
                         }
-                    });
+                });
             };
 
             document.getElementById('cancelDelete').onclick = function () {
                 document.getElementById('deleteModal').classList.add('hidden');
             };
 
-            function closeSuccessModal() document.getElementById('successModal').classList.add('hidden');
-            window.location.href = "data_jabatan.php";
+            function closeSuccessModal() {
+                document.getElementById('successModal').classList.add('hidden');
+                window.location.href = "data_jabatan.php";
+            }
         </script>
 
         <?php include 'footer.php'; ?>
@@ -193,8 +195,7 @@ include("sidebar.php");
             </div>
             <div class="mb-4">
                 <label for="tunjangan" class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
-                <input type="number" id="tunjangan" name="tunjangan_jabatan" required
-                    class="border rounded-lg p-2 w-full">
+                <input type="number" id="tunjangan" name="tunjangan_jabatan" required class="border rounded-lg p-2 w-full">
             </div>
             <div class="mb-4">
                 <label for="jenis" class="block text-sm font-medium text-gray-700">Jenis Jabatan</label>
@@ -228,9 +229,55 @@ include("sidebar.php");
     function closeAddJabatanModal() {
         document.getElementById("addJabatanModal").classList.add("hidden");
     }
+</script>
 
-    function closeSuccessModal() {
-        document.getElementById('successModal').classList.add('hidden');
-        window.location.href = "data_jabatan.php";
+<!-- Edit Data Jabatan Modal -->
+<div id="editJabatanModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 class="text-lg font-semibold mb-4">Edit Data Jabatan</h2>
+        <form id="editJabatanForm" action="aksi_jabatan.php?act=edit" method="POST">
+            <input type="hidden" name="id" id="editId">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
+                <input type="text" id="editJabatan" name="jabatan" required class="border rounded-lg p-2 w-full">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Gaji Pokok</label>
+                <input type="number" id="editGapok" name="gapok" required class="border rounded-lg p-2 w-full">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
+                <input type="number" id="editTunjangan" name="tunjangan_jabatan" required class="border rounded-lg p-2 w-full">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Jenis Jabatan</label>
+                <select id="editJenis" name="jenis" required class="border rounded-lg p-2 w-full">
+                    <option value="karyawan">Karyawan</option>
+                    <option value="tukang">Tukang</option>
+                </select>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button type="button" onclick="closeEditJabatanModal()"
+                    class="px-4 py-2 bg-gray-500 text-white rounded-lg mr-2 hover:bg-gray-600 transition">Batal</button>
+                <button type="submit"
+                    class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal(id, jabatan, gapok, tunjangan, jenis) {
+        document.getElementById("editId").value = id;
+        document.getElementById("editJabatan").value = jabatan;
+        document.getElementById("editGapok").value = gapok;
+        document.getElementById("editTunjangan").value = tunjangan;
+        document.getElementById("editJenis").value = jenis;
+
+        document.getElementById("editJabatanModal").classList.remove("hidden");
+    }
+
+    function closeEditJabatanModal() {
+        document.getElementById("editJabatanModal").classList.add("hidden");
     }
 </script>
