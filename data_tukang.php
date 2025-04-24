@@ -254,7 +254,7 @@ include("sidebar.php");
                                         if (data.success) {
                                             // Set success message and show success modal
                                             document.getElementById("successAddMessage").innerText = data.message; // Set success message
-                                            document.getElementById("successAdd Modal").classList.remove("hidden"); // Show success modal
+                                            document.getElementById("successAddModal").classList.remove("hidden"); // Show success modal
                                             // Optionally, you can redirect after a delay
                                             setTimeout(() => {
                                                 window.location.href = "data_tukang.php"; // Redirect setelah sukses
@@ -268,7 +268,7 @@ include("sidebar.php");
                     }
 
                     function closeSuccessAddModal() {
-                        document.getElementById('successAddModal').classList.add('hidden'); // Hide success modal
+                        document.getElementById("successAddModal").classList.remove("hidden"); // Show success modal // Hide success modal
                         window.location.href = "data_tukang.php"; // Redirect after closing
                     }
 
