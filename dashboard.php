@@ -73,7 +73,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                         <div class="flex items-center justify-between">
                             <div>
                                 <h2 class="text-sm font-semibold text-gray-500">
-                                    DATA ADMIN
+                                    DATA TUKANG
                                 </h2>
                                 <p class="text-2xl font-bold">
                                     1
@@ -87,7 +87,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                         <div class="flex items-center justify-between">
                             <div>
                                 <h2 class="text-sm font-semibold text-gray-500">
-                                    DATA JABATAN
+                                    DATA KEHADIRAN TUKANG
                                 </h2>
                                 <p class="text-2xl font-bold">
                                     4
@@ -101,7 +101,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                         <div class="flex items-center justify-between">
                             <div>
                                 <h2 class="text-sm font-semibold text-gray-500">
-                                    DATA KEHADIRAN
+                                    DATA ADMIN
                                 </h2>
                                 <p class="text-2xl font-bold">
                                     13
@@ -118,7 +118,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-4 rounded shadow">
                         <h2 class="text-sm font-semibold text-gray-500 mb-2">
-                            Data Pegawai Berdasarkan Jenis Kelamin
+                            Data Kehadiran Tukang
                         </h2>
                         <img alt="Bar chart showing data of employees based on gender" height="400"
                             src="https://storage.googleapis.com/a1aa/image/Ph1zHBqhCX_1YOPPaSx_QZRpjcmUol1m1y39g41BIGs.jpg"
@@ -126,7 +126,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                     </div>
                     <div class="bg-white p-4 rounded shadow">
                         <h2 class="text-sm font-semibold text-gray-500 mb-2">
-                            Status Pegawai
+                            Total Pekerja Nawasena
                         </h2>
                         <img alt="Pie chart showing status of employees" height="400"
                             src="https://storage.googleapis.com/a1aa/image/zjkEmBhlo4yNJJqWDz_8y7UAXZQnnLsL5OlnERLOVt8.jpg"
