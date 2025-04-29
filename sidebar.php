@@ -159,12 +159,11 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">Slip Gaji</a>
         </div>
 
-        <!-- Menu Ubah Password -->
-        <div
-            class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white loading-link">
+         <!-- Menu Ubah Password -->
+        <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white
+    <?php echo ($current_page == 'ubah_password.php') ? 'bg-blue-600' : ''; ?>">
             <ion-icon name="lock-closed-outline" class="text-xl"></ion-icon>
-            <a href="ubah_password.php" class="text-[15px] ml-4 text-gray-200 font-bold">Ubah
-                Password</a>
+            <a href="ubah_password.php" class="loading-link text-[15px] ml-4 text-gray-200 font-bold">Ubah Password</a>
         </div>
 
         <!-- Menu Logout -->
