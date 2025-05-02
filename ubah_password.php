@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body class="bg-gray-100">
-    <div class="p-6 lg:ml-[300px] flex-grow">
+    <div class="p-6 lg:ml-[300px] flex-grow mt-16">
         <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Ubah Password</h2>
 
@@ -68,22 +68,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php endif; ?>
 
             <form action="" method="POST">
-                <div class="mb-4">
+                <!-- Password Lama -->
+                <div class="mb-4 relative">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Password Lama</label>
-                    <input type="password" name="password_lama" required
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="password" name="password_lama" id="password_lama"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                        oninput="toggleEyeIcon('password_lama')" required>
+                    <button type="button" class="absolute right-3 top-9 text-gray-500 hidden"
+                        onclick="togglePassword('password_lama')" id="toggle_password_lama">
+                        <svg id="icon_password_lama" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
                 </div>
 
-                <div class="mb-4">
+                <!-- Password Baru -->
+                <div class="mb-4 relative">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Password Baru</label>
-                    <input type="password" name="password_baru" required
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="password" name="password_baru" id="password_baru"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                        oninput="toggleEyeIcon('password_baru')" required>
+                    <button type="button" class="absolute right-3 top-9 text-gray-500 hidden"
+                        onclick="togglePassword('password_baru')" id="toggle_password_baru">
+                        <svg id="icon_password_baru" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
                 </div>
 
-                <div class="mb-4">
+                <!-- Konfirmasi Password Baru -->
+                <div class="mb-4 relative">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Konfirmasi Password Baru</label>
-                    <input type="password" name="password_baru_konfirmasi" required
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="password" name="password_baru_konfirmasi" id="password_baru_konfirmasi"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                        oninput="toggleEyeIcon('password_baru_konfirmasi')" required>
+                    <button type="button" class="absolute right-3 top-9 text-gray-500 hidden"
+                        onclick="togglePassword('password_baru_konfirmasi')" id="toggle_password_baru_konfirmasi">
+                        <svg id="icon_password_baru_konfirmasi" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div class="flex justify-between mt-6">
@@ -99,6 +135,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </form>
         </div>
     </div>
+    <script>
+        function toggleEyeIcon(id) {
+            const input = document.getElementById(id);
+            const toggleBtn = document.getElementById('toggle_' + id);
+            if (input.value.length > 0) {
+                toggleBtn.classList.remove('hidden');
+            } else {
+                toggleBtn.classList.add('hidden');
+            }
+        }
+
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const icon = document.getElementById('icon_' + id);
+
+            const eyeOpen = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    `;
+
+            const eyeOff = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.965 9.965 0 012.442-4.042M6.423 6.423A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.961 9.961 0 01-4.284 5.136M15 12a3 3 0 00-3-3m0 0a3 3 0 00-3 3m6 0a3 3 0 01-3 3m0 0a3 3 0 01-3-3m12 12L3 3" />
+    `;
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = eyeOff;
+            } else {
+                input.type = 'password';
+                icon.innerHTML = eyeOpen;
+            }
+        }
+    </script>
+
 </body>
 
 </html>
