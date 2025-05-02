@@ -8,6 +8,12 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User ";
 ?>
 
 <?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+?>
+
+<?php
 $current_page = basename($_SERVER['PHP_SELF']);
 $master_data_pages = ['data_karyawan.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
 $is_master_data_active = in_array($current_page, $master_data_pages);

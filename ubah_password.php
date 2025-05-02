@@ -2,11 +2,6 @@
 // Sertakan koneksi ke database lebih dulu
 include("koneksi.php");
 
-// Pastikan session sudah aktif
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
 include("sidebar.php");
 
 // Pastikan admin sudah login
