@@ -51,8 +51,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body class="bg-gray-100">
-    <div class="p-6 lg:ml-[300px] flex-grow mt-16">
-        <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <div class="p-6 lg:ml-[300px] flex-grow">
+        <!-- Header Section -->
+        <div class="bg-white p-4 rounded shadow mb-6">
+            <div class="flex flex-col lg:flex-row justify-between items-center">
+                <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
+                <div class="flex items-center mt-4 lg:mt-0">
+                    <span class="mr-4">Selamat Datang, <?php echo htmlspecialchars($username); ?></span>
+                    <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <!-- END Header Section -->
+
+        <!-- Title & Tanggal Section -->
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold ml-2">Ubah Password</h1>
+            <span class="text-gray-500 mr-2"><?php echo date('d F Y'); ?></span>
+        </div>
+        <!-- END Title & Tanggal Section -->
+
+        <div class="w-full lg:max-w-[800px] mx-auto bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Ubah Password</h2>
 
             <?php if (isset($error_message)): ?>
