@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         <!-- END Title & Tanggal Section -->
 
-        <div class="w-full lg:max-w-[700px] mx-auto bg-white px-8 py-10 rounded-2xl shadow-xl mt-16">
+        <div class="w-full lg:max-w-[700px] mx-auto bg-white/80 px-8 py-10 rounded-2xl shadow-xl mt-16">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Ubah Password</h2>
 
             <?php if (isset($error_message)): ?>
@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-4 relative">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Password Lama</label>
                     <input type="password" name="password_lama" id="password_lama"
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 text-base transition duration-200"
+                        class="input-overlay w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 text-base transition duration-200"
                         oninput="toggleEyeIcon('password_lama')" required>
                     <button type="button" class="absolute right-3 top-9 text-gray-500 hidden"
                         onclick="togglePassword('password_lama')" id="toggle_password_lama">
