@@ -48,6 +48,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <title>Ubah Password</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* style untuk nonaktif icon mata bawaan browser (seperti Chrome pada autofill) */
+        input::-ms-reveal,
+        input::-ms-clear {
+            display: none;
+        }
+
+        input::-webkit-credentials-auto-fill-button {
+            visibility: hidden;
+            display: none !important;
+        }
+
+        input[type="password"]::-webkit-textfield-decoration-container {
+            display: none !important;
+        }
+    </style>
+
 </head>
 
 <body class="bg-gray-100">
@@ -71,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         <!-- END Title & Tanggal Section -->
 
-        <div class="w-full lg:max-w-[800px] mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <div class="w-full lg:max-w-[700px] mx-auto bg-white px-8 py-10 rounded-2xl shadow-xl mt-16">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Ubah Password</h2>
 
             <?php if (isset($error_message)): ?>
@@ -86,12 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             <?php endif; ?>
 
-            <form action="" method="POST">
+            <form action="" method="POST" class="space-y-6">
                 <!-- Password Lama -->
                 <div class="mb-4 relative">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Password Lama</label>
                     <input type="password" name="password_lama" id="password_lama"
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 text-base transition duration-200"
                         oninput="toggleEyeIcon('password_lama')" required>
                     <button type="button" class="absolute right-3 top-9 text-gray-500 hidden"
                         onclick="togglePassword('password_lama')" id="toggle_password_lama">
@@ -109,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-4 relative">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Password Baru</label>
                     <input type="password" name="password_baru" id="password_baru"
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 text-base transition duration-200"
                         oninput="toggleEyeIcon('password_baru')" required>
                     <button type="button" class="absolute right-3 top-9 text-gray-500 hidden"
                         onclick="togglePassword('password_baru')" id="toggle_password_baru">
@@ -127,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-4 relative">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Konfirmasi Password Baru</label>
                     <input type="password" name="password_baru_konfirmasi" id="password_baru_konfirmasi"
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 text-base transition duration-200"
                         oninput="toggleEyeIcon('password_baru_konfirmasi')" required>
                     <button type="button" class="absolute right-3 top-9 text-gray-500 hidden"
                         onclick="togglePassword('password_baru_konfirmasi')" id="toggle_password_baru_konfirmasi">
@@ -141,18 +159,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </button>
                 </div>
 
-                <div class="flex justify-between mt-6">
+                <div class="flex justify-between mt-8">
                     <a href="data_admin.php"
-                        class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">
+                        class="px-6 py-2 bg-gray-500 text-white rounded-xl shadow hover:bg-gray-600 transition duration-200">
                         Batal
                     </a>
                     <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                        class="px-6 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition duration-200">
                         Ubah Password
                     </button>
                 </div>
             </form>
         </div>
+        <?php include 'footer.php'; ?>
     </div>
     <script>
         function toggleEyeIcon(id) {

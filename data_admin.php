@@ -263,15 +263,6 @@ include("sidebar.php");
                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
 
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-semibold mb-2">Password (Kosongkan jika tidak
-                                    diubah)</label>
-                                <input type="password" id="password" name="password"
-                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <button type="button" onclick="togglePassword()" class="absolute top-9 right-3 text-gray-500">
-                                    <ion-icon id="eyeIcon" name="eye-off-outline"></ion-icon>
-                                </button>
-                            </div>
                             <div class="flex justify-between mt-6">
                                 <a href="data_admin.php"
                                     class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">
