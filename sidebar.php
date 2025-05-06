@@ -52,8 +52,8 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
 
 <body class="bg-gray-100">
 
-    <!-- Elemen Loading -->
-    <div id="loading" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+    <!-- Loading Spinner -->
+    <div id="loading" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="loader"></div>
     </div>
 
@@ -165,7 +165,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">Slip Gaji</a>
         </div>
 
-         <!-- Menu Ubah Password -->
+        <!-- Menu Ubah Password -->
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white
     <?php echo ($current_page == 'ubah_password.php') ? 'bg-blue-600' : ''; ?>">
             <ion-icon name="lock-closed-outline" class="text-xl"></ion-icon>
