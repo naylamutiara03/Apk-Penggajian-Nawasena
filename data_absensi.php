@@ -63,7 +63,7 @@ include("sidebar.php");
 
             <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
-                Menampilkan Data Kehadiran Karyawan Bulan: <strong>09</strong>, Tahun: <strong>2020</strong>
+                Menampilkan Data Kehadiran Tukang Bulan: <strong>09</strong>, Tahun: <strong>2020</strong>
             </div>
 
             <!-- Data Table -->
