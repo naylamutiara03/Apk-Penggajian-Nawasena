@@ -15,6 +15,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
+$is_transaksi_active = in_array($current_page, ['data_absensi.php', 'data_gaji.php']);
 $master_data_pages = ['data_karyawan.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
 $is_master_data_active = in_array($current_page, $master_data_pages);
 ?>
@@ -128,16 +129,17 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
 
         <!-- Submenu Transaksi -->
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
-    <?php echo ($is_transaksi_active) ? '' : 'hidden'; ?>" id="submenuTransaksi">
-            <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 loading-link
-        <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+<?php echo ($is_transaksi_active) ? '' : 'hidden'; ?>" id="submenuTransaksi">
+            <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
+    <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-600' : ''; ?>">
                 Data Absensi Tukang
             </a>
-            <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 loading-link 
-        <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+            <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
+    <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-600' : ''; ?>">
                 Data Gaji
             </a>
         </div>
+
 
         <!-- Menu Laporan -->
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
