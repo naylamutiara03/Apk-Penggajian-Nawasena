@@ -160,7 +160,9 @@ include("sidebar.php");
                         </div>
                     </div>
                 </div>
+                <!-- END Modal untuk Error Message usn, nama, pass kosong -->
 
+                <!-- Script fungsi tambah admin -->
                 <script>
                     function tambahAdmin(event) {
                         event.preventDefault(); // Mencegah refresh halaman
@@ -228,6 +230,7 @@ include("sidebar.php");
                         }
                     }
                 </script>
+                <!-- END Script fungsi tambah admin -->
                 <?php
                 break;
 
@@ -277,6 +280,7 @@ include("sidebar.php");
                     </div>
                 </div>
 
+                <!-- Script fungsi edit admin -->
                 <script>
                     function validasiEditAdmin(event) {
                         event.preventDefault();
@@ -321,6 +325,7 @@ include("sidebar.php");
                         }
                     }
                 </script>
+                <!-- END Script fungsi tambah admin -->
                 <?php
                 break;
         }
@@ -338,6 +343,7 @@ include("sidebar.php");
                 </div>
             </div>
         </div>
+        <!-- END Modal konfirmasi hapus -->
 
         <script>
             // Handle delete confirmation

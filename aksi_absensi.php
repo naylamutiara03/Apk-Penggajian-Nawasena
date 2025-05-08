@@ -1,7 +1,6 @@
 <?php
 include 'koneksi.php'; // File koneksi
 
-// Pastikan parameter 'act' tersedia
 $action = isset($_GET['act']) ? $_GET['act'] : '';
 
 if ($action === 'tambah') {
@@ -18,9 +17,9 @@ if ($action === 'tambah') {
     $end   = strtotime("$tanggal_keluar $jam_keluar");
 
     $durations = [
-        ['start' => 9,  'end' => 17],     // Shift pagi: 09:00–17:00
-        ['start' => 18, 'end' => 24],     // Shift malam: 18:00–00:00
-        ['start' => 0,  'end' => 6]       // Shift dini hari: 00:00–06:00
+        ['start' => 9,  'end' => 17],     // 1 hari: 09:00–17:00
+        ['start' => 18, 'end' => 24],     // 1 hari: 18:00–00:00
+        ['start' => 0,  'end' => 6]       // 1 hari: 00:00–06:00
     ];
 
     $total_hadir = 0;

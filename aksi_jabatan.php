@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php'; // Pastikan file ini berisi koneksi ke database
+include 'koneksi.php'; // File koneksi
 
 $act = isset($_GET['act']) ? $_GET['act'] : '';
 

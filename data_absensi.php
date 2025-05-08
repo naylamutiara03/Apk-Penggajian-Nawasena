@@ -1,7 +1,7 @@
 <?php
 include("koneksi.php");
 include("sidebar.php");
-setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia
+setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal IDN)
 ?>
 
 <!DOCTYPE html>
@@ -63,11 +63,13 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia
                     </button>
                 </div>
             </div>
+            <!-- END Filter Section -->
 
             <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
                 Menampilkan Data Kehadiran Tukang Bulan: <strong>09</strong>, Tahun: <strong>2020</strong>
             </div>
+            <!-- END Info Text -->
 
             <!-- Data Table -->
             <div class="overflow-x-auto">
@@ -130,6 +132,7 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia
                     </tbody>
                 </table>
             </div>
+            <!-- END Data Table -->
 
             <!-- Form Tambah Absensi -->
             <div id="formTambah" class="mt-6 hidden bg-gray-50 p-4 border border-gray-200 rounded-lg">
@@ -187,10 +190,11 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia
                     </div>
                 </form>
             </div>
+            <!-- END Form Tambah Absensi -->
         </section>
     </div>
 
-    <!-- Modal untuk Konfirmasi Hapus -->
+    <!-- Modal Konfirmasi Hapus -->
     <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
         <div class="bg-white rounded-lg p-6 max -w-sm mx-auto">
             <h2 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h2>
@@ -203,10 +207,12 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia
             </div>
         </div>
     </div>
+    <!-- END Modal Konfirmasi Hapus -->
 
     <script>
         let deleteUrl = '';
 
+        // script menampilkan modal konfirmasi hapus
         function openDeleteModal(url) {
             deleteUrl = url;
             document.getElementById('deleteModal').classList.remove('hidden');
@@ -228,7 +234,9 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia
         document.getElementById('cancelDelete').onclick = function () {
             document.getElementById('deleteModal').classList.add('hidden');
         };
+        // END script menampilkan modal konfirmasi hapus
 
+        // script menampilkan form tambah absensi
         document.getElementById("btnTambah").addEventListener("click", function () {
             document.getElementById("formTambah").classList.remove("hidden");
         });
@@ -236,6 +244,8 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia
         document.getElementById("btnBatal").addEventListener("click", function () {
             document.getElementById("formTambah").classList.add("hidden");
         });
+        // END script menampilkan form tambah absensi
+        
     </script>
 
 </body>

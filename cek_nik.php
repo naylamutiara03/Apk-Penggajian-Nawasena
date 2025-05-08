@@ -1,3 +1,5 @@
+<!-- Fungsi NIK harus 16 digit (tidak boleh lebih ataupun kurang) -->
+
 <?php
 include("koneksi.php");
 

@@ -1,5 +1,5 @@
 <?php
-include("koneksi.php");
+include("koneksi.php"); // File koneksi
 
 if (isset($_GET['act'])) {
     $action = $_GET['act'];
