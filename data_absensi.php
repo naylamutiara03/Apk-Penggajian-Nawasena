@@ -2,6 +2,8 @@
 include("koneksi.php");
 include("sidebar.php");
 setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal IDN)
+$bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : '';
+$tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 ?>
 
 <!DOCTYPE html>
@@ -39,21 +41,49 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal I
             <div class="bg-blue-600 text-white text-sm font-semibold rounded px-3 py-2 mb-4">
                 Filter Data Kehadiran Tukang
             </div>
-            <div class="flex flex-wrap items-center gap-4 mb-6">
+            <form method="GET" action="" class="flex flex-wrap items-center gap-4 mb-6">
                 <label class="flex items-center gap-2">
                     Bulan:
-                    <select class="border border-gray-300 rounded px-2 py-1">
-                        <option>--Pilih Bulan--</option>
+                    <select name="bulan" class="border border-gray-300 rounded px-2 py-1" required>
+                        <option value="">--Pilih Bulan--</option>
+                        <?php
+                        $bulanNama = [
+                            "01" => "Januari",
+                            "02" => "Februari",
+                            "03" => "Maret",
+                            "04" => "April",
+                            "05" => "Mei",
+                            "06" => "Juni",
+                            "07" => "Juli",
+                            "08" => "Agustus",
+                            "09" => "September",
+                            "10" => "Oktober",
+                            "11" => "November",
+                            "12" => "Desember"
+                        ];
+
+                        foreach ($bulanNama as $key => $nama) {
+                            $selected = ($bulanFilter == $key) ? "selected" : "";
+                            echo "<option value='$key' $selected>$nama</option>";
+                        }
+                        ?>
                     </select>
                 </label>
                 <label class="flex items-center gap-2">
                     Tahun:
-                    <select class="border border-gray-300 rounded px-2 py-1">
-                        <option>--Pilih Tahun--</option>
+                    <select name="tahun" class="border border-gray-300 rounded px-2 py-1" required>
+                        <option value="">--Pilih Tahun--</option>
+                        <?php
+                        $currentYear = date('Y');
+                        for ($y = $currentYear; $y >= 2020; $y--) {
+                            $selected = (isset($_GET['tahun']) && $_GET['tahun'] == $y) ? "selected" : "";
+                            echo "<option value='$y' $selected>$y</option>";
+                        }
+                        ?>
                     </select>
                 </label>
                 <div class="ml-auto flex gap-2">
-                    <button type="button"
+                    <button type="submit"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-eye"></i> Tampilkan Data
                     </button>
@@ -62,12 +92,18 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal I
                         <i class="fas fa-plus"></i> Input Kehadiran
                     </button>
                 </div>
-            </div>
+            </form>
             <!-- END Filter Section -->
 
             <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
-                Menampilkan Data Kehadiran Tukang Bulan: <strong>09</strong>, Tahun: <strong>2020</strong>
+                <?php if ($bulanFilter && $tahunFilter): ?>
+                    Menampilkan Data Kehadiran Tukang Bulan:
+                    <strong><?= $bulanNama[$bulanFilter] ?? $bulanFilter ?></strong>, Tahun:
+                    <strong><?= $tahunFilter ?></strong>
+                <?php else: ?>
+                    Silakan pilih bulan dan tahun untuk menampilkan data.
+                <?php endif; ?>
             </div>
             <!-- END Info Text -->
 
@@ -97,11 +133,12 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal I
                     <tbody>
                         <?php
                         $queryAbsensi = mysqli_query($konek, "
-                        SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan 
-                        FROM absensi_tukang a
-                        JOIN tukang_nws t ON a.nik = t.nik
-                        ORDER BY a.id DESC
-                    ");
+                       SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan 
+                       FROM absensi_tukang a
+                       JOIN tukang_nws t ON a.nik = t.nik
+                       WHERE " . ($bulanFilter && $tahunFilter ? "MONTH(a.tanggal_masuk) = " . intval($bulanFilter) . " AND YEAR(a.tanggal_masuk) = '$tahunFilter'" : "1") . "
+                       ORDER BY a.id DESC
+                   ");
                         if (mysqli_num_rows($queryAbsensi) > 0) {
                             while ($row = mysqli_fetch_assoc($queryAbsensi)) {
                                 echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
@@ -139,7 +176,7 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal I
                 <h3 class="font-semibold text-gray-700 mb-4">Tambah Data Absensi Tukang</h3>
                 <form action="aksi_absensi.php?act=tambah" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block mb-1">NIK</label>
+                        <label class="block mb-1">Nama Karyawan</label>
                         <select name="nik" class="w-full border px-3 py-1 rounded" required>
                             <option value="">-- Pilih Karyawan --</option>
                             <?php
@@ -155,8 +192,23 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal I
                         <select name="bulan" class="w-full border px-3 py-1 rounded" required>
                             <option value="">-- Pilih Bulan --</option>
                             <?php
-                            for ($i = 1; $i <= 12; $i++) {
-                                echo "<option value='" . str_pad($i, 2, "0", STR_PAD_LEFT) . "'>$i</option>";
+                            $bulanNama = [
+                                "01" => "Januari",
+                                "02" => "Februari",
+                                "03" => "Maret",
+                                "04" => "April",
+                                "05" => "Mei",
+                                "06" => "Juni",
+                                "07" => "Juli",
+                                "08" => "Agustus",
+                                "09" => "September",
+                                "10" => "Oktober",
+                                "11" => "November",
+                                "12" => "Desember"
+                            ];
+
+                            foreach ($bulanNama as $key => $nama) {
+                                echo "<option value='$key'>$nama</option>";
                             }
                             ?>
                         </select>
@@ -245,7 +297,36 @@ setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal I
             document.getElementById("formTambah").classList.add("hidden");
         });
         // END script menampilkan form tambah absensi
-        
+
+        const formTambah = document.getElementById('formTambah');
+        const bulanSelect = formTambah.querySelector('select[name="bulan"]');
+        const tahunInput = formTambah.querySelector('input[name="tahun"]');
+        const tanggalMasuk = formTambah.querySelector('input[name="tanggal_masuk"]');
+        const tanggalKeluar = formTambah.querySelector('input[name="tanggal_keluar"]');
+
+
+        function pad(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        function updateTanggal() {
+            const bulan = bulanSelect.value;
+            const tahun = tahunInput.value;
+
+            if (bulan && tahun) {
+                const tanggalAwal = `${tahun}-${bulan}-01`;
+                tanggalMasuk.value = tanggalAwal;
+
+                // Tentukan jumlah hari dalam bulan tersebut
+                const lastDay = new Date(tahun, parseInt(bulan), 0).getDate(); // 0 artinya hari terakhir bulan sebelumnya
+                const tanggalAkhir = `${tahun}-${bulan}-${pad(lastDay)}`;
+                tanggalKeluar.value = tanggalAkhir;
+            }
+        }
+
+        bulanSelect.addEventListener('change', updateTanggal);
+        tahunInput.addEventListener('input', updateTanggal);
+
     </script>
 
 </body>
