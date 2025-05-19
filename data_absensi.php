@@ -95,6 +95,13 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             </form>
             <!-- END Filter Section -->
 
+            <!-- Search Section -->
+            <div class="mb-4">
+                <input type="text" id="searchInput" placeholder="Cari Nama Karyawan..."
+                    class="border border-gray-300 rounded px-2 py-1 w-full">
+            </div>
+            <!-- END Search Section -->
+
             <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
                 <?php if ($bulanFilter && $tahunFilter): ?>
@@ -141,25 +148,49 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                    ");
                         if (mysqli_num_rows($queryAbsensi) > 0) {
                             while ($row = mysqli_fetch_assoc($queryAbsensi)) {
+                                $id = htmlspecialchars($row['id'], ENT_QUOTES);
+                                $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
+                                $nama_tukang = htmlspecialchars($row['nama_tukang'], ENT_QUOTES);
+                                $jabatan = htmlspecialchars($row['jabatan'], ENT_QUOTES);
+                                $bulan = htmlspecialchars($row['bulan'], ENT_QUOTES);
+                                $tahun = htmlspecialchars($row['tahun'], ENT_QUOTES);
+                                $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
+                                $jam_keluar = htmlspecialchars($row['jam_keluar'], ENT_QUOTES);
+                                $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
+                                $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
+                                $total_hadir = htmlspecialchars($row['total_hadir'], ENT_QUOTES);
+
                                 echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-                                    <td class='py-4 px-6 text-center'>{$row['nik']}</td>
-                                    <td class='py-4 px-6'>{$row['nama_tukang']}</td>
-                                    <td class='py-4 px-6'>{$row['jabatan']}</td>
-                                    <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($row['tanggal_masuk'])) . "</td>
-                                    <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($row['tanggal_keluar'])) . "</td>
-                                    <td class='py-4 px-6'>" . date('H:i', strtotime($row['jam_masuk'])) . "</td>
-                                    <td class='py-4 px-6'>" . date('H:i', strtotime($row['jam_keluar'])) . "</td>
-                                    <td class='py-4 px-6'>{$row['total_hadir']} hari</td>
-                                    <td class='py-4 px-6 text-center flex gap-2 justify-center'>
-                                        <a href='#' onclick=\"openEditModal('{$row['id']}')\" class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
-                                            <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                                        </a>
-                                        <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$row['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                                            <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                                        </a>
-                                    </td>
-                                </tr>";
+        <td class='py-4 px-6 text-center'>{$nik}</td>
+        <td class='py-4 px-6'>{$nama_tukang}</td>
+        <td class='py-4 px-6'>{$jabatan}</td>
+        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
+        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
+        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
+        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
+        <td class='py-4 px-6'>{$total_hadir} hari</td>
+        <td class='py-4 px-6 text-center flex gap-2 justify-center'>
+            <a href='#'
+               class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
+               data-id='{$id}'
+               data-nik='{$nik}'
+               data-bulan='{$bulan}'
+               data-tahun='{$tahun}'
+               data-jam-masuk='{$jam_masuk}'
+               data-jam-keluar='{$jam_keluar}'
+               data-tanggal-masuk='{$tanggal_masuk}'
+               data-tanggal-keluar='{$tanggal_keluar}'>
+                <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+            </a>
+
+            <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\"
+               class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+            </a>
+        </td>
+    </tr>";
                             }
+
                         } else {
                             echo "<tr>
                                 <td colspan='6' class='text-center text-gray-400 py-4'>Data belum tersedia.</td>
@@ -246,6 +277,61 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
         </section>
     </div>
 
+    <div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl relative">
+            <h2 class="text-xl font-bold mb-4">Edit Absensi</h2>
+            <form action="aksi_absensi.php?act=edit" method="post">
+                <input type="hidden" id="edit_id" name="id">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block">NIK</label>
+                        <input type="text" id="edit_nik" name="nik" class="w-full border px-2 py-1 rounded" required>
+                    </div>
+                    <div>
+                        <label class="block">Bulan</label>
+                        <input type="text" id="edit_bulan" name="bulan" class="w-full border px-2 py-1 rounded"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block">Tahun</label>
+                        <input type="text" id="edit_tahun" name="tahun" class="w-full border px-2 py-1 rounded"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block">Jam Masuk</label>
+                        <input type="time" id="edit_jam_masuk" name="jam_masuk" class="w-full border px-2 py-1 rounded"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block">Jam Keluar</label>
+                        <input type="time" id="edit_jam_keluar" name="jam_keluar"
+                            class="w-full border px-2 py-1 rounded" required>
+                    </div>
+                    <div>
+                        <label class="block">Tanggal Masuk</label>
+                        <input type="date" id="edit_tanggal_masuk" name="tanggal_masuk"
+                            class="w-full border px-2 py-1 rounded" required>
+                    </div>
+                    <div>
+                        <label class="block">Tanggal Keluar</label>
+                        <input type="date" id="edit_tanggal_keluar" name="tanggal_keluar"
+                            class="w-full border px-2 py-1 rounded" required>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" onclick="closeEditModal()"
+                        class="mr-3 bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Batal</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan</button>
+                </div>
+            </form>
+            <button onclick="closeEditModal()"
+                class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">&times;</button>
+        </div>
+    </div>
+
     <!-- Modal Konfirmasi Hapus -->
     <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
         <div class="bg-white rounded-lg p-6 max -w-sm mx-auto">
@@ -327,8 +413,78 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
         bulanSelect.addEventListener('change', updateTanggal);
         tahunInput.addEventListener('input', updateTanggal);
 
-    </script>
+        // Scroll ke form dan fokus ke input pertama
+        document.getElementById("btnTambah").addEventListener("click", function () {
+            const form = document.getElementById("formTambah");
+            form.classList.remove("hidden");
 
+            // Scroll ke form
+            form.scrollIntoView({ behavior: 'smooth' });
+
+            // Fokus ke input pertama
+            const firstInput = form.querySelector("select[name='nik']");
+            if (firstInput) firstInput.focus();
+
+            updateTanggal(); // otomatis isi tanggal jika bulan/tahun sudah dipilih
+        });
+
+        // script menampilkan modal edit absensi
+        function openEditModal(id, nik, bulan, tahun, jamMasuk, jamKeluar, tanggalMasuk, tanggalKeluar) {
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_nik').value = nik;
+            document.getElementById('edit_bulan').value = bulan;
+            document.getElementById('edit_tahun').value = tahun;
+            document.getElementById('edit_jam_masuk').value = jamMasuk;
+            document.getElementById('edit_jam_keluar').value = jamKeluar;
+            document.getElementById('edit_tanggal_masuk').value = tanggalMasuk;
+            document.getElementById('edit_tanggal_keluar').value = tanggalKeluar;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        // Tambahkan script untuk tombol tambah & batal
+        document.getElementById('btnTambah')?.addEventListener('click', function () {
+            document.getElementById('formTambah').classList.remove('hidden');
+        });
+
+        document.getElementById('btnBatal')?.addEventListener('click', function () {
+            document.getElementById('formTambah').classList.add('hidden');
+        });
+
+        document.querySelectorAll('.edit-button').forEach(button => {
+            button.addEventListener('click', () => {
+                openEditModal(
+                    button.dataset.id,
+                    button.dataset.nik,
+                    button.dataset.bulan,
+                    button.dataset.tahun,
+                    button.dataset.jamMasuk,
+                    button.dataset.jamKeluar,
+                    button.dataset.tanggalMasuk,
+                    button.dataset.tanggalKeluar
+                );
+            });
+        });
+
+        // Script fitur search
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            const searchValue = this.value.toLowerCase(); // Get the search input value
+            const rows = document.querySelectorAll('tbody tr'); // Get all table rows
+
+            rows.forEach(row => {
+                const nameCell = row.cells[1].textContent.toLowerCase(); // Assuming the name is in the second cell (index 1)
+                if (nameCell.includes(searchValue)) {
+                    row.style.display = ''; // Show the row if it matches
+                } else {
+                    row.style.display = 'none'; // Hide the row if it doesn't match
+                }
+            });
+        });
+
+    </script>
 </body>
 
 </html>

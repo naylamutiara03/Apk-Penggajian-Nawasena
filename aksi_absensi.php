@@ -1,65 +1,67 @@
 <?php
-include 'koneksi.php'; // File koneksi
+include 'koneksi.php'; // File koneksi database
 
 $action = isset($_GET['act']) ? $_GET['act'] : '';
 
 if ($action === 'tambah') {
-    $nik = $_POST['nik'];
-    $bulan = $_POST['bulan'];
-    $tahun = $_POST['tahun'];
-    $jam_masuk = $_POST['jam_masuk'];
-    $jam_keluar = $_POST['jam_keluar'];
-    $tanggal_masuk = $_POST['tanggal_masuk'];
-    $tanggal_keluar = $_POST['tanggal_keluar'];
+    // Ambil dan sanitasi data input
+    $nik           = htmlspecialchars($_POST['nik']);
+    $bulan         = htmlspecialchars($_POST['bulan']);
+    $tahun         = htmlspecialchars($_POST['tahun']);
+    $jamMasuk      = htmlspecialchars($_POST['jam_masuk']);
+    $jamKeluar     = htmlspecialchars($_POST['jam_keluar']);
+    $tanggalMasuk  = htmlspecialchars($_POST['tanggal_masuk']);
+    $tanggalKeluar = htmlspecialchars($_POST['tanggal_keluar']);
+
+    // Validasi tanggal
+    if ($tanggalKeluar < $tanggalMasuk) {
+        die(json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']));
+    }
 
     // Hitung total_hadir otomatis
-    $start = strtotime("$tanggal_masuk $jam_masuk");
-    $end = strtotime("$tanggal_keluar $jam_keluar");
+    $start = strtotime("$tanggalMasuk $jamMasuk");
+    $end   = strtotime("$tanggalKeluar $jamKeluar");
 
-    $durations = [
-        ['start' => 9, 'end' => 17],     // 1 hari: 09:00–17:00
-        ['start' => 18, 'end' => 24],     // 1 hari: 18:00–00:00
-        ['start' => 0, 'end' => 6]       // 1 hari: 00:00–06:00
+    $durasiShift = [
+        ['start' => 9,  'end' => 17],  // Shift 1: 09:00–17:00
+        ['start' => 18, 'end' => 24],  // Shift 2: 18:00–00:00
+        ['start' => 0,  'end' => 6]    // Shift 3: 00:00–06:00
     ];
 
-    $total_hadir = 0;
+    $totalHadir = 0;
 
     if ($end > $start) {
         $time = $start;
 
         while ($time < $end) {
-            $jam = (int) date("G", $time);
-            $menit = (int) date("i", $time);
-            $jam_decimal = $jam + ($menit / 60);
+            $jam    = (int) date("G", $time);
+            $menit  = (int) date("i", $time);
+            $jamDesimal = $jam + ($menit / 60);
 
-            foreach ($durations as $shift) {
-                if ($shift['start'] <= $jam_decimal && $jam_decimal < $shift['end']) {
-                    $total_hadir += 1 / ($shift['end'] - $shift['start']);
+            foreach ($durasiShift as $shift) {
+                if ($shift['start'] <= $jamDesimal && $jamDesimal < $shift['end']) {
+                    $totalHadir += 1 / ($shift['end'] - $shift['start']);
                     break;
                 }
             }
 
-            $time += 3600; // tambah 1 jam
+            $time += 3600; // Tambah 1 jam
         }
 
-        $total_hadir = round($total_hadir, 2);
+        $totalHadir = round($totalHadir, 2);
 
-        // Jika tanggal masuk dan keluar sama, dan jam kerja kurang dari 5 jam → setengah hari
-        if ($tanggal_masuk === $tanggal_keluar) {
-            $selisih_jam = ($end - $start) / 3600;
-            if ($selisih_jam >= 3 && $selisih_jam < 5) {
-                $total_hadir = 0.5;
-            }
+        // Jika jam kerja < 5 jam dan tanggal sama, hitung setengah hari
+        $selisihJam = ($end - $start) / 3600;
+        if ($tanggalMasuk === $tanggalKeluar && $selisihJam >= 3 && $selisihJam <= 5) {
+            $totalHadir = 0.5;
         }
-    } else {
-        $total_hadir = 0; // fallback jika input tidak valid
     }
 
     // Simpan ke database
     $query = mysqli_query($konek, "INSERT INTO absensi_tukang 
         (nik, bulan, tahun, jam_masuk, jam_keluar, total_hadir, tanggal_masuk, tanggal_keluar)
         VALUES 
-        ('$nik', '$bulan', '$tahun', '$jam_masuk', '$jam_keluar', '$total_hadir', '$tanggal_masuk', '$tanggal_keluar')");
+        ('$nik', '$bulan', '$tahun', '$jamMasuk', '$jamKeluar', '$totalHadir', '$tanggalMasuk', '$tanggalKeluar')");
 
     if ($query) {
         header("Location: data_absensi.php?bulan=$bulan&tahun=$tahun");
@@ -67,10 +69,10 @@ if ($action === 'tambah') {
     } else {
         echo "Gagal tambah data: " . mysqli_error($konek);
     }
-} elseif ($action === 'delete') {
-    $id = isset($_GET['id']) ? $_GET['id'] : '';
 
+} elseif ($action === 'delete') {
     header('Content-Type: application/json');
+    $id = isset($_GET['id']) ? $_GET['id'] : '';
 
     if (!empty($id)) {
         $query = "DELETE FROM absensi_tukang WHERE id = '$id'";
@@ -82,4 +84,78 @@ if ($action === 'tambah') {
     } else {
         echo json_encode(['success' => false, 'message' => 'ID tidak ditemukan.']);
     }
+} elseif ($action === 'edit') {
+    // Ambil dan sanitasi data input
+    $id            = htmlspecialchars($_POST['id']);
+    $nik           = htmlspecialchars($_POST['nik']);
+    $bulan         = htmlspecialchars($_POST['bulan']);
+    $tahun         = htmlspecialchars($_POST['tahun']);
+    $jamMasuk      = htmlspecialchars($_POST['jam_masuk']);
+    $jamKeluar     = htmlspecialchars($_POST['jam_keluar']);
+    $tanggalMasuk  = htmlspecialchars($_POST['tanggal_masuk']);
+    $tanggalKeluar = htmlspecialchars($_POST['tanggal_keluar']);
+
+    // Validasi tanggal
+    if ($tanggalKeluar < $tanggalMasuk) {
+        die(json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']));
+    }
+
+    // Hitung total_hadir otomatis
+    $start = strtotime("$tanggalMasuk $jamMasuk");
+    $end   = strtotime("$tanggalKeluar $jamKeluar");
+
+    $durasiShift = [
+        ['start' => 9,  'end' => 17],  // Shift 1: 09:00–17:00
+        ['start' => 18, 'end' => 24],  // Shift 2: 18:00–00:00
+        ['start' => 0,  'end' => 6]    // Shift 3: 00:00–06:00
+    ];
+
+    $totalHadir = 0;
+
+    if ($end > $start) {
+        $time = $start;
+
+        while ($time < $end) {
+            $jam    = (int) date("G", $time);
+            $menit  = (int) date("i", $time);
+            $jamDesimal = $jam + ($menit / 60);
+
+            foreach ($durasiShift as $shift) {
+                if ($shift['start'] <= $jamDesimal && $jamDesimal < $shift['end']) {
+                    $totalHadir += 1 / ($shift['end'] - $shift['start']);
+                    break;
+                }
+            }
+
+            $time += 3600; // Tambah 1 jam
+        }
+
+        $totalHadir = round($totalHadir, 2);
+
+        // Jika jam kerja < 5 jam dan tanggal sama, hitung setengah hari
+        $selisihJam = ($end - $start) / 3600;
+        if ($tanggalMasuk === $tanggalKeluar && $selisihJam >= 3 && $selisihJam <= 5) {
+            $totalHadir = 0.5;
+        }
+    }
+
+    // Update database
+    $query = mysqli_query($konek, "UPDATE absensi_tukang SET 
+        nik = '$nik',
+        bulan = '$bulan',
+        tahun = '$tahun',
+        jam_masuk = '$jamMasuk',
+        jam_keluar = '$jamKeluar',
+        tanggal_masuk = '$tanggalMasuk',
+        tanggal_keluar = '$tanggalKeluar',
+        total_hadir = '$totalHadir'
+        WHERE id = '$id'");
+
+    if ($query) {
+        header("Location: data_absensi.php?bulan=$bulan&tahun=$tahun");
+        exit;
+    } else {
+        echo "Gagal edit data: " . mysqli_error($konek);
+    }
 }
+
