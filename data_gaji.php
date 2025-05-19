@@ -12,7 +12,7 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Absensi Tukang</title>
+    <title>Data Gaji</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -31,7 +31,7 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
         <!-- Title & Date -->
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">Data Absensi Tukang</h2>
+            <h2 class="text-xl font-bold">Data Gaji</h2>
             <span class="text-gray-500"><?php echo date('d F Y'); ?></span>
         </div>
 
@@ -39,7 +39,7 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
         <section class="bg-white p-6 rounded-xl shadow">
             <!-- Filter Section -->
             <div class="bg-blue-600 text-white text-sm font-semibold rounded px-3 py-2 mb-4">
-                Filter Data Kehadiran Tukang
+                Filter Data Gaji
             </div>
             <form method="GET" action="" class="flex flex-wrap items-center gap-4 mb-6">
                 <label class="flex items-center gap-2">
@@ -491,7 +491,6 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 }
             });
         });
-
     </script>
 </body>
 
