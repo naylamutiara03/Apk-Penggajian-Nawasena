@@ -45,7 +45,8 @@ include("sidebar.php");
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
                 <div class="flex items-center mt-4 lg:mt-0">
-                    <span class="mr-4">Selamat Datang, <strong><?php echo htmlspecialchars($username); ?></strong></span>
+                    <span class="mr-4">Selamat Datang,
+                        <strong><?php echo htmlspecialchars($username); ?></strong></span>
                     <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
             </div>
@@ -182,7 +183,7 @@ include("sidebar.php");
                                     class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">
                                     Batal
                                 </a>
-                                <button type="button" onclick="tambahTukang(event)"
+                                <button type="submit"
                                     class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
                                     Simpan
                                 </button>
@@ -204,77 +205,80 @@ include("sidebar.php");
                 </div>
 
                 <script>
-                    function tambahTukang(event) {
-                        event.preventDefault(); // Mencegah form submit default
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const addTukangForm = document.getElementById('addTukangForm');
+                        const errorModal = document.getElementById('errorModal');
+                        const errorMessage = document.getElementById('errorMessage');
+                        const successAddModal = document.getElementById('successAddModal');
+                        const successAddMessage = document.getElementById('successAddMessage');
 
-                        let form = document.getElementById("addTukangForm");
-                        let formData = new FormData(form);
+                        addTukangForm.addEventListener('submit', function (event) {
+                            event.preventDefault();
 
-                        // Ambil nilai NIK
-                        let nik = formData.get("nik").trim();
+                            const formData = new FormData(addTukangForm);
+                            const nik = formData.get('nik').trim();
 
-                        // Cek apakah NIK sudah terdaftar
-                        fetch("cek_nik.php?nik=" + nik)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.exists) {
-                                    document.getElementById("errorMessage").innerText = "NIK sudah terdaftar.";
-                                    document.getElementById("errorModal").classList.remove("hidden");
-                                    return;
-                                }
-
-                                // Jika NIK tidak terdaftar, lanjutkan dengan validasi dan pengiriman data
-                                let nama = formData.get("nama_tukang").trim();
-                                let jk = formData.get("jenis_kelamin").trim();
-                                let jabatan = formData.get("jabatan").trim();
-                                let tglMasuk = formData.get("tgl_masuk").trim();
-                                let status = formData.get("status").trim();
-
-                                // Validasi input kosong
-                                if (!nik || !nama || !jk || !jabatan || !tglMasuk || !status) {
-                                    document.getElementById("errorMessage").innerText = "Semua field wajib diisi.";
-                                    document.getElementById("errorModal").classList.remove("hidden");
-                                    return;
-                                }
-
-                                // Validasi panjang NIK
-                                if (nik.length !== 16 || isNaN(nik)) {
-                                    document.getElementById("errorMessage").innerText = "NIK harus terdiri dari 16 digit angka.";
-                                    document.getElementById("errorModal").classList.remove("hidden");
-                                    return;
-                                }
-
-                                // Submit form via fetch
-                                fetch("aksi_tukang.php?act=tambah", {
-                                    method: "POST",
-                                    body: formData
+                            fetch(`cek_nik.php?nik=${nik}`)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+                                    return response.json();
                                 })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            // Set success message and show success modal
-                                            document.getElementById("successAddMessage").innerText = data.message; // Set success message
-                                            document.getElementById("successAddModal").classList.remove("hidden"); // Show success modal
-                                            // Optionally, you can redirect after a delay
-                                            setTimeout(() => {
-                                                window.location.href = "data_tukang.php"; // Redirect setelah sukses
-                                            }, 2000); // Redirect after 2 seconds
-                                        } else {
-                                            document.getElementById("errorMessage").innerText = data.message;
-                                            document.getElementById("errorModal").classList.remove("hidden");
-                                        }
-                                    });
-                            });
-                    }
+                                .then(data => {
+                                    if (data && data.exists) {
+                                        errorMessage.innerText = 'NIK sudah terdaftar.';
+                                        errorModal.classList.remove('hidden');
+                                        return;
+                                    }
 
-                    function closeSuccessAddModal() {
-                        document.getElementById("successAddModal").classList.remove("hidden"); // Show success modal // Hide success modal
-                        window.location.href = "data_tukang.php"; // Redirect after closing
-                    }
+                                    fetch('aksi_tukang.php?act=tambah', {
+                                        method: 'POST',
+                                        body: formData
+                                    })
+                                        .then(response => {
+                                            if (!response.ok) {
+                                                throw new Error(`HTTP error! status: ${response.status}`);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then(data => {
+                                            if (data && data.success) {
+                                                successAddMessage.innerText = data.message;
+                                                successAddModal.classList.remove('hidden');
+                                                setTimeout(() => {
+                                                    window.location.href = 'data_tukang.php';
+                                                }, 2000);
+                                            } else if (data && data.message) {
+                                                errorMessage.innerText = data.message;
+                                                errorModal.classList.remove('hidden');
+                                            } else {
+                                                errorMessage.innerText = 'Terjadi kesalahan yang tidak diketahui.';
+                                                errorModal.classList.remove('hidden');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error saat mengirim data:', error);
+                                            errorMessage.innerText = 'Gagal mengirim data ke server.';
+                                            errorModal.classList.remove('hidden');
+                                        });
+                                })
+                                .catch(error => {
+                                    console.error('Error saat memeriksa NIK:', error);
+                                    errorMessage.innerText = 'Gagal menghubungi server untuk memeriksa NIK.';
+                                    errorModal.classList.remove('hidden');
+                                });
+                        });
 
-                    function closeErrorModal() {
-                        document.getElementById("errorModal").classList.add("hidden");
-                    }
+                        function closeErrorModal() {
+                            errorModal.classList.add('hidden');
+                        }
+
+                        function closeSuccessAddModal() {
+                            successAddModal.classList.add('hidden');
+                            window.location.href = 'data_tukang.php';
+                        }
+                    });
                 </script>
 
                 <?php

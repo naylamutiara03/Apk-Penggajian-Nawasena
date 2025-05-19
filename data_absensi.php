@@ -471,15 +471,23 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
         // Script fitur search
         document.getElementById('searchInput').addEventListener('keyup', function () {
-            const searchValue = this.value.toLowerCase(); // Get the search input value
-            const rows = document.querySelectorAll('tbody tr'); // Get all table rows
+            const searchValue = this.value.toLowerCase(); // Ambil nilai input pencarian dan ubah ke huruf kecil
+            const rows = document.querySelectorAll('tbody tr'); // Ambil semua baris dalam tbody
 
             rows.forEach(row => {
-                const nameCell = row.cells[1].textContent.toLowerCase(); // Assuming the name is in the second cell (index 1)
-                if (nameCell.includes(searchValue)) {
-                    row.style.display = ''; // Show the row if it matches
+                let found = false; // Flag untuk menandai apakah ada kecocokan di baris ini
+                // Loop melalui semua sel dalam setiap baris (kecuali kolom Aksi)
+                for (let i = 0; i < row.cells.length - 1; i++) {
+                    const cellText = row.cells[i].textContent.toLowerCase(); // Ambil teks dari setiap sel dan ubah ke huruf kecil
+                    if (cellText.includes(searchValue)) {
+                        found = true; // Jika ada kecocokan, set flag menjadi true
+                        break; // Keluar dari loop sel karena sudah ditemukan kecocokan
+                    }
+                }
+                if (found) {
+                    row.style.display = ''; // Tampilkan baris jika ada kecocokan di salah satu sel
                 } else {
-                    row.style.display = 'none'; // Hide the row if it doesn't match
+                    row.style.display = 'none'; // Sembunyikan baris jika tidak ada kecocokan
                 }
             });
         });
