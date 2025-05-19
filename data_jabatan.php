@@ -32,7 +32,8 @@ include("sidebar.php");
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
                 <div class="flex items-center mt-4 lg:mt-0">
-                    <span class="mr-4">Selamat Datang, <strong><?php echo htmlspecialchars($username); ?></strong></span>
+                    <span class="mr-4">Selamat Datang,
+                        <strong><?php echo htmlspecialchars($username); ?></strong></span>
                     <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
             </div>
@@ -79,21 +80,27 @@ include("sidebar.php");
                                     $no = 1;
                                     $sql = mysqli_query($konek, "SELECT * FROM jabatan ORDER BY jabatan ASC");
                                     while ($d = mysqli_fetch_array($sql)) {
+                                        // total berbeda tergantung jenis
+                                        if ($d['jenis'] == 'karyawan') {
+                                            $total = $d['gapok'] + $d['tunjangan_jabatan'];
+                                        } else { // tukang
+                                            $total = $d['gapok']; // gaji per hari
+                                        }
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100' data-jenis='{$d['jenis']}'>
-                                        <td class='py-4 px-6 text-center font-bold'>$no</td>
-                                        <td class='py-4 px-6'>{$d['jabatan']}</td>
-                                        <td class='py-4 px-6'>" . number_format($d['gapok'], 0, ',', '.') . "</td>
-                                        <td class='py-4 px-6'>" . number_format($d['tunjangan_jabatan'], 0, ',', '.') . "</td>
-                                        <td class='py-4 px-6'>" . number_format($d['total'], 0, ',', '.') . "</td>
-                                        <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
-                                            <a href='#' onclick=\"openEditModal({$d['id']}, '{$d['jabatan']}', {$d['gapok']}, {$d['tunjangan_jabatan']}, '{$d['jenis']}')\" class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
-                                                <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                                            </a>
-                                            <a href='#' onclick=\"openDeleteModal('aksi_jabatan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                                                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                                            </a>
-                                        </td>
-                                      </tr>";
+            <td class='py-4 px-6 text-center font-bold'>$no</td>
+            <td class='py-4 px-6'>{$d['jabatan']}</td>
+            <td class='py-4 px-6'>" . number_format($d['gapok'], 0, ',', '.') . "</td>
+            <td class='py-4 px-6'>" . ($d['jenis'] == 'karyawan' ? number_format($d['tunjangan_jabatan'], 0, ',', '.') : '-') . "</td>
+            <td class='py-4 px-6'>" . number_format($total, 0, ',', '.') . "</td>
+            <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
+                <a href='#' onclick=\"openEditModal({$d['id']}, '{$d['jabatan']}', {$d['gapok']}, {$d['tunjangan_jabatan']}, '{$d['jenis']}')\" class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                    <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                </a>
+                <a href='#' onclick=\"openDeleteModal('aksi_jabatan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                    <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                </a>
+            </td>
+          </tr>";
                                         $no++;
                                     }
                                     ?>
@@ -160,7 +167,7 @@ include("sidebar.php");
                         } else {
                             alert(data.message);
                         }
-                });
+                    });
             };
 
             document.getElementById('cancelDelete').onclick = function () {
@@ -180,30 +187,46 @@ include("sidebar.php");
 
 </html>
 
-<!-- Tambah Data Jabatan Modal -->
+<!-- Modal tambah -->
 <div id="addJabatanModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
     <div class="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 class="text-lg font-semibold mb-4">Tambah Data Jabatan</h2>
         <form id="addJabatanForm" action="aksi_jabatan.php?act=tambah" method="POST">
             <div class="mb-4">
-                <label for="namaJabatan" class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
-                <input type="text" id="namaJabatan" name="jabatan" required class="border rounded-lg p-2 w-full">
-            </div>
-            <div class="mb-4">
-                <label for="gapok" class="block text-sm font-medium text-gray-700">Gaji Pokok</label>
-                <input type="number" id="gapok" name="gapok" required class="border rounded-lg p-2 w-full">
-            </div>
-            <div class="mb-4">
-                <label for="tunjangan" class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
-                <input type="number" id="tunjangan" name="tunjangan_jabatan" required class="border rounded-lg p-2 w-full">
-            </div>
-            <div class="mb-4">
                 <label for="jenis" class="block text-sm font-medium text-gray-700">Jenis Jabatan</label>
-                <select id="jenis" name="jenis" required class="border rounded-lg p-2 w-full">
+                <select id="jenis" name="jenis" onchange="toggleFormByJenis()" required
+                    class="border rounded-lg p-2 w-full">
                     <option value="karyawan">Karyawan</option>
                     <option value="tukang">Tukang</option>
                 </select>
             </div>
+
+            <div class="mb-4" id="karyawanFields">
+                <label for="namaJabatan" class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
+                <input type="text" id="namaJabatan" name="jabatan" class="border rounded-lg p-2 w-full" required>
+            </div>
+
+            <div class="mb-4 hidden" id="tukangFields">
+                <label for="jabatanTukang" class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
+                <input type="text" id="jabatanTukang" name="jabatan" class="border rounded-lg p-2 w-full" required>
+            </div>
+
+            <div class="mb-4" id="gapokField">
+                <label for="gapok" class="block text-sm font-medium text-gray-700">Gaji Pokok</label>
+                <input type="number" id="gapok" name="gapok" class="border rounded-lg p-2 w-full" required>
+            </div>
+
+            <div class="mb-4" id="tunjanganField">
+                <label for="tunjangan" class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
+                <input type="number" id="tunjangan" name="tunjangan_jabatan" class="border rounded-lg p-2 w-full"
+                    required>
+            </div>
+
+            <div class="mb-4 hidden" id="gajiPerHariField">
+                <label for="gajiPerHari" class="block text-sm font-medium text-gray-700">Gaji per Hari</label>
+                <input type="number" id="gajiPerHari" name="gapok" class="border rounded-lg p-2 w-full" required>
+            </div>
+
             <div class="flex justify-end mt-4">
                 <button type="button" onclick="closeAddJabatanModal()"
                     class="px-4 py-2 bg-gray-500 text-white rounded-lg mr-2 hover:bg-gray-600 transition">Batal</button>
@@ -229,6 +252,36 @@ include("sidebar.php");
     function closeAddJabatanModal() {
         document.getElementById("addJabatanModal").classList.add("hidden");
     }
+    
+    function toggleFormByJenis() {
+        const jenis = document.getElementById("jenis").value;
+        const karyawanFields = document.getElementById("karyawanFields");
+        const tukangFields = document.getElementById("tukangFields");
+        const gapokField = document.getElementById("gapokField");
+        const tunjanganField = document.getElementById("tunjanganField");
+        const gajiPerHariField = document.getElementById("gajiPerHariField");
+
+        if (jenis === "tukang") {
+            tukangFields.classList.remove("hidden");
+            gajiPerHariField.classList.remove("hidden");
+
+            karyawanFields.classList.add("hidden");
+            gapokField.classList.add("hidden");
+            tunjanganField.classList.add("hidden");
+        } else {
+            tukangFields.classList.add("hidden");
+            gajiPerHariField.classList.add("hidden");
+
+            karyawanFields.classList.remove("hidden");
+            gapokField.classList.remove("hidden");
+            tunjanganField.classList.remove("hidden");
+        }
+    }
+
+    // Jalankan saat modal pertama kali dibuka
+    document.addEventListener("DOMContentLoaded", () => {
+        toggleFormByJenis();
+    });
 </script>
 
 <!-- Edit Data Jabatan Modal -->
@@ -247,7 +300,8 @@ include("sidebar.php");
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
-                <input type="number" id="editTunjangan" name="tunjangan_jabatan" required class="border rounded-lg p-2 w-full">
+                <input type="number" id="editTunjangan" name="tunjangan_jabatan" required
+                    class="border rounded-lg p-2 w-full">
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Jenis Jabatan</label>
@@ -267,6 +321,20 @@ include("sidebar.php");
 </div>
 
 <script>
+    document.getElementById("editJenis").addEventListener("change", function () {
+        const jenis = this.value;
+        const gapokField = document.getElementById("editGapok").parentElement;
+        const tunjanganField = document.getElementById("editTunjangan").parentElement;
+
+        if (jenis === "tukang") {
+            gapokField.querySelector('label').innerText = "Gaji per Hari";
+            tunjanganField.style.display = "none";
+        } else {
+            gapokField.querySelector('label').innerText = "Gaji Pokok";
+            tunjanganField.style.display = "block";
+        }
+    });
+
     function openEditModal(id, jabatan, gapok, tunjangan, jenis) {
         document.getElementById("editId").value = id;
         document.getElementById("editJabatan").value = jabatan;
@@ -274,10 +342,11 @@ include("sidebar.php");
         document.getElementById("editTunjangan").value = tunjangan;
         document.getElementById("editJenis").value = jenis;
 
+        // trigger change event untuk toggle field
+        const event = new Event('change');
+        document.getElementById("editJenis").dispatchEvent(event);
+
         document.getElementById("editJabatanModal").classList.remove("hidden");
     }
 
-    function closeEditJabatanModal() {
-        document.getElementById("editJabatanModal").classList.add("hidden");
-    }
 </script>
