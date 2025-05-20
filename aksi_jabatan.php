@@ -1,80 +1,83 @@
 <?php
-include 'koneksi.php';
+include 'koneksi.php'; // Make sure this path is correct
+
+// Set content type to JSON for all responses
+header('Content-Type: application/json');
 
 $act = isset($_GET['act']) ? $_GET['act'] : '';
 
 if ($act == 'tambah') {
-    $jenis = $_POST['jenis'];
-    $jabatan = $_POST['jabatan'];
+    // Sanitize and validate input
+    $jabatan = mysqli_real_escape_string($konek, $_POST['jabatan']);
+    // Remove dots for currency conversion
+    $gapok = (int) str_replace('.', '', $_POST['gapok']);
+    $tunjangan = (int) str_replace('.', '', $_POST['tunjangan_jabatan']);
+    $jenis = mysqli_real_escape_string($konek, $_POST['jenis']);
 
-    if ($jenis == 'tukang') {
-        $gaji_per_hari = $_POST['gaji_per_hari'];
-
-        $query = "INSERT INTO jabatan (jabatan, gaji_per_hari, jenis) 
-                  VALUES ('$jabatan', '$gaji_per_hari', '$jenis')";
-    } else {
-        $gapok = $_POST['gapok'];
-        $tunjangan = $_POST['tunjangan_jabatan'];
-        $total = $gapok;
-
-        $query = "INSERT INTO jabatan (jabatan, gapok, tunjangan_jabatan, total, jenis) 
-                  VALUES ('$jabatan', '$gapok', '$tunjangan', '$total', '$jenis')";
+    // Calculate total based on type
+    if ($jenis == 'karyawan') {
+        $total = $gapok + $tunjangan;
+    } else { // tukang
+        $total = $gapok; // Gaji per hari is the total for tukang
+        $tunjangan = 0; // Ensure tunjangan is 0 for tukang in the database
     }
 
+    $query = "INSERT INTO jabatan (jabatan, gapok, tunjangan_jabatan, total, jenis) 
+              VALUES ('$jabatan', '$gapok', '$tunjangan', '$total', '$jenis')";
+    
     if (mysqli_query($konek, $query)) {
-        header("Location: data_jabatan.php?pesan=berhasil_tambah");
+        echo json_encode(['success' => true, 'message' => 'Data jabatan berhasil ditambahkan.']);
     } else {
-        header("Location: data_jabatan.php?pesan=gagal_tambah");
+        echo json_encode(['success' => false, 'message' => 'Gagal menambahkan data jabatan: ' . mysqli_error($konek)]);
     }
+    exit();
 
 } elseif ($act == 'edit') {
-    $id = $_POST['id'];
-    $jenis = $_POST['jenis'];
-    $jabatan = $_POST['jabatan'];
+    // Sanitize and validate input
+    $id = (int) $_POST['id'];
+    $jabatan = mysqli_real_escape_string($konek, $_POST['jabatan']);
+    // Remove dots for currency conversion
+    $gapok = (int) str_replace('.', '', $_POST['gapok']);
+    $tunjangan = (int) str_replace('.', '', $_POST['tunjangan_jabatan']);
+    $jenis = mysqli_real_escape_string($konek, $_POST['jenis']);
 
-    if ($jenis == 'tukang') {
-        $gaji_per_hari = $_POST['gaji_per_hari'];
-
-        $query = "UPDATE jabatan SET 
-                    jabatan='$jabatan',
-                    gaji_per_hari='$gaji_per_hari',
-                    gapok=NULL,
-                    tunjangan_jabatan=NULL,
-                    total=NULL,
-                    jenis='$jenis'
-                  WHERE id='$id'";
-    } else {
-        $gapok = $_POST['gapok'];
-        $tunjangan = $_POST['tunjangan_jabatan'];
+    // Recalculate total based on type
+    if ($jenis == 'karyawan') {
         $total = $gapok + $tunjangan;
-
-        $query = "UPDATE jabatan SET 
-                    jabatan='$jabatan',
-                    gapok='$gapok',
-                    tunjangan_jabatan='$tunjangan',
-                    total='$total',
-                    gaji_per_hari=NULL,
-                    jenis='$jenis'
-                  WHERE id='$id'";
+    } else { // tukang
+        $total = $gapok; // Gaji per hari is the total for tukang
+        $tunjangan = 0; // Ensure tunjangan is 0 for tukang in the database
     }
 
+    $query = "UPDATE jabatan SET 
+                jabatan='$jabatan',
+                gapok='$gapok',
+                tunjangan_jabatan='$tunjangan',
+                total='$total',
+                jenis='$jenis'
+              WHERE id='$id'";
+    
     if (mysqli_query($konek, $query)) {
-        header("Location: data_jabatan.php?pesan=berhasil_edit");
+        echo json_encode(['success' => true, 'message' => 'Data jabatan berhasil diupdate.']);
     } else {
-        header("Location: data_jabatan.php?pesan=gagal_edit");
+        echo json_encode(['success' => false, 'message' => 'Gagal mengupdate data jabatan: ' . mysqli_error($konek)]);
     }
+    exit();
 
 } elseif ($act == 'delete') {
-    $id = $_GET['id'];
+    $id = (int) $_GET['id']; // Cast to integer for security
 
     $query = "DELETE FROM jabatan WHERE id='$id'";
+    
     if (mysqli_query($konek, $query)) {
-        header("Location: data_jabatan.php?pesan=berhasil_hapus");
+        echo json_encode(['success' => true, 'message' => 'Data jabatan berhasil dihapus.', 'id' => $id]);
     } else {
-        header("Location: data_jabatan.php?pesan=gagal_hapus");
+        echo json_encode(['success' => false, 'message' => 'Gagal menghapus data jabatan: ' . mysqli_error($konek)]);
     }
+    exit();
 
 } else {
-    header("Location: data_jabatan.php?pesan=aksi_tidak_valid");
+    echo json_encode(['success' => false, 'message' => 'Aksi tidak valid.']);
+    exit();
 }
 ?>

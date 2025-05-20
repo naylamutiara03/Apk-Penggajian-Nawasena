@@ -1,6 +1,6 @@
 <?php
 include("koneksi.php");
-include("sidebar.php");
+include("sidebar.php"); // Assuming sidebar.php sets $username
 ?>
 
 <!DOCTYPE html>
@@ -15,11 +15,10 @@ include("sidebar.php");
 
 <body class="bg-gray-100">
     <div class="p-6 lg:ml-[300px] flex-grow">
-        <!-- Modal untuk Pesan Sukses -->
-        <div id="successModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+        <div id="successModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
             <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
                 <h2 class="text-lg font-bold text-gray-800">Sukses!</h2>
-                <p class="text-gray-600 mt-2" id="successMessage">Data jabatan berhasil dihapus.</p>
+                <p class="text-gray-600 mt-2" id="successMessage">Data berhasil diproses.</p>
                 <div class="mt-4">
                     <button onclick="closeSuccessModal()"
                         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
@@ -27,7 +26,6 @@ include("sidebar.php");
             </div>
         </div>
 
-        <!-- Header Section -->
         <div class="bg-white p-4 rounded shadow mb-6">
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
@@ -38,28 +36,22 @@ include("sidebar.php");
                 </div>
             </div>
         </div>
-        <!-- END Header Section -->
-
-        <!-- Title & Tanggal Section -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold ml-2">Data Jabatan</h1>
             <span class="text-gray-500 mr-2"><?php echo date('d F Y'); ?></span>
         </div>
-        <!-- END Title & Tanggal Section -->
-
-        <!-- Filter Dropdown -->
-        <div class="flex items-center mb-4">
-            <p class="mr-2">Pilih Berdasarkan:</p>
-            <select id="filterJabatan" class="border rounded-lg p-2" onchange="filterJabatan()">
-                <option value="all">Semua Jabatan</option>
-                <option value="karyawan">Karyawan</option>
-                <option value="tukang">Tukang</option>
-            </select>
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center">
+                <p class="mr-2">Pilih Berdasarkan:</p>
+                <select id="filterJabatan" class="border rounded-lg p-2" onchange="filterJabatan()">
+                    <option value="all">Semua Jabatan</option>
+                    <option value="karyawan">Karyawan</option>
+                    <option value="tukang">Tukang</option>
+                </select>
+            </div>
+            <p class="text-sm italic text-gray-600">Notes: Gaji tukang yang tertera dibawah adalah hitungan per hari</p>
         </div>
-        <!-- END Filter Dropdown -->
-
         <div id="content">
-            <!-- Tabel Data Jabatan -->
             <div id="tableJabatan">
                 <div class="flex justify-center">
                     <div class="bg-white p-6 mt-4 shadow-lg rounded-lg w-full max-w-7xl">
@@ -69,7 +61,7 @@ include("sidebar.php");
                                     <tr>
                                         <th class="py-4 px-6 text-center">No</th>
                                         <th class="py-4 px-6 text-left">Nama Jabatan</th>
-                                        <th class="py-4 px-6 text-left">Gaji Pokok</th>
+                                        <th class="py-4 px-6 text-left">Gaji</th>
                                         <th class="py-4 px-6 text-left">Tunjangan Jabatan</th>
                                         <th class="py-4 px-6 text-left">Total</th>
                                         <th class="py-4 px-6 text-center">Aksi</th>
@@ -80,27 +72,33 @@ include("sidebar.php");
                                     $no = 1;
                                     $sql = mysqli_query($konek, "SELECT * FROM jabatan ORDER BY jabatan ASC");
                                     while ($d = mysqli_fetch_array($sql)) {
-                                        // total berbeda tergantung jenis
+                                        $gaji_display = number_format($d['gapok'], 0, ',', '.');
+                                        $tunjangan_display = '-';
+                                        $total = 0;
+
                                         if ($d['jenis'] == 'karyawan') {
                                             $total = $d['gapok'] + $d['tunjangan_jabatan'];
+                                            $tunjangan_display = number_format($d['tunjangan_jabatan'], 0, ',', '.');
                                         } else { // tukang
                                             $total = $d['gapok']; // gaji per hari
+                                            // Explicitly show "Gaji per Hari" in the Gaji Pokok column for 'tukang'
+                                            $gaji_display .= ' (per Hari)';
                                         }
-                                        echo "<tr class='border-b border-gray-200 hover:bg-blue-100' data-jenis='{$d['jenis']}'>
-            <td class='py-4 px-6 text-center font-bold'>$no</td>
-            <td class='py-4 px-6'>{$d['jabatan']}</td>
-            <td class='py-4 px-6'>" . number_format($d['gapok'], 0, ',', '.') . "</td>
-            <td class='py-4 px-6'>" . ($d['jenis'] == 'karyawan' ? number_format($d['tunjangan_jabatan'], 0, ',', '.') : '-') . "</td>
-            <td class='py-4 px-6'>" . number_format($total, 0, ',', '.') . "</td>
-            <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
-                <a href='#' onclick=\"openEditModal({$d['id']}, '{$d['jabatan']}', {$d['gapok']}, {$d['tunjangan_jabatan']}, '{$d['jenis']}')\" class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
-                    <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                </a>
-                <a href='#' onclick=\"openDeleteModal('aksi_jabatan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                    <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                </a>
-            </td>
-          </tr>";
+                                        echo "<tr class='border-b border-gray-200 hover:bg-blue-100' data-jenis='{$d['jenis']}' data-id='{$d['id']}'>
+                                                <td class='py-4 px-6 text-center font-bold'>$no</td>
+                                                <td class='py-4 px-6'>{$d['jabatan']}</td>
+                                                <td class='py-4 px-6'>" . $gaji_display . "</td>
+                                                <td class='py-4 px-6'>" . $tunjangan_display . "</td>
+                                                <td class='py-4 px-6'>" . number_format($total, 0, ',', '.') . "</td>
+                                                <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
+                                                    <a href='#' onclick=\"openEditModal({$d['id']}, '{$d['jabatan']}', {$d['gapok']}, {$d['tunjangan_jabatan']}, '{$d['jenis']}')\" class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                                                        <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                                                    </a>
+                                                    <a href='#' onclick=\"openDeleteModal('aksi_jabatan.php?act=delete&id={$d['id']}', {$d['id']})\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                                                        <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                                                    </a>
+                                                </td>
+                                            </tr>";
                                         $no++;
                                     }
                                     ?>
@@ -133,8 +131,7 @@ include("sidebar.php");
             }
         </script>
 
-        <!-- Modal konfirmasi hapus -->
-        <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
             <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
                 <h2 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h2>
                 <p>Apakah Anda yakin ingin menghapus jabatan ini?</p>
@@ -149,24 +146,37 @@ include("sidebar.php");
 
         <script>
             let deleteUrl = '';
+            let deleteId = null; // Store the ID of the item to be deleted
 
-            function openDeleteModal(url) {
+            function openDeleteModal(url, id) {
                 deleteUrl = url;
+                deleteId = id;
                 document.getElementById('deleteModal').classList.remove('hidden');
             }
 
             document.getElementById('confirmDelete').onclick = function () {
-                fetch(deleteUrl)
+                fetch(deleteUrl, { method: 'GET' })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             document.getElementById('deleteModal').classList.add('hidden');
                             document.getElementById("successMessage").innerText = data.message;
                             document.getElementById("successModal").classList.remove("hidden");
-                            filterJabatan(); // Refresh the table after deletion
+                            
+                            // Remove the row from the table
+                            const rowToRemove = document.querySelector(`#jabatanData tr[data-id='${deleteId}']`);
+                            if (rowToRemove) {
+                                rowToRemove.remove();
+                                // Re-number the remaining rows
+                                updateRowNumbers();
+                            }
                         } else {
                             alert(data.message);
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan saat menghapus data.');
                     });
             };
 
@@ -176,7 +186,14 @@ include("sidebar.php");
 
             function closeSuccessModal() {
                 document.getElementById('successModal').classList.add('hidden');
-                window.location.href = "data_jabatan.php";
+            }
+
+            // Function to update row numbers after an item is deleted
+            function updateRowNumbers() {
+                const remainingRows = document.querySelectorAll('#jabatanData tr');
+                remainingRows.forEach((row, index) => {
+                    row.children[0].innerText = index + 1; // Update the 'No' column
+                });
             }
         </script>
 
@@ -187,44 +204,32 @@ include("sidebar.php");
 
 </html>
 
-<!-- Modal tambah -->
 <div id="addJabatanModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
     <div class="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 class="text-lg font-semibold mb-4">Tambah Data Jabatan</h2>
-        <form id="addJabatanForm" action="aksi_jabatan.php?act=tambah" method="POST">
+        <form id="addJabatanForm" method="POST">
             <div class="mb-4">
-                <label for="jenis" class="block text-sm font-medium text-gray-700">Jenis Jabatan</label>
-                <select id="jenis" name="jenis" onchange="toggleFormByJenis()" required
+                <label for="addJenis" class="block text-sm font-medium text-gray-700">Jenis Jabatan</label>
+                <select id="addJenis" name="jenis" onchange="toggleAddFormFields()" required
                     class="border rounded-lg p-2 w-full">
                     <option value="karyawan">Karyawan</option>
                     <option value="tukang">Tukang</option>
                 </select>
             </div>
 
-            <div class="mb-4" id="karyawanFields">
-                <label for="namaJabatan" class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
-                <input type="text" id="namaJabatan" name="jabatan" class="border rounded-lg p-2 w-full" required>
+            <div class="mb-4" id="addNamaJabatanContainer">
+                <label for="addNamaJabatan" class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
+                <input type="text" id="addNamaJabatan" name="jabatan" class="border rounded-lg p-2 w-full" required>
             </div>
 
-            <div class="mb-4 hidden" id="tukangFields">
-                <label for="jabatanTukang" class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
-                <input type="text" id="jabatanTukang" name="jabatan" class="border rounded-lg p-2 w-full" required>
+            <div class="mb-4" id="addGapokContainer">
+                <label for="addGapok" class="block text-sm font-medium text-gray-700">Gaji Pokok</label>
+                <input type="text" id="addGapok" name="gapok" class="currency border rounded-lg p-2 w-full" required>
             </div>
 
-            <div class="mb-4" id="gapokField">
-                <label for="gapok" class="block text-sm font-medium text-gray-700">Gaji Pokok</label>
-                <input type="number" id="gapok" name="gapok" class="border rounded-lg p-2 w-full" required>
-            </div>
-
-            <div class="mb-4" id="tunjanganField">
-                <label for="tunjangan" class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
-                <input type="number" id="tunjangan" name="tunjangan_jabatan" class="border rounded-lg p-2 w-full"
-                    required>
-            </div>
-
-            <div class="mb-4 hidden" id="gajiPerHariField">
-                <label for="gajiPerHari" class="block text-sm font-medium text-gray-700">Gaji per Hari</label>
-                <input type="number" id="gajiPerHari" name="gapok" class="border rounded-lg p-2 w-full" required>
+            <div class="mb-4" id="addTunjanganContainer">
+                <label for="addTunjangan" class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
+                <input type="text" id="addTunjangan" name="tunjangan_jabatan" class="currency border rounded-lg p-2 w-full">
             </div>
 
             <div class="flex justify-end mt-4">
@@ -241,67 +246,92 @@ include("sidebar.php");
     function openAddJabatanModal() {
         const filter = document.getElementById("filterJabatan").value;
         if (filter === 'karyawan' || filter === 'tukang') {
-            document.getElementById("jenis").value = filter;
+            document.getElementById("addJenis").value = filter;
         } else {
-            document.getElementById("jenis").value = "karyawan";
+            document.getElementById("addJenis").value = "karyawan";
         }
-
+        // Reset form fields
+        document.getElementById("addJabatanForm").reset();
+        // Trigger the change event to set initial visibility of fields
+        toggleAddFormFields();
         document.getElementById("addJabatanModal").classList.remove("hidden");
     }
 
     function closeAddJabatanModal() {
         document.getElementById("addJabatanModal").classList.add("hidden");
     }
-    
-    function toggleFormByJenis() {
-        const jenis = document.getElementById("jenis").value;
-        const karyawanFields = document.getElementById("karyawanFields");
-        const tukangFields = document.getElementById("tukangFields");
-        const gapokField = document.getElementById("gapokField");
-        const tunjanganField = document.getElementById("tunjanganField");
-        const gajiPerHariField = document.getElementById("gajiPerHariField");
+
+    function toggleAddFormFields() {
+        const jenis = document.getElementById("addJenis").value;
+        const tunjanganContainer = document.getElementById("addTunjanganContainer");
+        const tunjanganInput = document.getElementById("addTunjangan");
+        const gapokLabel = document.getElementById("addGapok").previousElementSibling;
 
         if (jenis === "tukang") {
-            tukangFields.classList.remove("hidden");
-            gajiPerHariField.classList.remove("hidden");
-
-            karyawanFields.classList.add("hidden");
-            gapokField.classList.add("hidden");
-            tunjanganField.classList.add("hidden");
-        } else {
-            tukangFields.classList.add("hidden");
-            gajiPerHariField.classList.add("hidden");
-
-            karyawanFields.classList.remove("hidden");
-            gapokField.classList.remove("hidden");
-            tunjanganField.classList.remove("hidden");
+            tunjanganContainer.classList.add("hidden");
+            tunjanganInput.removeAttribute("required");
+            tunjanganInput.value = '0'; // Set tunjangan to 0 for tukang
+            gapokLabel.innerText = "Gaji per Hari";
+        } else { // karyawan
+            tunjanganContainer.classList.remove("hidden");
+            tunjanganInput.setAttribute("required", "required");
+            gapokLabel.innerText = "Gaji Pokok";
         }
     }
 
-    // Jalankan saat modal pertama kali dibuka
-    document.addEventListener("DOMContentLoaded", () => {
-        toggleFormByJenis();
+    // Handle Add Form Submission with AJAX
+    document.getElementById('addJabatanForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        // Get form data
+        const formData = new FormData(this);
+
+        // Manually format currency fields by removing dots
+        const gapokInput = document.getElementById('addGapok');
+        const tunjanganInput = document.getElementById('addTunjangan');
+        formData.set('gapok', gapokInput.value.replace(/\./g, ''));
+        formData.set('tunjangan_jabatan', tunjanganInput.value.replace(/\./g, ''));
+
+        fetch('aksi_jabatan.php?act=tambah', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeAddJabatanModal();
+                document.getElementById("successMessage").innerText = data.message;
+                document.getElementById("successModal").classList.remove("hidden");
+                // Reload the page or dynamically add the new row to the table
+                location.reload(); // Simple reload for now, dynamic add is more complex
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menambahkan data.');
+        });
     });
 </script>
 
-<!-- Edit Data Jabatan Modal -->
 <div id="editJabatanModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
     <div class="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 class="text-lg font-semibold mb-4">Edit Data Jabatan</h2>
-        <form id="editJabatanForm" action="aksi_jabatan.php?act=edit" method="POST">
+        <form id="editJabatanForm" method="POST">
             <input type="hidden" name="id" id="editId">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Nama Jabatan</label>
                 <input type="text" id="editJabatan" name="jabatan" required class="border rounded-lg p-2 w-full">
             </div>
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Gaji Pokok</label>
-                <input type="number" id="editGapok" name="gapok" required class="border rounded-lg p-2 w-full">
+                <label id="editGapokLabel" class="block text-sm font-medium text-gray-700">Gaji Pokok</label>
+                <input type="text" id="editGapok" name="gapok" required class="currency border rounded-lg p-2 w-full">
             </div>
-            <div class="mb-4">
+            <div class="mb-4" id="editTunjanganContainer">
                 <label class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
-                <input type="number" id="editTunjangan" name="tunjangan_jabatan" required
-                    class="border rounded-lg p-2 w-full">
+                <input type="text" id="editTunjangan" name="tunjangan_jabatan"
+                    class="currency border rounded-lg p-2 w-full">
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Jenis Jabatan</label>
@@ -323,30 +353,88 @@ include("sidebar.php");
 <script>
     document.getElementById("editJenis").addEventListener("change", function () {
         const jenis = this.value;
-        const gapokField = document.getElementById("editGapok").parentElement;
-        const tunjanganField = document.getElementById("editTunjangan").parentElement;
+        const gapokLabel = document.getElementById("editGapokLabel");
+        const tunjanganContainer = document.getElementById("editTunjanganContainer");
+        const tunjanganInput = document.getElementById("editTunjangan");
 
         if (jenis === "tukang") {
-            gapokField.querySelector('label').innerText = "Gaji per Hari";
-            tunjanganField.style.display = "none";
+            gapokLabel.innerText = "Gaji per Hari";
+            tunjanganContainer.classList.add("hidden");
+            tunjanganInput.removeAttribute("required");
+            tunjanganInput.value = '0';
         } else {
-            gapokField.querySelector('label').innerText = "Gaji Pokok";
-            tunjanganField.style.display = "block";
+            gapokLabel.innerText = "Gaji Pokok";
+            tunjanganContainer.classList.remove("hidden");
+            tunjanganInput.setAttribute("required", "required");
         }
     });
 
     function openEditModal(id, jabatan, gapok, tunjangan, jenis) {
         document.getElementById("editId").value = id;
         document.getElementById("editJabatan").value = jabatan;
-        document.getElementById("editGapok").value = gapok;
-        document.getElementById("editTunjangan").value = tunjangan;
+        // Format the numeric values to currency strings for display in the modal
+        document.getElementById("editGapok").value = new Intl.NumberFormat('id-ID').format(gapok);
+        document.getElementById("editTunjangan").value = new Intl.NumberFormat('id-ID').format(tunjangan);
         document.getElementById("editJenis").value = jenis;
 
-        // trigger change event untuk toggle field
+        // Manually trigger the change event to set initial visibility of fields in edit modal
         const event = new Event('change');
         document.getElementById("editJenis").dispatchEvent(event);
 
         document.getElementById("editJabatanModal").classList.remove("hidden");
     }
 
+    function closeEditJabatanModal() {
+        document.getElementById("editJabatanModal").classList.add("hidden");
+    }
+
+    // script untuk format mata uang
+    document.querySelectorAll('.currency').forEach(input => {
+        input.addEventListener('input', function (e) {
+            let value = this.value.replace(/\D/g, ''); // only digits
+            value = new Intl.NumberFormat('id-ID').format(value); // format thousands
+            this.value = value;
+        });
+
+        input.addEventListener('blur', function () {
+            // Re-format on blur to ensure consistency
+            let value = this.value.replace(/\D/g, '');
+            this.value = new Intl.NumberFormat('id-ID').format(value);
+        });
+    });
+
+    // Handle Edit Form Submission with AJAX
+    document.getElementById('editJabatanForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        // Get form data
+        const formData = new FormData(this);
+
+        // Manually format currency fields by removing dots
+        const editGapokInput = document.getElementById('editGapok');
+        const editTunjanganInput = document.getElementById('editTunjangan');
+        formData.set('gapok', editGapokInput.value.replace(/\./g, ''));
+        formData.set('tunjangan_jabatan', editTunjanganInput.value.replace(/\./g, ''));
+
+        fetch('aksi_jabatan.php?act=edit', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeEditJabatanModal();
+                document.getElementById("successMessage").innerText = data.message;
+                document.getElementById("successModal").classList.remove("hidden");
+                // Reload the page or dynamically update the row in the table
+                location.reload(); // Simple reload for now, dynamic update is more complex
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengupdate data.');
+        });
+    });
 </script>

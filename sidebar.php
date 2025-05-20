@@ -136,7 +136,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             </a>
             <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
     <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-600' : ''; ?>">
-                Data Gaji
+                Data Gaji Tukang
             </a>
         </div>
 
