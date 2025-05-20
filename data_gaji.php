@@ -51,94 +51,117 @@ $q = mysqli_query($konek, "
             <span class="text-gray-500 mr-2"><?= date('d F Y') ?></span>
         </div>
 
-        <!-- Filter Section -->
-        <div class="bg-blue-600 text-white text-sm font-semibold rounded px-3 py-2 mb-4">
-            Filter Data Gaji Tukang
-        </div>
-        <form method="GET" action="" class="flex flex-wrap items-center gap-4 mb-6">
-            <label class="flex items-center gap-2">
-                Bulan:
-                <select name="bulan" class="border border-gray-300 rounded px-2 py-1" required>
-                    <option value="">--Pilih Bulan--</option>
-                    <?php
-                    $bulanNama = [
-                        "01" => "Januari",
-                        "02" => "Februari",
-                        "03" => "Maret",
-                        "04" => "April",
-                        "05" => "Mei",
-                        "06" => "Juni",
-                        "07" => "Juli",
-                        "08" => "Agustus",
-                        "09" => "September",
-                        "10" => "Oktober",
-                        "11" => "November",
-                        "12" => "Desember"
-                    ];
-
-                    foreach ($bulanNama as $key => $nama) {
-                        $selected = ($bulanFilter == $key) ? "selected" : "";
-                        echo "<option value='$key' $selected>$nama</option>";
-                    }
-                    ?>
-                </select>
-            </label>
-            <label class="flex items-center gap-2">
-                Tahun:
-                <select name="tahun" class="border border-gray-300 rounded px-2 py-1" required>
-                    <option value="">--Pilih Tahun--</option>
-                    <?php
-                    $currentYear = date('Y');
-                    for ($y = $currentYear; $y >= 2020; $y--) {
-                        $selected = ($tahunFilter == $y) ? "selected" : "";
-                        echo "<option value='$y' $selected>$y</option>";
-                    }
-                    ?>
-                </select>
-            </label>
-            <div class="ml-auto flex gap-2">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
-                    <i class="fas fa-eye"></i> Tampilkan Data
-                </button>
+        <!-- Main Content -->
+        <section class="bg-white p-6 rounded-xl shadow">
+            <!-- Filter Section -->
+            <div class="bg-blue-600 text-white text-sm font-semibold rounded px-3 py-2 mb-4">
+                Filter Data Gaji Tukang
             </div>
-        </form>
-        <!-- END Filter Section -->
+            <form method="GET" action="" class="flex flex-wrap items-center gap-4 mb-6">
+                <label class="flex items-center gap-2">
+                    Bulan:
+                    <select name="bulan" class="border border-gray-300 rounded px-2 py-1" required>
+                        <option value="">--Pilih Bulan--</option>
+                        <?php
+                        $bulanNama = [
+                            "01" => "Januari",
+                            "02" => "Februari",
+                            "03" => "Maret",
+                            "04" => "April",
+                            "05" => "Mei",
+                            "06" => "Juni",
+                            "07" => "Juli",
+                            "08" => "Agustus",
+                            "09" => "September",
+                            "10" => "Oktober",
+                            "11" => "November",
+                            "12" => "Desember"
+                        ];
 
-        <table class="w-full table-auto border border-gray-300 bg-white shadow-sm rounded">
-            <thead class="bg-gray-200 text-sm font-semibold text-gray-700">
-                <tr>
-                    <th class="border p-3">No</th>
-                    <th class="border p-3">NIK</th>
-                    <th class="border p-3">Nama</th>
-                    <th class="border p-3">Jabatan</th>
-                    <th class="border p-3">Total Hadir (Hari)</th>
-                    <th class="border p-3">Gaji per Hari</th>
-                    <th class="border p-3">Total Gaji</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm text-gray-700">
-                <?php
-                $no = 1;
-                while ($row = mysqli_fetch_assoc($q)):
-                    $total_gaji = $row['total_hadir'] * $row['gapok'];
-                    ?>
-                    <tr class="hover:bg-blue-50">
-                        <td class="border p-3 text-center"><?= $no++ ?></td>
-                        <td class="border p-3"><?= $row['nik'] ?></td>
-                        <td class="border p-3"><?= $row['nama_tukang'] ?></td>
-                        <td class="border p-3"><?= $row['jabatan'] ?></td>
-                        <td class="border p-3 text-center"><?= number_format($row['total_hadir'], 1, ',', '.') ?></td>
-                        <td class="border p-3 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
-                        <td class="border p-3 text-right font-bold"><?= number_format($total_gaji, 0, ',', '.') ?></td>
-                    </tr>
-                <?php endwhile; ?>
-                <?php if (mysqli_num_rows($q) == 0): ?>
-                    <tr>
-                        <td colspan="7" class="text-center p-4 text-gray-500">Tidak ada data gaji untuk bulan dan tahun ini.</td>
-                    </tr>
+                        foreach ($bulanNama as $key => $nama) {
+                            $selected = ($bulanFilter == $key) ? "selected" : "";
+                            echo "<option value='$key' $selected>$nama</option>";
+                        }
+                        ?>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2">
+                    Tahun:
+                    <select name="tahun" class="border border-gray-300 rounded px-2 py-1" required>
+                        <option value="">--Pilih Tahun--</option>
+                        <?php
+                        $currentYear = date('Y');
+                        for ($y = $currentYear; $y >= 2020; $y--) {
+                            $selected = ($tahunFilter == $y) ? "selected" : "";
+                            echo "<option value='$y' $selected>$y</option>";
+                        }
+                        ?>
+                    </select>
+                </label>
+                <div class="ml-auto flex gap-2">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
+                        <i class="fas fa-eye"></i> Tampilkan Data
+                    </button>
+                </div>
+            </form>
+            <!-- END Filter Section -->
+
+            <!-- Info Text -->
+            <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
+                <?php if ($bulanFilter && $tahunFilter): ?>
+                    Menampilkan Data Gaji Tukang Bulan:
+                    <strong><?= $bulanNama[$bulanFilter] ?? $bulanFilter ?></strong>, Tahun:
+                    <strong><?= $tahunFilter ?></strong>
+                <?php else: ?>
+                    Silakan pilih bulan dan tahun untuk menampilkan data.
                 <?php endif; ?>
-            </tbody>
-        </table>
+            </div>
+            <!-- END Info Text -->
+
+            <!-- Data Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-gray-600 border border-gray-300">
+                    <thead class="bg-gray-100 text-gray-500">
+                        <tr>
+                            <th class="border px-3 py-2 text-center font-semibold">No</th>
+                            <th class="border px-3 py-2 text-center font-semibold">NIK</th>
+                            <th class="border px-3 py-2 text-center font-semibold">Nama</th>
+                            <th class="border px-3 py-2 text-center font-semibold">Jabatan</th>
+                            <th class="border px-3 py-2 text-center font-semibold">Total Hadir (Hari)</th>
+                            <th class="border px-3 py-2 text-center font-semibold">Gaji per Hari</th>
+                            <th class="border px-3 py-2 text-center font-semibold">Total Gaji</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $no = 1;
+                        while ($row = mysqli_fetch_assoc($q)):
+                            $total_gaji = $row['total_hadir'] * $row['gapok'];
+                            ?>
+                            <tr class="border-b border-gray-200 hover:bg-blue-100">
+                                <td class="py-4 px-6 text-center"><?= $no++ ?></td>
+                                <td class="py-4 px-6"><?= htmlspecialchars($row['nik']) ?></td>
+                                <td class="py-4 px-6"><?= htmlspecialchars($row['nama_tukang']) ?></td>
+                                <td class="py-4 px-6"><?= htmlspecialchars($row['jabatan']) ?></td>
+                                <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, ',', '.') ?>
+                                </td>
+                                <td class="py-4 px-6 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
+                                <td class="py-4 px-6 text-right font-bold"><?= number_format($total_gaji, 0, ',', '.') ?>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                        <?php if (mysqli_num_rows($q) == 0): ?>
+                            <tr>
+                                <td colspan="7" class="text-center text-gray-400 py-4">Tidak ada data gaji untuk bulan dan
+                                    tahun ini.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            <!-- END Data Table -->
+        </section>
     </div>
 </body>
 

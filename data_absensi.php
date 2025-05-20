@@ -95,12 +95,31 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             </form>
             <!-- END Filter Section -->
 
-            <!-- Search Section -->
-            <div class="mb-4">
+            <!-- Search + Delete Section -->
+            <div class="flex justify-between items-center mb-4">
+                <!-- Search -->
                 <input type="text" id="searchInput" placeholder="Cari Nama Karyawan..."
-                    class="border border-gray-300 rounded px-2 py-1 w-full">
+                    class="border border-gray-300 rounded px-2 py-1 w-64">
+
+                <!-- Delete Button -->
+                <button id="deleteSelected" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-4">
+                    Hapus Terpilih
+                </button>
             </div>
-            <!-- END Search Section -->
+
+            <!-- Modal for Alerts berhasil/gagal hapus terpilih -->
+            <div id="alertModal"
+                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+                    <h2 id="alertTitle" class="text-lg font-semibold mb-4">Pemberitahuan</h2>
+                    <p id="alertMessage" class="mb-4">Pesan akan ditampilkan di sini.</p>
+                    <div class="flex justify-end">
+                        <button id="closeAlert"
+                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Tutup</button>
+                    </div>
+                </div>
+            </div>
+            <!-- END Modal for Alerts -->
 
             <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
@@ -119,6 +138,9 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 <table class="w-full text-gray-600 border border-gray-300">
                     <thead class="bg-gray-100 text-gray-500">
                         <tr>
+                            <th class="border px-3 py-2 text-center font-semibold">
+                                <input type="checkbox" id="selectAll" class="cursor-pointer">
+                            </th>
                             <?php
                             $headers = [
                                 "NIK",
@@ -140,61 +162,50 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     <tbody>
                         <?php
                         $queryAbsensi = mysqli_query($konek, "
-                       SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan 
-                       FROM absensi_tukang a
-                       JOIN tukang_nws t ON a.nik = t.nik
-                       WHERE " . ($bulanFilter && $tahunFilter ? "MONTH(a.tanggal_masuk) = " . intval($bulanFilter) . " AND YEAR(a.tanggal_masuk) = '$tahunFilter'" : "1") . "
-                       ORDER BY a.id DESC
-                   ");
+                SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan 
+                FROM absensi_tukang a
+                JOIN tukang_nws t ON a.nik = t.nik
+                WHERE " . ($bulanFilter && $tahunFilter ? "MONTH(a.tanggal_masuk) = " . intval($bulanFilter) . " AND YEAR(a.tanggal_masuk) = '$tahunFilter'" : "1") . "
+                ORDER BY a.id DESC
+            ");
                         if (mysqli_num_rows($queryAbsensi) > 0) {
                             while ($row = mysqli_fetch_assoc($queryAbsensi)) {
                                 $id = htmlspecialchars($row['id'], ENT_QUOTES);
                                 $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
                                 $nama_tukang = htmlspecialchars(ucwords($row['nama_tukang']), ENT_QUOTES);
                                 $jabatan = htmlspecialchars(ucwords($row['jabatan']), ENT_QUOTES);
-                                $bulan = htmlspecialchars($row['bulan'], ENT_QUOTES);
-                                $tahun = htmlspecialchars($row['tahun'], ENT_QUOTES);
-                                $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
-                                $jam_keluar = htmlspecialchars($row['jam_keluar'], ENT_QUOTES);
                                 $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
                                 $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
+                                $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
+                                $jam_keluar = htmlspecialchars($row['jam_keluar'], ENT_QUOTES);
                                 $total_hadir = htmlspecialchars($row['total_hadir'], ENT_QUOTES);
 
                                 echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-        <td class='py-4 px-6 text-center'>{$nik}</td>
-        <td class='py-4 px-6'>{$nama_tukang}</td>
-        <td class='py-4 px-6'>{$jabatan}</td>
-        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
-        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
-        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
-        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
-        <td class='py-4 px-6'>{$total_hadir} hari</td>
-        <td class='py-4 px-6 text-center flex gap-2 justify-center'>
-            <a href='#'
-               class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
-               data-id='{$id}'
-               data-nik='{$nik}'
-               data-bulan='{$bulan}'
-               data-tahun='{$tahun}'
-               data-jam-masuk='{$jam_masuk}'
-               data-jam-keluar='{$jam_keluar}'
-               data-tanggal-masuk='{$tanggal_masuk}'
-               data-tanggal-keluar='{$tanggal_keluar}'>
-                <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-            </a>
-
-            <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\"
-               class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-            </a>
-        </td>
-    </tr>";
+                        <td class='py-4 px-6 text-center'>
+                            <input type='checkbox' class='selectRow' value='{$id}'>
+                        </td>
+                        <td class='py-4 px-6 text-center'>{$nik}</td>
+                        <td class='py-4 px-6'>{$nama_tukang}</td>
+                        <td class='py-4 px-6'>{$jabatan}</td>
+                        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
+                        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
+                        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
+                        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
+                        <td class='py-4 px-6'>{$total_hadir} hari</td>
+                        <td class='py-4 px-6 text-center flex gap-2 justify-center'>
+                            <a href='#' class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center' data-id='{$id}' data-nik='{$nik}'>
+                                <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                            </a>
+                            <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                            </a>
+                        </td>
+                    </tr>";
                             }
-
                         } else {
                             echo "<tr>
-                                <td colspan='6' class='text-center text-gray-400 py-4'>Data belum tersedia.</td>
-                            </tr>";
+                    <td colspan='9' class='text-center text-gray-400 py-4'>Data belum tersedia.</td>
+                </tr>";
                         }
                         ?>
                     </tbody>
@@ -491,6 +502,49 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 }
             });
         });
+
+        // Script untuk menghapus beberapa data absensi
+        // Pilih semua checkbox
+        document.getElementById('selectAll').addEventListener('change', function () {
+            const checkboxes = document.querySelectorAll('.selectRow');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+        document.getElementById('deleteSelected').addEventListener('click', function () {
+            const selectedIds = Array.from(document.querySelectorAll('.selectRow:checked')).map(checkbox => checkbox.value);
+            if (selectedIds.length === 0) {
+                showAlert('Peringatan', 'Silakan pilih data yang ingin dihapus.');
+                return;
+            }
+            if (confirm('Apakah Anda yakin ingin menghapus data yang dipilih?')) {
+                // Send a request to delete the selected entries
+                fetch('aksi_absensi.php?act=delete&ids=' + selectedIds.join(','))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert('Sukses', 'Data berhasil dihapus.');
+                            location.reload(); // Reload the page to see the changes
+                        } else {
+                            showAlert('Gagal', data.message);
+                        }
+                    });
+            }
+        });
+
+        // END script untuk menghapus beberapa data absensi
+
+        // Script untuk menampilkan alert berhasil/gagal hapus terpilih
+        function showAlert(title, message) {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        document.getElementById('closeAlert').addEventListener('click', function () {
+            document.getElementById('alertModal').classList.add('hidden');
+        });
+        // END script untuk menampilkan alert berhasil/gagal hapus terpilih
 
     </script>
 </body>
