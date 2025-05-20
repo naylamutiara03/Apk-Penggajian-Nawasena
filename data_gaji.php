@@ -32,6 +32,9 @@ $q = mysqli_query($konek, "
     <meta charset="UTF-8">
     <title>Data Gaji Tukang</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 
 <body class="p-6 bg-gray-100">
@@ -103,7 +106,12 @@ $q = mysqli_query($konek, "
                         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-eye"></i> Tampilkan Data
                     </button>
+                    <a href="cetak_gaji.php?bulan=<?= $bulanFilter ?>&tahun=<?= $tahunFilter ?>" target="_blank"
+                        class="bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1 rounded flex items-center gap-1">
+                        <i class="fas fa-print"></i> Cetak Daftar Gaji
+                    </a>
                 </div>
+
             </form>
             <!-- END Filter Section -->
 
