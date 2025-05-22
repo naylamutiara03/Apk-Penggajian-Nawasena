@@ -26,7 +26,7 @@ $q = mysqli_query($konek, "
 ?>
 
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id">    
 
 <head>
     <meta charset="UTF-8">
@@ -107,7 +107,7 @@ $q = mysqli_query($konek, "
                         <i class="fas fa-eye"></i> Tampilkan Data
                     </button>
                     <a href="cetak_gaji.php?bulan=<?= $bulanFilter ?>&tahun=<?= $tahunFilter ?>" target="_blank"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1 rounded flex items-center gap-1">
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-print"></i> Cetak Daftar Gaji
                     </a>
                 </div>
