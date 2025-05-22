@@ -1,135 +1,157 @@
 <?php
 include 'koneksi.php'; // File koneksi database
 
+// Set header to indicate JSON response for all AJAX requests
+// This should be at the very top before any output, but only if it's an AJAX request.
+// For regular form submissions that redirect, don't set this header.
+// A simple way to check if it's an AJAX request is to look for X-Requested-With header,
+// but since your current JS already expects JSON for deletes and POST for edits,
+// we'll explicitly set it for delete and edit actions.
+
 $action = isset($_GET['act']) ? $_GET['act'] : '';
 
 if ($action === 'tambah') {
+    // This action still performs a redirect after successful insertion, so no JSON header here.
+    // However, if there's an error, we should exit with JSON.
     // Ambil dan sanitasi data input
-    $nik = htmlspecialchars($_POST['nik']);
-    $bulan = htmlspecialchars($_POST['bulan']);
-    $tahun = htmlspecialchars($_POST['tahun']);
-    $jamMasuk = htmlspecialchars($_POST['jam_masuk']);
-    $jamKeluar = htmlspecialchars($_POST['jam_keluar']);
-    $tanggalMasuk = htmlspecialchars($_POST['tanggal_masuk']);
-    $tanggalKeluar = htmlspecialchars($_POST['tanggal_keluar']);
+    $nik = mysqli_real_escape_string($konek, $_POST['nik']);
+    $bulan = mysqli_real_escape_string($konek, $_POST['bulan']);
+    $tahun = mysqli_real_escape_string($konek, $_POST['tahun']);
+    $jamMasuk = mysqli_real_escape_string($konek, $_POST['jam_masuk']);
+    $jamKeluar = mysqli_real_escape_string($konek, $_POST['jam_keluar']);
+    $tanggalMasuk = mysqli_real_escape_string($konek, $_POST['tanggal_masuk']);
+    $tanggalKeluar = mysqli_real_escape_string($konek, $_POST['tanggal_keluar']);
 
     // Validasi tanggal
     if ($tanggalKeluar < $tanggalMasuk) {
-        die(json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']));
+        header('Content-Type: application/json'); // Set JSON header for error response
+        echo json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']);
+        exit;
     }
 
     // Hitung total_hadir otomatis
     $start = strtotime("$tanggalMasuk $jamMasuk");
     $end = strtotime("$tanggalKeluar $jamKeluar");
 
-    $durasiShift = [
-        ['start' => 9, 'end' => 17],  // Shift 1: 09:00–17:00
-        ['start' => 18, 'end' => 24],  // Shift 2: 18:00–00:00
-        ['start' => 0, 'end' => 6]    // Shift 3: 00:00–06:00
-    ];
-
     $totalHadir = 0;
 
     if ($end > $start) {
-        $selisihJam = ($end - $start) / 3600;
+        $selisihDetik = $end - $start;
+        $selisihJam = $selisihDetik / 3600; // Convert to hours
 
         if ($selisihJam <= 2) {
             $totalHadir = 0;
         } elseif ($selisihJam > 2 && $selisihJam < 5) {
             $totalHadir = 0.5;
         } else {
-            $totalHadir = round(($selisihJam / 8) * 2) / 2; // dibulatkan ke 0.5 terdekat
+            // Assuming 8 hours is a full day, and rounding to nearest 0.5
+            $totalHadir = round(($selisihJam / 8) * 2) / 2;
         }
     }
 
     // Simpan ke database
-    $query = mysqli_query($konek, "INSERT INTO absensi_tukang 
+    $query = mysqli_query($konek, "INSERT INTO absensi_tukang
         (nik, bulan, tahun, jam_masuk, jam_keluar, total_hadir, tanggal_masuk, tanggal_keluar)
-        VALUES 
+        VALUES
         ('$nik', '$bulan', '$tahun', '$jamMasuk', '$jamKeluar', '$totalHadir', '$tanggalMasuk', '$tanggalKeluar')");
 
     if ($query) {
+        // Redirect on success
         header("Location: data_absensi.php?bulan=$bulan&tahun=$tahun");
         exit;
     } else {
-        echo "Gagal tambah data: " . mysqli_error($konek);
+        // Output error in JSON format if insertion fails, although typically this would redirect as well
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Gagal tambah data: ' . mysqli_error($konek)]);
+        exit;
     }
 
 } elseif ($action === 'delete') {
+    // This action always returns JSON, so set the header here
     header('Content-Type: application/json');
-    $id = isset($_GET['id']) ? $_GET['id'] : '';
 
-    if (isset($_GET['act']) && $_GET['act'] == 'delete') {
-        if (isset($_GET['ids'])) {
-            $ids = explode(',', $_GET['ids']);
-            $ids = array_map('intval', $ids); // Sanitize input
-            $idsList = implode(',', $ids);
+    if (isset($_GET['ids'])) {
+        // Multiple deletion
+        $ids = explode(',', $_GET['ids']);
+        // Sanitize each ID individually using mysqli_real_escape_string
+        $cleanedIds = array_map(function ($id) use ($konek) {
+            // Ensure IDs are numeric or cast them
+            return (int) mysqli_real_escape_string($konek, trim($id));
+        }, $ids);
 
+        // Filter out any non-numeric or empty values after sanitization
+        $cleanedIds = array_filter($cleanedIds, function($value) {
+            return is_numeric($value) && $value > 0;
+        });
+
+        $idsList = implode(',', $cleanedIds);
+
+        if (!empty($idsList)) {
             $query = "DELETE FROM absensi_tukang WHERE id IN ($idsList)";
             if (mysqli_query($konek, $query)) {
-                echo json_encode(['success' => true]);
+                echo json_encode(['success' => true, 'message' => 'Data absensi terpilih berhasil dihapus.']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Gagal menghapus data.']);
+                echo json_encode(['success' => false, 'message' => 'Gagal menghapus data absensi terpilih: ' . mysqli_error($konek)]);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Tidak ada ID yang valid dipilih untuk dihapus.']);
         }
+    } elseif (isset($_GET['id'])) {
+        // Single deletion
+        $id = (int) mysqli_real_escape_string($konek, $_GET['id']); // Ensure ID is integer
+        $query = "DELETE FROM absensi_tukang WHERE id = $id";
+        if (mysqli_query($konek, $query)) {
+            echo json_encode(['success' => true, 'message' => 'Data absensi berhasil dihapus.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Gagal menghapus data: ' . mysqli_error($konek)]);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Parameter ID atau IDs tidak ditemukan.']);
     }
+    exit; // Always exit after JSON response for AJAX delete
 } elseif ($action === 'edit') {
+    // This action should also return JSON, so set the header here
+    header('Content-Type: application/json');
+
     // Ambil dan sanitasi data input
-    $id = htmlspecialchars($_POST['id']);
-    $nik = htmlspecialchars($_POST['nik']);
-    $bulan = htmlspecialchars($_POST['bulan']);
-    $tahun = htmlspecialchars($_POST['tahun']);
-    $jamMasuk = htmlspecialchars($_POST['jam_masuk']);
-    $jamKeluar = htmlspecialchars($_POST['jam_keluar']);
-    $tanggalMasuk = htmlspecialchars($_POST['tanggal_masuk']);
-    $tanggalKeluar = htmlspecialchars($_POST['tanggal_keluar']);
+    $id = (int) mysqli_real_escape_string($konek, $_POST['id']);
+    $nik = mysqli_real_escape_string($konek, $_POST['nik']);
+    $bulan = mysqli_real_escape_string($konek, $_POST['bulan']);
+    $tahun = mysqli_real_escape_string($konek, $_POST['tahun']);
+    $jamMasuk = mysqli_real_escape_string($konek, $_POST['jam_masuk']);
+    $jamKeluar = mysqli_real_escape_string($konek, $_POST['jam_keluar']);
+    $tanggalMasuk = mysqli_real_escape_string($konek, $_POST['tanggal_masuk']);
+    $tanggalKeluar = mysqli_real_escape_string($konek, $_POST['tanggal_keluar']);
 
     // Validasi tanggal
     if ($tanggalKeluar < $tanggalMasuk) {
-        die(json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']));
+        echo json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']);
+        exit;
     }
 
-    // Hitung total_hadir otomatis
+    // Hitung total_hadir otomatis (re-using the logic from 'tambah' for consistency)
     $start = strtotime("$tanggalMasuk $jamMasuk");
     $end = strtotime("$tanggalKeluar $jamKeluar");
-
-    $durasiShift = [
-        ['start' => 9, 'end' => 17],  // Shift 1: 09:00–17:00
-        ['start' => 18, 'end' => 24],  // Shift 2: 18:00–00:00
-        ['start' => 0, 'end' => 6]    // Shift 3: 00:00–06:00
-    ];
 
     $totalHadir = 0;
 
     if ($end > $start) {
-        $time = $start;
+        $selisihDetik = $end - $start;
+        $selisihJam = $selisihDetik / 3600; // Convert to hours
 
-        while ($time < $end) {
-            $jam = (int) date("G", $time);
-            $menit = (int) date("i", $time);
-            $jamDesimal = $jam + ($menit / 60);
-
-            foreach ($durasiShift as $shift) {
-                if ($shift['start'] <= $jamDesimal && $jamDesimal < $shift['end']) {
-                    $totalHadir += 1 / ($shift['end'] - $shift['start']);
-                    break;
-                }
-            }
-
-            $time += 3600; // Tambah 1 jam
-        }
-
-        $totalHadir = round($totalHadir, 2);
-
-        // Jika jam kerja < 5 jam dan tanggal sama, hitung setengah hari
-        $selisihJam = ($end - $start) / 3600;
-        if ($tanggalMasuk === $tanggalKeluar && $selisihJam >= 3 && $selisihJam <= 5) {
+        if ($selisihJam <= 2) {
+            $totalHadir = 0;
+        } elseif ($selisihJam > 2 && $selisihJam < 5) {
             $totalHadir = 0.5;
+        } else {
+            // Assuming 8 hours is a full day, and rounding to nearest 0.5
+            $totalHadir = round(($selisihJam / 8) * 2) / 2;
         }
     }
 
+
     // Update database
-    $query = mysqli_query($konek, "UPDATE absensi_tukang SET 
+    $query = mysqli_query($konek, "UPDATE absensi_tukang SET
         nik = '$nik',
         bulan = '$bulan',
         tahun = '$tahun',
@@ -141,10 +163,15 @@ if ($action === 'tambah') {
         WHERE id = '$id'");
 
     if ($query) {
-        header("Location: data_absensi.php?bulan=$bulan&tahun=$tahun");
-        exit;
+        echo json_encode(['success' => true, 'message' => 'Data absensi berhasil diperbarui.']);
     } else {
-        echo "Gagal edit data: " . mysqli_error($konek);
+        echo json_encode(['success' => false, 'message' => 'Gagal edit data: ' . mysqli_error($konek)]);
     }
+    exit; // Always exit after JSON response for AJAX edit
+} else {
+    // Default response for invalid action, typically not accessed directly
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Aksi tidak valid.']);
+    exit;
 }
-
+?>

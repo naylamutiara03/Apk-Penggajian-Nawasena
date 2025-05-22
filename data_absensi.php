@@ -2,8 +2,15 @@
 include("koneksi.php");
 include("sidebar.php");
 setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal IDN)
+
+// define variabel untuk filter bulan dan tahun
 $bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : '';
 $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
+
+// define variabel default (untuk fungsi edit) - These are now primarily used for initial filter display
+// The actual values for edit modal come from data attributes on the edit button
+$bulan = isset($_GET['bulan']) ? $_GET['bulan'] : '';
+$tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 ?>
 
 <!DOCTYPE html>
@@ -17,11 +24,32 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* Styles for the success pop-up */
+        .success-popup {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .success-popup.show {
+            opacity: 1;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 text-sm">
+    <div id="successMessage" class="success-popup hidden"></div>
+
     <div class="lg:ml-[300px] p-6">
-        <!-- Header -->
         <div class="bg-white p-4 rounded-xl shadow mb-6 flex flex-col lg:flex-row justify-between items-center">
             <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
             <div class="flex items-center gap-2 mt-4 lg:mt-0">
@@ -30,15 +58,12 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             </div>
         </div>
 
-        <!-- Title & Date -->
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Data Absensi Tukang</h2>
             <span class="text-gray-500"><?php echo date('d F Y'); ?></span>
         </div>
 
-        <!-- Main Content -->
         <section class="bg-white p-6 rounded-xl shadow">
-            <!-- Filter Section -->
             <div class="bg-blue-600 text-white text-sm font-semibold rounded px-3 py-2 mb-4">
                 Filter Data Kehadiran Tukang
             </div>
@@ -94,35 +119,15 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     </button>
                 </div>
             </form>
-            <!-- END Filter Section -->
-
-            <!-- Search + Delete Section -->
             <div class="flex justify-between items-center mb-4">
-                <!-- Search -->
                 <input type="text" id="searchInput" placeholder="Cari Nama Karyawan..."
                     class="border border-gray-300 rounded px-2 py-1 w-64">
 
-                <!-- Delete Button -->
                 <button id="deleteSelected" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-4">
                     Hapus Terpilih
                 </button>
             </div>
 
-            <!-- Modal for Alerts berhasil/gagal hapus terpilih -->
-            <div id="alertModal"
-                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-                <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-                    <h2 id="alertTitle" class="text-lg font-semibold mb-4">Pemberitahuan</h2>
-                    <p id="alertMessage" class="mb-4">Pesan akan ditampilkan di sini.</p>
-                    <div class="flex justify-end">
-                        <button id="closeAlert"
-                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Tutup</button>
-                    </div>
-                </div>
-            </div>
-            <!-- END Modal for Alerts -->
-
-            <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
                 <?php if ($bulanFilter && $tahunFilter): ?>
                     Menampilkan Data Kehadiran Tukang Bulan:
@@ -132,9 +137,6 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     Silakan pilih bulan dan tahun untuk menampilkan data.
                 <?php endif; ?>
             </div>
-            <!-- END Info Text -->
-
-            <!-- Data Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-gray-600 border border-gray-300">
                     <thead class="bg-gray-100 text-gray-500">
@@ -163,7 +165,7 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     <tbody>
                         <?php
                         $queryAbsensi = mysqli_query($konek, "
-                SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan 
+                SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
                 FROM absensi_tukang a
                 JOIN tukang_nws t ON a.nik = t.nik
                 WHERE " . ($bulanFilter && $tahunFilter ? "MONTH(a.tanggal_masuk) = " . intval($bulanFilter) . " AND YEAR(a.tanggal_masuk) = '$tahunFilter'" : "1") . "
@@ -194,7 +196,16 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                         <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
                         <td class='py-4 px-6'>{$total_hadir} hari</td>
                         <td class='py-4 px-6 text-center flex gap-2 justify-center'>
-                            <a href='#' class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center' data-id='{$id}' data-nik='{$nik}'>
+                             <a href='#'
+                                class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
+                                data-id='{$id}'
+                                data-nik='{$nik}'
+                                data-bulan='{$bulanFilter}'
+                                data-tahun='{$tahunFilter}'
+                                data-jam-masuk='{$jam_masuk}'
+                                data-jam-keluar='{$jam_keluar}'
+                                data-tanggal-masuk='{$tanggal_masuk}'
+                                data-tanggal-keluar='{$tanggal_keluar}'>
                                 <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
                             </a>
                             <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
@@ -212,9 +223,6 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     </tbody>
                 </table>
             </div>
-            <!-- END Data Table -->
-
-            <!-- Form Tambah Absensi -->
             <div id="formTambah" class="mt-6 hidden bg-gray-50 p-4 border border-gray-200 rounded-lg">
                 <h3 class="font-semibold text-gray-700 mb-4">Tambah Data Absensi Tukang</h3>
                 <form action="aksi_absensi.php?act=tambah" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -285,8 +293,7 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     </div>
                 </form>
             </div>
-            <!-- END Form Tambah Absensi -->
-        </section>
+            </section>
     </div>
 
     <div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
@@ -298,7 +305,7 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block">NIK</label>
-                        <input type="text" id="edit_nik" name="nik" class="w-full border px-2 py-1 rounded" required>
+                        <input type="text" id="edit_nik" name="nik" class="w-full border px-2 py-1 rounded bg-gray-100" readonly>
                     </div>
                     <div>
                         <label class="block">Bulan</label>
@@ -344,46 +351,80 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Hapus -->
-    <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg p-6 max -w-sm mx-auto">
-            <h2 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h2>
-            <p>Apakah Anda yakin ingin menghapus data absensi ini?</p>
-            <div class="flex justify-end mt-4">
-                <button id="cancelDelete"
-                    class="px-4 py-2 bg-gray-500 text-white rounded-lg mr-2 hover:bg-gray-600 transition">Batal</button>
+    <div id="deleteModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded shadow-lg w-80">
+            <h2 class="text-lg font-bold mb-4">Konfirmasi Hapus</h2>
+            <p class="mb-4">Apakah anda yakin ingin menghapus data ini?</p>
+            <div class="flex justify-end gap-2">
+                <button id="cancelDelete" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
                 <button id="confirmDelete"
-                    class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Hapus</button>
+                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
             </div>
         </div>
     </div>
-    <!-- END Modal Konfirmasi Hapus -->
-
+    <div id="deleteSelectedModal"
+        class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded shadow-lg w-80">
+            <h2 class="text-lg font-bold mb-4">Konfirmasi Hapus Terpilih</h2>
+            <p class="mb-4">Apakah anda yakin ingin menghapus data yang dipilih?</p>
+            <div class="flex justify-end gap-2">
+                <button id="cancelDeleteSelected" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
+                <button id="confirmDeleteSelected"
+                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
+            </div>
+        </div>
+    </div>
     <script>
         let deleteUrl = '';
+        const successMessageDiv = document.getElementById('successMessage');
 
-        // script menampilkan modal konfirmasi hapus
+        function showSuccessPopup(message) {
+            successMessageDiv.textContent = message;
+            successMessageDiv.classList.remove('hidden');
+            successMessageDiv.classList.add('show');
+
+            setTimeout(() => {
+                successMessageDiv.classList.remove('show');
+                setTimeout(() => {
+                    successMessageDiv.classList.add('hidden');
+                }, 500); // Wait for fade-out animation to complete
+            }, 3000); // Message visible for 3 seconds
+        }
+
+        // Menampilkan modal konfirmasi untuk single delete
         function openDeleteModal(url) {
             deleteUrl = url;
             document.getElementById('deleteModal').classList.remove('hidden');
         }
 
-        document.getElementById('confirmDelete').onclick = function () {
-            fetch(deleteUrl)
+        // Konfirmasi hapus untuk single delete
+        document.getElementById('confirmDelete').addEventListener('click', function () {
+            fetch(deleteUrl, {
+                method: 'GET', // Or POST if you prefer
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         document.getElementById('deleteModal').classList.add('hidden');
-                        location.reload();
+                        showSuccessPopup(data.message); // Show success pop-up
+                        // Optional: Show a success message to the user before reloading
+                        setTimeout(() => {
+                            location.reload(); // Reload after the pop-up is shown
+                        }, 1000); // Adjust delay as needed
                     } else {
-                        alert(data.message);
+                        alert(data.message || 'Gagal menghapus data.');
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus data.');
                 });
-        };
+        });
 
-        document.getElementById('cancelDelete').onclick = function () {
+        // Batal hapus untuk single delete
+        document.getElementById('cancelDelete').addEventListener('click', function () {
             document.getElementById('deleteModal').classList.add('hidden');
-        };
+        });
         // END script menampilkan modal konfirmasi hapus
 
         // script menampilkan form tambah absensi
@@ -440,10 +481,10 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             updateTanggal(); // otomatis isi tanggal jika bulan/tahun sudah dipilih
         });
 
-        // script menampilkan modal edit absensi
+        // Script untuk menampilkan modal edit absensi
         function openEditModal(id, nik, bulan, tahun, jamMasuk, jamKeluar, tanggalMasuk, tanggalKeluar) {
             document.getElementById('edit_id').value = id;
-            document.getElementById('edit_nik').value = nik;
+            document.getElementById('edit_nik').value = nik; // NIK is now readonly
             document.getElementById('edit_bulan').value = bulan;
             document.getElementById('edit_tahun').value = tahun;
             document.getElementById('edit_jam_masuk').value = jamMasuk;
@@ -453,26 +494,51 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             document.getElementById('editModal').classList.remove('hidden');
         }
 
+        document.getElementById('editModal').querySelector('form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(this);
+            const url = this.action; // Get the action URL from the form
+
+            fetch(url, {
+                method: 'POST', // Assuming your aksi_absensi.php for edit uses POST
+                body: formData
+            })
+                .then(response => response.json()) // Expect JSON response
+                .then(data => {
+                    if (data.success) {
+                        showSuccessPopup(data.message); // Show success pop-up
+                        closeEditModal(); // Close the modal
+                        // Redirect to the selected month after editing
+                        const editedBulan = document.getElementById('edit_bulan').value;
+                        const editedTahun = document.getElementById('edit_tahun').value;
+                        // Reload after the pop-up is shown
+                        setTimeout(() => {
+                            window.location.href = `data_absensi.php?bulan=${editedBulan}&tahun=${editedTahun}`;
+                        }, 1000); // Adjust delay as needed
+                    } else {
+                        alert(data.message || 'Gagal menyimpan perubahan.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menyimpan perubahan.');
+                });
+        });
+
+
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
         }
 
-        // Tambahkan script untuk tombol tambah & batal
-        document.getElementById('btnTambah')?.addEventListener('click', function () {
-            document.getElementById('formTambah').classList.remove('hidden');
-        });
-
-        document.getElementById('btnBatal')?.addEventListener('click', function () {
-            document.getElementById('formTambah').classList.add('hidden');
-        });
-
+        // Add event listeners to all edit buttons
         document.querySelectorAll('.edit-button').forEach(button => {
             button.addEventListener('click', () => {
                 openEditModal(
                     button.dataset.id,
                     button.dataset.nik,
-                    button.dataset.bulan,
-                    button.dataset.tahun,
+                    button.dataset.bulan, // Pass the filter month
+                    button.dataset.tahun, // Pass the filter year
                     button.dataset.jamMasuk,
                     button.dataset.jamKeluar,
                     button.dataset.tanggalMasuk,
@@ -489,7 +555,8 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             rows.forEach(row => {
                 let found = false; // Flag untuk menandai apakah ada kecocokan di baris ini
                 // Loop melalui semua sel dalam setiap baris (kecuali kolom Aksi)
-                for (let i = 0; i < row.cells.length - 1; i++) {
+                // Start from index 1 to skip the checkbox column, and go up to length - 1 to skip the action column
+                for (let i = 1; i < row.cells.length - 1; i++) {
                     const cellText = row.cells[i].textContent.toLowerCase(); // Ambil teks dari setiap sel dan ubah ke huruf kecil
                     if (cellText.includes(searchValue)) {
                         found = true; // Jika ada kecocokan, set flag menjadi true
@@ -512,40 +579,43 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 checkbox.checked = this.checked;
             });
         });
+
+        // Show delete selected modal
         document.getElementById('deleteSelected').addEventListener('click', function () {
             const selectedIds = Array.from(document.querySelectorAll('.selectRow:checked')).map(checkbox => checkbox.value);
             if (selectedIds.length === 0) {
-                showAlert('Peringatan', 'Silakan pilih data yang ingin dihapus.');
+                alert('Silakan pilih data yang ingin dihapus.'); // Use standard alert for simplicity
                 return;
             }
-            if (confirm('Apakah Anda yakin ingin menghapus data yang dipilih?')) {
-                // Send a request to delete the selected entries
-                fetch('aksi_absensi.php?act=delete&ids=' + selectedIds.join(','))
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showAlert('Sukses', 'Data berhasil dihapus.');
+            document.getElementById('deleteSelectedModal').classList.remove('hidden');
+        });
+
+        // Konfirmasi hapus terpilih
+        document.getElementById('confirmDeleteSelected').addEventListener('click', function () {
+            const selectedIds = Array.from(document.querySelectorAll('.selectRow:checked')).map(checkbox => checkbox.value);
+            fetch('aksi_absensi.php?act=delete&ids=' + selectedIds.join(','))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessPopup(data.message); // Show success pop-up
+                        document.getElementById('deleteSelectedModal').classList.add('hidden');
+                        setTimeout(() => {
                             location.reload(); // Reload the page to see the changes
-                        } else {
-                            showAlert('Gagal', data.message);
-                        }
-                    });
-            }
+                        }, 1000); // Adjust delay as needed
+                    } else {
+                        alert(data.message || 'Gagal menghapus data.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus data.');
+                });
         });
 
-        // END script untuk menghapus beberapa data absensi
-
-        // Script untuk menampilkan alert berhasil/gagal hapus terpilih
-        function showAlert(title, message) {
-            document.getElementById('alertTitle').textContent = title;
-            document.getElementById('alertMessage').textContent = message;
-            document.getElementById('alertModal').classList.remove('hidden');
-        }
-
-        document.getElementById('closeAlert').addEventListener('click', function () {
-            document.getElementById('alertModal').classList.add('hidden');
+        // Batal hapus terpilih
+        document.getElementById('cancelDeleteSelected').addEventListener('click', function () {
+            document.getElementById('deleteSelectedModal').classList.add('hidden');
         });
-        // END script untuk menampilkan alert berhasil/gagal hapus terpilih
 
     </script>
 </body>
