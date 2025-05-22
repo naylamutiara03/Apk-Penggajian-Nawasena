@@ -31,7 +31,8 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #4CAF50; /* Green */
+            background-color: #4CAF50;
+            /* Green */
             color: white;
             padding: 15px 25px;
             border-radius: 8px;
@@ -40,6 +41,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
         }
+
         .success-popup.show {
             opacity: 1;
         }
@@ -293,9 +295,10 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     </div>
                 </form>
             </div>
-            </section>
+        </section>
     </div>
 
+    <!-- Modal Edit Absensi -->
     <div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl relative">
             <h2 class="text-xl font-bold mb-4">Edit Absensi</h2>
@@ -305,17 +308,36 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block">NIK</label>
-                        <input type="text" id="edit_nik" name="nik" class="w-full border px-2 py-1 rounded bg-gray-100" readonly>
+                        <input type="text" id="edit_nik" name="nik" class="w-full border px-2 py-1 rounded bg-gray-100"
+                            readonly>
                     </div>
                     <div>
                         <label class="block">Bulan</label>
-                        <input type="text" id="edit_bulan" name="bulan" class="w-full border px-2 py-1 rounded"
-                            required>
+                        <select id="edit_bulan" name="bulan" class="w-full border px-2 py-1 rounded" required>
+                            <option value="01">Januari</option>
+                            <option value="02">Februari</option>
+                            <option value="03">Maret</option>
+                            <option value="04">April</option>
+                            <option value="05">Mei</option>
+                            <option value="06">Juni</option>
+                            <option value="07">Juli</option>
+                            <option value="08">Agustus</option>
+                            <option value="09">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block">Tahun</label>
-                        <input type="text" id="edit_tahun" name="tahun" class="w-full border px-2 py-1 rounded"
-                            required>
+                        <select id="edit_tahun" name="tahun" class="w-full border px-2 py-1 rounded" required>
+                            <?php
+                            $yearNow = date('Y');
+                            for ($i = $yearNow; $i >= 2020; $i--) {
+                                echo "<option value='$i'>$i</option>";
+                            }
+                            ?>
+                        </select>
                     </div>
                     <div>
                         <label class="block">Jam Masuk</label>
@@ -350,6 +372,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">&times;</button>
         </div>
     </div>
+    <!-- Modal Edit Absensi -->
 
     <div id="deleteModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div class="bg-white p-6 rounded shadow-lg w-80">
@@ -495,27 +518,30 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
         }
 
         document.getElementById('editModal').querySelector('form').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault(); // Cegah submit default
 
-            const formData = new FormData(this);
-            const url = this.action; // Get the action URL from the form
+            const form = this;
+            const formData = new FormData(form);
+            const url = form.action;
 
             fetch(url, {
-                method: 'POST', // Assuming your aksi_absensi.php for edit uses POST
+                method: 'POST',
                 body: formData
             })
-                .then(response => response.json()) // Expect JSON response
+                .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showSuccessPopup(data.message); // Show success pop-up
-                        closeEditModal(); // Close the modal
-                        // Redirect to the selected month after editing
-                        const editedBulan = document.getElementById('edit_bulan').value;
-                        const editedTahun = document.getElementById('edit_tahun').value;
-                        // Reload after the pop-up is shown
+                        showSuccessPopup(data.message);
+                        closeEditModal();
+
+                        // Ambil nilai bulan dan tahun dari formData, bukan langsung dari ID
+                        const editedBulan = formData.get('bulan');
+                        const editedTahun = formData.get('tahun');
+
+                        // Redirect ke halaman dengan filter bulan/tahun terbaru
                         setTimeout(() => {
-                            window.location.href = `data_absensi.php?bulan=${editedBulan}&tahun=${editedTahun}`;
-                        }, 1000); // Adjust delay as needed
+                            window.location.replace(`data_absensi.php?bulan=${editedBulan}&tahun=${editedTahun}`);
+                        }, 1000);
                     } else {
                         alert(data.message || 'Gagal menyimpan perubahan.');
                     }
@@ -523,6 +549,29 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 .catch(error => {
                     console.error('Error:', error);
                     alert('Terjadi kesalahan saat menyimpan perubahan.');
+                });
+        });
+
+        document.querySelector('form[action="aksi_absensi.php?act=edit"]').addEventListener('submit', function (e) {
+            e.preventDefault(); // Cegah submit default
+            const form = e.target;
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.href = data.redirect; // Redirect ke bulan & tahun terbaru
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => {
+                    alert("Terjadi kesalahan: " + err);
                 });
         });
 

@@ -80,7 +80,7 @@ if ($action === 'tambah') {
         }, $ids);
 
         // Filter out any non-numeric or empty values after sanitization
-        $cleanedIds = array_filter($cleanedIds, function($value) {
+        $cleanedIds = array_filter($cleanedIds, function ($value) {
             return is_numeric($value) && $value > 0;
         });
 
@@ -163,7 +163,11 @@ if ($action === 'tambah') {
         WHERE id = '$id'");
 
     if ($query) {
-        echo json_encode(['success' => true, 'message' => 'Data absensi berhasil diperbarui.']);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Data absensi berhasil diperbarui.',
+            'redirect' => "data_absensi.php?bulan=$bulan&tahun=$tahun"
+        ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Gagal edit data: ' . mysqli_error($konek)]);
     }
