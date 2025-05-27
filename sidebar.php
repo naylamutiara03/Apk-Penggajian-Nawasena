@@ -158,13 +158,11 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         </div>
 
         <!-- Submenu for Laporan -->
-        <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
-    <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? '' : 'hidden'; ?>"
-            id="submenuLaporan">
-            <a href="laporan_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
-    <?php echo ($current_page == 'laporan_gaji.php') ? 'bg-blue-600' : ''; ?>">Laporan Gaji</a>
-            <a href="slip_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
-    <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">Slip Gaji</a>
+        <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold">
+            <a href="slip_gaji.php"
+                class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">
+                Slip Gaji
+            </a>
         </div>
 
         <!-- Menu Ubah Password -->
