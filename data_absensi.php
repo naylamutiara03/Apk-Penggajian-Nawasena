@@ -206,35 +206,37 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                                     $total_hadir = htmlspecialchars($row['total_hadir'], ENT_QUOTES);
 
                                     echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-                                <td class='py-4 px-6 text-center'>
-                                    <input type='checkbox' class='selectRow' value='{$id}'>
-                                </td>
-                                <td class='py-4 px-6 text-center'>{$nik}</td>
-                                <td class='py-4 px-6'>{$nama_tukang}</td>
-                                <td class='py-4 px-6'>{$jabatan}</td>
-                                <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
-                                <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
-                                <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
-                                <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
-                                <td class='py-4 px-6'>{$total_hadir} hari</td>
-                                <td class='py-4 px-6 text-center flex gap-2 justify-center'>
-                                    <a href='#' class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
-                                        data-id='{$id}'
-                                        data-nik='{$nik}'
-                                        data-bulan='{$bulanFilter}'
-                                        data-tahun='{$tahunFilter}'
-                                        data-minggu='{$mingguFilter}'
-                                        data-jam-masuk='{$jam_masuk}'
-                                        data-jam-keluar='{$jam_keluar}'
-                                        data-tanggal-masuk='{$tanggal_masuk}'
-                                        data-tanggal-keluar='{$tanggal_keluar}'>
-                                        <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                                    </a>
-                                    <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                                        <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                                    </a>
-                                </td>
-                            </tr>";
+    <td class='py-4 px-6 text-center'>
+        <input type='checkbox' class='selectRow' value='{$id}'>
+    </td>
+    <td class='py-4 px-6 text-center'>{$nik}</td>
+    <td class='py-4 px-6'>{$nama_tukang}</td>
+    <td class='py-4 px-6'>{$jabatan}</td>
+    <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
+    <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
+    <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
+    <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
+    <td class='py-4 px-6'>{$total_hadir} hari</td>
+    <td class='py-4 px-6 text-center flex gap-2 justify-center'>
+        <a href='#' class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
+            data-id='{$id}'
+            data-nik='{$nik}'
+            data-nama='{$nama_tukang}' 
+            data-bulan='{$bulanFilter}'
+            data-tahun='{$tahunFilter}'
+            data-minggu='{$mingguFilter}'
+            data-minggu='{$mingguFilter}'
+            data-jam-masuk='{$jam_masuk}'
+            data-jam-keluar='{$jam_keluar}'
+            data-tanggal-masuk='{$tanggal_masuk}'
+            data-tanggal-keluar='{$tanggal_keluar}'>
+            <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+        </a>
+        <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+            <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+        </a>
+    </td>
+</tr>";
                                 }
                             } else {
                                 echo "<tr>
@@ -338,9 +340,9 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block">NIK</label>
-                        <input type="text" id="edit_nik" name="nik" class="w-full border px-2 py-1 rounded bg-gray-100"
-                            readonly>
+                        <label class="block">Nama Karyawan</label>
+                        <input type="text" id="edit_nama" name="nama"
+                            class="w-full border px-2 py-1 rounded bg-gray-100" readonly>
                     </div>
                     <div>
                         <label class="block">Bulan</label>
@@ -370,8 +372,11 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             ?>
                         </select>
                     </div>
-                    <input type="number" name="minggu" class="w-full border px-3 py-1 rounded" min="1" max="5" required
-                        value="<?php echo htmlspecialchars($data_absensi['minggu']); ?>" placeholder="1 - 5">
+                    <div>
+                        <label class="block">Minggu Ke-</label>
+                        <input type="number" id="edit_minggu" name="minggu" class="w-full border px-3 py-1 rounded"
+                            min="1" max="5" required>
+                    </div>
                     <div>
                         <label class="block">Jam Masuk</label>
                         <input type="time" id="edit_jam_masuk" name="jam_masuk" class="w-full border px-2 py-1 rounded"
@@ -393,6 +398,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             class="w-full border px-2 py-1 rounded" required>
                     </div>
                 </div>
+    
 
                 <div class="mt-6 flex justify-end">
                     <button type="button" onclick="closeEditModal()"
@@ -538,17 +544,19 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
         });
 
         // Script untuk menampilkan modal edit absensi
-        function openEditModal(id, nik, bulan, tahun, jamMasuk, jamKeluar, tanggalMasuk, tanggalKeluar) {
+        function openEditModal(id, nik, bulan, tahun, minggu, jamMasuk, jamKeluar, tanggalMasuk, tanggalKeluar, nama) {
             document.getElementById('edit_id').value = id;
-            document.getElementById('edit_nik').value = nik; // NIK is now readonly
+            document.getElementById('edit_nama').value = nama;
             document.getElementById('edit_bulan').value = bulan;
             document.getElementById('edit_tahun').value = tahun;
+            document.getElementById('edit_minggu').value = minggu; // Tambahan minggu
             document.getElementById('edit_jam_masuk').value = jamMasuk;
             document.getElementById('edit_jam_keluar').value = jamKeluar;
             document.getElementById('edit_tanggal_masuk').value = tanggalMasuk;
             document.getElementById('edit_tanggal_keluar').value = tanggalKeluar;
             document.getElementById('editModal').classList.remove('hidden');
         }
+
 
         document.getElementById('editModal').querySelector('form').addEventListener('submit', function (event) {
             event.preventDefault(); // Cegah submit default
@@ -619,19 +627,23 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
         // Add event listeners to all edit buttons
         document.querySelectorAll('.edit-button').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault(); // Cegah reload halaman
                 openEditModal(
                     button.dataset.id,
                     button.dataset.nik,
-                    button.dataset.bulan, // Pass the filter month
-                    button.dataset.tahun, // Pass the filter year
+                    button.dataset.bulan,
+                    button.dataset.tahun,
+                    button.dataset.minggu,
                     button.dataset.jamMasuk,
                     button.dataset.jamKeluar,
                     button.dataset.tanggalMasuk,
-                    button.dataset.tanggalKeluar
+                    button.dataset.tanggalKeluar,
+                    button.dataset.nama
                 );
             });
         });
+
 
         // Script fitur search
         document.getElementById('searchInput').addEventListener('keyup', function () {
