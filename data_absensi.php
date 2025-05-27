@@ -339,14 +339,21 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 <input type="hidden" id="edit_id" name="id">
 
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block">Nama Karyawan</label>
+                    <div class="mb-2">
+                        <label class="block mb-1">Nama Karyawan</label>
                         <input type="text" id="edit_nama" name="nama"
-                            class="w-full border px-2 py-1 rounded bg-gray-100" readonly>
+                            class="w-full border px-3 py-2 rounded bg-gray-100" readonly>
                     </div>
-                    <div>
-                        <label class="block">Bulan</label>
-                        <select id="edit_bulan" name="bulan" class="w-full border px-2 py-1 rounded" required>
+
+                    <div class="mb-2">
+                        <label class="block mb-1">NIK</label>
+                        <input type="text" name="nik" value="<?= htmlspecialchars($nik) ?>"
+                            class="w-full border px-3 py-2 rounded bg-gray-100" readonly>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="block mb-1">Bulan</label>
+                        <select id="edit_bulan" name="bulan" class="w-full border px-3 py-2 rounded" required>
                             <option value="01">Januari</option>
                             <option value="02">Februari</option>
                             <option value="03">Maret</option>
@@ -361,9 +368,10 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             <option value="12">Desember</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block">Tahun</label>
-                        <select id="edit_tahun" name="tahun" class="w-full border px-2 py-1 rounded" required>
+
+                    <div class="mb-2">
+                        <label class="block mb-1">Tahun</label>
+                        <select id="edit_tahun" name="tahun" class="w-full border px-3 py-2 rounded" required>
                             <?php
                             $yearNow = date('Y');
                             for ($i = $yearNow; $i >= 2020; $i--) {
@@ -372,33 +380,37 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             ?>
                         </select>
                     </div>
-                    <div>
-                        <label class="block">Minggu Ke-</label>
-                        <input type="number" id="edit_minggu" name="minggu" class="w-full border px-3 py-1 rounded"
+
+                    <div class="mb-2">
+                        <label class="block mb-1">Minggu Ke-</label>
+                        <input type="number" id="edit_minggu" name="minggu" class="w-full border px-3 py-2 rounded"
                             min="1" max="5" required>
                     </div>
-                    <div>
-                        <label class="block">Jam Masuk</label>
-                        <input type="time" id="edit_jam_masuk" name="jam_masuk" class="w-full border px-2 py-1 rounded"
+
+                    <div class="mb-2">
+                        <label class="block mb-1">Jam Masuk</label>
+                        <input type="time" id="edit_jam_masuk" name="jam_masuk" class="w-full border px-3 py-2 rounded"
                             required>
                     </div>
-                    <div>
-                        <label class="block">Jam Keluar</label>
+
+                    <div class="mb-2">
+                        <label class="block mb-1">Jam Keluar</label>
                         <input type="time" id="edit_jam_keluar" name="jam_keluar"
-                            class="w-full border px-2 py-1 rounded" required>
+                            class="w-full border px-3 py-2 rounded" required>
                     </div>
-                    <div>
-                        <label class="block">Tanggal Masuk</label>
+
+                    <div class="mb-2">
+                        <label class="block mb-1">Tanggal Masuk</label>
                         <input type="date" id="edit_tanggal_masuk" name="tanggal_masuk"
-                            class="w-full border px-2 py-1 rounded" required>
+                            class="w-full border px-3 py-2 rounded" required>
                     </div>
-                    <div>
-                        <label class="block">Tanggal Keluar</label>
+
+                    <div class="mb-2">
+                        <label class="block mb-1">Tanggal Keluar</label>
                         <input type="date" id="edit_tanggal_keluar" name="tanggal_keluar"
-                            class="w-full border px-2 py-1 rounded" required>
+                            class="w-full border px-3 py-2 rounded" required>
                     </div>
                 </div>
-    
 
                 <div class="mt-6 flex justify-end">
                     <button type="button" onclick="closeEditModal()"
@@ -411,6 +423,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">&times;</button>
         </div>
     </div>
+
     <!-- Modal Edit Absensi -->
 
     <div id="deleteModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -545,18 +558,30 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
         // Script untuk menampilkan modal edit absensi
         function openEditModal(id, nik, bulan, tahun, minggu, jamMasuk, jamKeluar, tanggalMasuk, tanggalKeluar, nama) {
+            // Format bulan jadi 2 digit jika perlu
+            if (bulan.toString().length === 1) {
+                bulan = bulan.toString().padStart(2, '0');
+            }
+
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nama').value = nama;
-            document.getElementById('edit_bulan').value = bulan;
+            document.querySelector('input[name="nik"]').value = nik; // <- tambahkan ini
+
+            document.getElementById('edit_bulan').value = padZero(bulan);
             document.getElementById('edit_tahun').value = tahun;
-            document.getElementById('edit_minggu').value = minggu; // Tambahan minggu
+            document.getElementById('edit_minggu').value = minggu;
             document.getElementById('edit_jam_masuk').value = jamMasuk;
             document.getElementById('edit_jam_keluar').value = jamKeluar;
             document.getElementById('edit_tanggal_masuk').value = tanggalMasuk;
             document.getElementById('edit_tanggal_keluar').value = tanggalKeluar;
-            document.getElementById('editModal').classList.remove('hidden');
-        }
 
+            document.getElementById('editModal').classList.remove('hidden');
+
+            function padZero(value) {
+                return value.toString().padStart(2, '0');
+            }
+
+        }
 
         document.getElementById('editModal').querySelector('form').addEventListener('submit', function (event) {
             event.preventDefault(); // Cegah submit default
@@ -575,13 +600,9 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                         showSuccessPopup(data.message);
                         closeEditModal();
 
-                        // Ambil nilai bulan dan tahun dari formData, bukan langsung dari ID
-                        const editedBulan = formData.get('bulan');
-                        const editedTahun = formData.get('tahun');
-
-                        // Redirect ke halaman dengan filter bulan/tahun terbaru
+                        // Redirect ke URL yang diberikan dalam respons
                         setTimeout(() => {
-                            window.location.replace(`data_absensi.php?bulan=${editedBulan}&tahun=${editedTahun}`);
+                            window.location.href = data.redirect; // Redirect ke URL yang benar
                         }, 1000);
                     } else {
                         alert(data.message || 'Gagal menyimpan perubahan.');
@@ -595,7 +616,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
         // modal pop up untuk menyimpan perubahan edit absensi
         document.querySelector('form[action="aksi_absensi.php?act=edit"]').addEventListener('submit', function (e) {
-            e.preventDefault(); // Cegah submit default
+            e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
 
@@ -603,22 +624,32 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 method: 'POST',
                 body: formData
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        showSuccessPopup(data.message);
-                        setTimeout(() => {
-                            window.location.href = data.redirect; // Redirect ke bulan & tahun terbaru
-                        }, 1000);
-                    } else {
-                        showSuccessPopup(data.message || 'Gagal menyimpan perubahan.');
+                .then(res => {
+                    if (!res.ok) throw new Error('Network error: ' + res.status);
+                    return res.text();
+                })
+                .then(text => {
+                    try {
+                        const data = JSON.parse(text);
+                        if (data.success) {
+                            showSuccessPopup(data.message);
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1000);
+                        } else {
+                            showSuccessPopup(data.message || 'Gagal menyimpan perubahan.');
+                        }
+                    } catch (err) {
+                        console.error('Failed to parse JSON:', err, 'Response:', text);
+                        showSuccessPopup('Respons server tidak valid.');
                     }
                 })
                 .catch(err => {
-                    console.error("Terjadi kesalahan:", err);
-                    showSuccessPopup("Terjadi kesalahan saat menyimpan perubahan.");
+                    console.error('Fetch error:', err);
+                    showSuccessPopup('Terjadi kesalahan saat menyimpan perubahan.');
                 });
         });
+
         // END modal pop up untuk menyimpan perubahan edit absensi
 
         function closeEditModal() {
