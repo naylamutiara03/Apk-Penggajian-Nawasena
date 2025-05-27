@@ -3,30 +3,36 @@ include 'koneksi.php';
 include 'sidebar.php';
 
 // Ambil filter bulan dan tahun dari parameter GET
-$bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : date('m');
-$tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
+$bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : '';
+$tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
-// Format ke YYYY-MM
-$periodeFilter = $tahunFilter . '-' . $bulanFilter;
+// Inisialisasi variabel query
+$q = null;
 
-// Ambil total hadir (jumlah angka hadir) per NIK di bulan yang dipilih
-$q = mysqli_query($konek, "
-    SELECT 
-        a.nik, 
-        t.nama_tukang, 
-        t.jabatan, 
-        SUM(a.total_hadir) AS total_hadir, 
-        j.gapok 
-    FROM absensi_tukang a
-    JOIN tukang_nws t ON a.nik = t.nik
-    JOIN jabatan j ON t.jabatan = j.jabatan
-    WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
-    GROUP BY a.nik
-");
+// Cek apakah filter bulan dan tahun sudah dipilih
+if (!empty($bulanFilter) && !empty($tahunFilter)) {
+    $periodeFilter = $tahunFilter . '-' . $bulanFilter;
+
+    // Ambil data gaji hanya jika filter dipilih
+    $q = mysqli_query($konek, "
+        SELECT 
+            a.nik, 
+            t.nama_tukang, 
+            t.jabatan, 
+            SUM(a.total_hadir) AS total_hadir, 
+            j.gapok 
+        FROM absensi_tukang a
+        JOIN tukang_nws t ON a.nik = t.nik
+        JOIN jabatan j ON t.jabatan = j.jabatan
+        WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
+        GROUP BY a.nik
+    ");
+}
 ?>
 
+
 <!DOCTYPE html>
-<html lang="id">    
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
@@ -142,30 +148,42 @@ $q = mysqli_query($konek, "
                         </tr>
                     </thead>
                     <tbody>
-                        <?php
-                        $no = 1;
-                        while ($row = mysqli_fetch_assoc($q)):
-                            $total_gaji = $row['total_hadir'] * $row['gapok'];
-                            ?>
-                            <tr class="border-b border-gray-200 hover:bg-blue-100">
-                                <td class="py-4 px-6 text-center"><?= $no++ ?></td>
-                                <td class="py-4 px-6"><?= htmlspecialchars($row['nik']) ?></td>
-                                <td class="py-4 px-6"><?= htmlspecialchars($row['nama_tukang']) ?></td>
-                                <td class="py-4 px-6"><?= htmlspecialchars($row['jabatan']) ?></td>
-                                <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, ',', '.') ?>
-                                </td>
-                                <td class="py-4 px-6 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
-                                <td class="py-4 px-6 text-right font-bold"><?= number_format($total_gaji, 0, ',', '.') ?>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                        <?php if (mysqli_num_rows($q) == 0): ?>
+                        <?php if ($q): ?>
+                            <?php
+                            $no = 1;
+                            while ($row = mysqli_fetch_assoc($q)):
+                                $total_gaji = $row['total_hadir'] * $row['gapok'];
+                                ?>
+                                <tr class="border-b border-gray-200 hover:bg-blue-100">
+                                    <td class="py-4 px-6 text-center"><?= $no++ ?></td>
+                                    <td class="py-4 px-6"><?= htmlspecialchars($row['nik']) ?></td>
+                                    <td class="py-4 px-6"><?= htmlspecialchars($row['nama_tukang']) ?></td>
+                                    <td class="py-4 px-6"><?= htmlspecialchars($row['jabatan']) ?></td>
+                                    <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, ',', '.') ?>
+                                    </td>
+                                    <td class="py-4 px-6 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
+                                    <td class="py-4 px-6 text-right font-bold"><?= number_format($total_gaji, 0, ',', '.') ?>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+
+                            <?php if (mysqli_num_rows($q) == 0): ?>
+                                <tr>
+                                    <td colspan="7" class="text-center text-gray-400 py-4">
+                                        Tidak ada data gaji untuk bulan dan tahun ini.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+
+                        <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center text-gray-400 py-4">Tidak ada data gaji untuk bulan dan
-                                    tahun ini.</td>
+                                <td colspan="7" class="text-center text-gray-400 py-4">
+                                    Silakan pilih bulan dan tahun untuk menampilkan data.
+                                </td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
+
                 </table>
             </div>
             <!-- END Data Table -->

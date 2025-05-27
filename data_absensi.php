@@ -89,7 +89,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             "11" => "November",
                             "12" => "Desember"
                         ];
-
+                        $bulanFilter = $_GET['bulan'] ?? '';
                         foreach ($bulanNama as $key => $nama) {
                             $selected = ($bulanFilter == $key) ? "selected" : "";
                             echo "<option value='$key' $selected>$nama</option>";
@@ -97,20 +97,37 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                         ?>
                     </select>
                 </label>
+
                 <label class="flex items-center gap-2">
                     Tahun:
                     <select name="tahun" class="border border-gray-300 rounded px-2 py-1" required>
                         <option value="">--Pilih Tahun--</option>
                         <?php
+                        $tahunFilter = $_GET['tahun'] ?? '';
                         $currentYear = date('Y');
                         for ($y = $currentYear; $y >= 2020; $y--) {
-                            $selected = (isset($_GET['tahun']) && $_GET['tahun'] == $y) ? "selected" : "";
+                            $selected = ($tahunFilter == $y) ? "selected" : "";
                             echo "<option value='$y' $selected>$y</option>";
                         }
                         ?>
                     </select>
                 </label>
-                <div class="ml-auto flex gap-2">
+
+                <label class="flex items-center gap-2">
+                    Minggu:
+                    <select name="minggu" class="border border-gray-300 rounded px-2 py-1" required>
+                        <option value="">--Pilih Minggu--</option>
+                        <?php
+                        $mingguFilter = $_GET['minggu'] ?? '';
+                        for ($m = 1; $m <= 5; $m++) {
+                            $selected = ($mingguFilter == $m) ? "selected" : "";
+                            echo "<option value='$m' $selected>Minggu ke-$m</option>";
+                        }
+                        ?>
+                    </select>
+                </label>
+
+                <div class="ml-auto flex gap-2 mb-2">
                     <button type="submit"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-eye"></i> Tampilkan Data
@@ -121,6 +138,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     </button>
                 </div>
             </form>
+            <!-- Container baru: kiri search, kanan tombol hapus -->
             <div class="flex justify-between items-center mb-4">
                 <input type="text" id="searchInput" placeholder="Cari Nama Karyawan..."
                     class="border border-gray-300 rounded px-2 py-1 w-64">
@@ -131,95 +149,102 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             </div>
 
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
-                <?php if ($bulanFilter && $tahunFilter): ?>
+                <?php if ($bulanFilter && $tahunFilter && $mingguFilter): ?>
                     Menampilkan Data Kehadiran Tukang Bulan:
-                    <strong><?= $bulanNama[$bulanFilter] ?? $bulanFilter ?></strong>, Tahun:
-                    <strong><?= $tahunFilter ?></strong>
+                    <strong><?= $bulanNama[$bulanFilter] ?? $bulanFilter ?></strong>,
+                    Tahun: <strong><?= $tahunFilter ?></strong>,
+                    Minggu ke-<strong><?= $mingguFilter ?></strong>
                 <?php else: ?>
-                    Silakan pilih bulan dan tahun untuk menampilkan data.
+                    Silakan pilih bulan, tahun, dan minggu untuk menampilkan data.
                 <?php endif; ?>
             </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-gray-600 border border-gray-300">
                     <thead class="bg-gray-100 text-gray-500">
                         <tr>
-                            <th class="border px-3 py-2 text-center font-semibold">
-                                <input type="checkbox" id="selectAll" class="cursor-pointer">
-                            </th>
-                            <?php
-                            $headers = [
-                                "NIK",
-                                "Nama Karyawan",
-                                "Jabatan",
-                                "Tanggal Masuk",
-                                "Tanggal Keluar",
-                                "Jam Masuk",
-                                "Jam Keluar",
-                                "Hadir",
-                                "Aksi"
-                            ];
-                            foreach ($headers as $head) {
-                                echo "<th class='border px-3 py-2 text-center font-semibold'>$head</th>";
-                            }
-                            ?>
+                            <th class="border px-3 py-2 text-center font-semibold"><input type="checkbox" id="selectAll"
+                                    class="cursor-pointer"></th>
+                            <th class='border px-3 py-2 text-center font-semibold'>NIK</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Nama Karyawan</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Jabatan</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Tanggal Masuk</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Tanggal Keluar</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Jam Masuk</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Jam Keluar</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Hadir</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $queryAbsensi = mysqli_query($konek, "
-                SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
-                FROM absensi_tukang a
-                JOIN tukang_nws t ON a.nik = t.nik
-                WHERE " . ($bulanFilter && $tahunFilter ? "MONTH(a.tanggal_masuk) = " . intval($bulanFilter) . " AND YEAR(a.tanggal_masuk) = '$tahunFilter'" : "1") . "
-                ORDER BY a.id DESC
-            ");
-                        if (mysqli_num_rows($queryAbsensi) > 0) {
-                            while ($row = mysqli_fetch_assoc($queryAbsensi)) {
-                                $id = htmlspecialchars($row['id'], ENT_QUOTES);
-                                $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
-                                $nama_tukang = htmlspecialchars(ucwords($row['nama_tukang']), ENT_QUOTES);
-                                $jabatan = htmlspecialchars(ucwords($row['jabatan']), ENT_QUOTES);
-                                $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
-                                $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
-                                $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
-                                $jam_keluar = htmlspecialchars($row['jam_keluar'], ENT_QUOTES);
-                                $total_hadir = htmlspecialchars($row['total_hadir'], ENT_QUOTES);
+                        if ($bulanFilter && $tahunFilter && $mingguFilter) {
+                            // Query dengan filter bulan, tahun dan minggu (asumsi ada kolom minggu di tabel absensi_tukang)
+                            $bulanInt = intval($bulanFilter);
+                            $mingguInt = intval($mingguFilter);
 
-                                echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-                        <td class='py-4 px-6 text-center'>
-                            <input type='checkbox' class='selectRow' value='{$id}'>
-                        </td>
-                        <td class='py-4 px-6 text-center'>{$nik}</td>
-                        <td class='py-4 px-6'>{$nama_tukang}</td>
-                        <td class='py-4 px-6'>{$jabatan}</td>
-                        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
-                        <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
-                        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
-                        <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
-                        <td class='py-4 px-6'>{$total_hadir} hari</td>
-                        <td class='py-4 px-6 text-center flex gap-2 justify-center'>
-                             <a href='#'
-                                class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
-                                data-id='{$id}'
-                                data-nik='{$nik}'
-                                data-bulan='{$bulanFilter}'
-                                data-tahun='{$tahunFilter}'
-                                data-jam-masuk='{$jam_masuk}'
-                                data-jam-keluar='{$jam_keluar}'
-                                data-tanggal-masuk='{$tanggal_masuk}'
-                                data-tanggal-keluar='{$tanggal_keluar}'>
-                                <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                            </a>
-                            <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                            </a>
-                        </td>
-                    </tr>";
+                            $queryAbsensi = mysqli_query($konek, "
+                        SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
+                        FROM absensi_tukang a
+                        JOIN tukang_nws t ON a.nik = t.nik
+                        WHERE MONTH(a.tanggal_masuk) = $bulanInt
+                        AND YEAR(a.tanggal_masuk) = '$tahunFilter'
+                        AND a.minggu = $mingguInt
+                        ORDER BY a.id DESC
+                    ");
+
+                            if (mysqli_num_rows($queryAbsensi) > 0) {
+                                while ($row = mysqli_fetch_assoc($queryAbsensi)) {
+                                    $id = htmlspecialchars($row['id'], ENT_QUOTES);
+                                    $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
+                                    $nama_tukang = htmlspecialchars(ucwords($row['nama_tukang']), ENT_QUOTES);
+                                    $jabatan = htmlspecialchars(ucwords($row['jabatan']), ENT_QUOTES);
+                                    $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
+                                    $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
+                                    $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
+                                    $jam_keluar = htmlspecialchars($row['jam_keluar'], ENT_QUOTES);
+                                    $total_hadir = htmlspecialchars($row['total_hadir'], ENT_QUOTES);
+
+                                    echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
+                                <td class='py-4 px-6 text-center'>
+                                    <input type='checkbox' class='selectRow' value='{$id}'>
+                                </td>
+                                <td class='py-4 px-6 text-center'>{$nik}</td>
+                                <td class='py-4 px-6'>{$nama_tukang}</td>
+                                <td class='py-4 px-6'>{$jabatan}</td>
+                                <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
+                                <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
+                                <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
+                                <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
+                                <td class='py-4 px-6'>{$total_hadir} hari</td>
+                                <td class='py-4 px-6 text-center flex gap-2 justify-center'>
+                                    <a href='#' class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
+                                        data-id='{$id}'
+                                        data-nik='{$nik}'
+                                        data-bulan='{$bulanFilter}'
+                                        data-tahun='{$tahunFilter}'
+                                        data-minggu='{$mingguFilter}'
+                                        data-jam-masuk='{$jam_masuk}'
+                                        data-jam-keluar='{$jam_keluar}'
+                                        data-tanggal-masuk='{$tanggal_masuk}'
+                                        data-tanggal-keluar='{$tanggal_keluar}'>
+                                        <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                                    </a>
+                                    <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                                        <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                                    </a>
+                                </td>
+                            </tr>";
+                                }
+                            } else {
+                                echo "<tr>
+                            <td colspan='10' class='text-center text-gray-400 py-4'>Data belum tersedia untuk filter tersebut.</td>
+                        </tr>";
                             }
                         } else {
                             echo "<tr>
-                    <td colspan='9' class='text-center text-gray-400 py-4'>Data belum tersedia.</td>
-                </tr>";
+                        <td colspan='10' class='text-center text-gray-400 py-4'>Silakan pilih bulan, tahun, dan minggu terlebih dahulu.</td>
+                    </tr>";
                         }
                         ?>
                     </tbody>
@@ -265,6 +290,12 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             }
                             ?>
                         </select>
+                    </div>
+                    <!-- Tambahan input minggu -->
+                    <div>
+                        <label class="block mb-1">Minggu Ke-</label>
+                        <input type="number" name="minggu" class="w-full border px-3 py-1 rounded" min="1" max="5"
+                            required placeholder="1 - 5">
                     </div>
                     <div>
                         <label class="block mb-1">Tahun</label>
@@ -339,6 +370,8 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             ?>
                         </select>
                     </div>
+                    <input type="number" name="minggu" class="w-full border px-3 py-1 rounded" min="1" max="5" required
+                        value="<?php echo htmlspecialchars($data_absensi['minggu']); ?>" placeholder="1 - 5">
                     <div>
                         <label class="block">Jam Masuk</label>
                         <input type="time" id="edit_jam_masuk" name="jam_masuk" class="w-full border px-2 py-1 rounded"
@@ -552,6 +585,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 });
         });
 
+        // modal pop up untuk menyimpan perubahan edit absensi
         document.querySelector('form[action="aksi_absensi.php?act=edit"]').addEventListener('submit', function (e) {
             e.preventDefault(); // Cegah submit default
             const form = e.target;
@@ -564,17 +598,20 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message);
-                        window.location.href = data.redirect; // Redirect ke bulan & tahun terbaru
+                        showSuccessPopup(data.message);
+                        setTimeout(() => {
+                            window.location.href = data.redirect; // Redirect ke bulan & tahun terbaru
+                        }, 1000);
                     } else {
-                        alert(data.message);
+                        showSuccessPopup(data.message || 'Gagal menyimpan perubahan.');
                     }
                 })
                 .catch(err => {
-                    alert("Terjadi kesalahan: " + err);
+                    console.error("Terjadi kesalahan:", err);
+                    showSuccessPopup("Terjadi kesalahan saat menyimpan perubahan.");
                 });
         });
-
+        // END modal pop up untuk menyimpan perubahan edit absensi
 
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
