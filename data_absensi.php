@@ -186,7 +186,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             $mingguInt = intval($mingguFilter);
 
                             $queryAbsensi = mysqli_query($konek, "
-            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
+            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan
             FROM absensi_tukang a
             JOIN tukang_nws t ON a.nik = t.nik
             WHERE MONTH(a.tanggal_masuk) = $bulanInt
@@ -210,7 +210,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                                 $id = htmlspecialchars($row['id'], ENT_QUOTES);
                                 $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
                                 $nama_tukang = htmlspecialchars(ucwords($row['nama_tukang']), ENT_QUOTES);
-                                $jabatan = htmlspecialchars(ucwords($row['jabatan']), ENT_QUOTES);
+                                $jabatan = htmlspecialchars(ucwords($row['id_jabatan']), ENT_QUOTES);
                                 $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
                                 $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
                                 $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);

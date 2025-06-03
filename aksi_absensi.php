@@ -137,7 +137,7 @@ if ($bulanFilter && $tahunFilter && $mingguFilter) {
     $mingguInt = intval($mingguFilter);
 
     $queryAbsensi = mysqli_query($konek, "
-        SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
+        SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan
         FROM absensi_tukang a
         JOIN tukang_nws t ON a.nik = t.nik
         WHERE MONTH(a.tanggal_masuk) = $bulanInt
