@@ -464,6 +464,16 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
             </div>
         </div>
     </div>
+
+    <!-- Modal Message -->
+    <div id="messageModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 relative">
+            <h3 id="modalTitle" class="text-xl font-semibold mb-4"></h3>
+            <p id="modalMessage" class="mb-6"></p>
+            <button id="modalCloseBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Tutup</button>
+        </div>
+    </div>
+
     <script>
         let deleteUrl = '';
         const successMessageDiv = document.getElementById('successMessage');
@@ -480,6 +490,23 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                 }, 500); // Wait for fade-out animation to complete
             }, 3000); // Message visible for 3 seconds
         }
+
+        // Fungsi buka modal dan isi pesan
+        function openMessageModal(title, message) {
+            const modal = document.getElementById('messageModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.classList.remove('hidden');
+        }
+
+        // Tutup modal saat klik tombol
+        document.getElementById('modalCloseBtn').addEventListener('click', () => {
+            document.getElementById('messageModal').classList.add('hidden');
+        });
+
 
         // Menampilkan modal konfirmasi untuk single delete
         function openDeleteModal(url) {
@@ -555,6 +582,50 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 
         bulanSelect.addEventListener('change', updateTanggal);
         tahunInput.addEventListener('input', updateTanggal);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('#formTambah form');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network error: ' + response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            openMessageModal('Sukses', data.message || 'Data berhasil ditambahkan.');
+                            form.classList.add('hidden'); // sembunyikan form tambah
+                            setTimeout(() => {
+                                if (data.redirect) {
+                                    window.location.href = data.redirect;
+                                } else {
+                                    window.location.reload();
+                                }
+                            }, 1500);
+                        } else {
+                            openMessageModal('Peringatan', data.message || 'Terjadi kesalahan.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Fetch error:', err);
+                        openMessageModal('Error', 'Terjadi kesalahan saat menambah data.');
+                    });
+            });
+
+            // Event untuk tombol batal supaya sembunyikan form
+            document.getElementById('btnBatal').addEventListener('click', () => {
+                form.closest('#formTambah').classList.add('hidden');
+            });
+        });
+
 
         // Scroll ke form dan fokus ke input pertama
         document.getElementById("btnTambah").addEventListener("click", function () {
