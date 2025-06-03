@@ -155,7 +155,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     Tahun: <strong><?= $tahunFilter ?></strong>,
                     Minggu ke-<strong><?= $mingguFilter ?></strong>
                 <?php else: ?>
-                    Silakan pilih bulan, tahun, dan minggu untuk menampilkan data.
+                    Silakan pilih bulan, tahun, dan minggu untuk menampilkan data tertentu.
                 <?php endif; ?>
             </div>
 
@@ -178,80 +178,95 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                     </thead>
                     <tbody>
                         <?php
+                        $tampilkanSemua = false;
+
                         if ($bulanFilter && $tahunFilter && $mingguFilter) {
-                            // Query dengan filter bulan, tahun dan minggu (asumsi ada kolom minggu di tabel absensi_tukang)
+                            // Jika semua filter dipilih, pakai query dengan filter
                             $bulanInt = intval($bulanFilter);
                             $mingguInt = intval($mingguFilter);
 
                             $queryAbsensi = mysqli_query($konek, "
-                        SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
-                        FROM absensi_tukang a
-                        JOIN tukang_nws t ON a.nik = t.nik
-                        WHERE MONTH(a.tanggal_masuk) = $bulanInt
-                        AND YEAR(a.tanggal_masuk) = '$tahunFilter'
-                        AND a.minggu = $mingguInt
-                        ORDER BY a.id DESC
-                    ");
+            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
+            FROM absensi_tukang a
+            JOIN tukang_nws t ON a.nik = t.nik
+            WHERE MONTH(a.tanggal_masuk) = $bulanInt
+            AND YEAR(a.tanggal_masuk) = '$tahunFilter'
+            AND a.minggu = $mingguInt
+            ORDER BY a.id DESC
+        ");
+                        } else {
+                            // Jika filter belum lengkap, tampilkan semua data tapi tandai bahwa ini default
+                            $tampilkanSemua = true;
+                            $queryAbsensi = mysqli_query($konek, "
+            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
+            FROM absensi_tukang a
+            JOIN tukang_nws t ON a.nik = t.nik
+            ORDER BY a.id DESC
+        ");
+                        }
 
-                            if (mysqli_num_rows($queryAbsensi) > 0) {
-                                while ($row = mysqli_fetch_assoc($queryAbsensi)) {
-                                    $id = htmlspecialchars($row['id'], ENT_QUOTES);
-                                    $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
-                                    $nama_tukang = htmlspecialchars(ucwords($row['nama_tukang']), ENT_QUOTES);
-                                    $jabatan = htmlspecialchars(ucwords($row['jabatan']), ENT_QUOTES);
-                                    $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
-                                    $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
-                                    $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
-                                    $jam_keluar = htmlspecialchars($row['jam_keluar'], ENT_QUOTES);
-                                    $total_hadir = htmlspecialchars($row['total_hadir'], ENT_QUOTES);
+                        if (mysqli_num_rows($queryAbsensi) > 0) {
+                            while ($row = mysqli_fetch_assoc($queryAbsensi)) {
+                                $id = htmlspecialchars($row['id'], ENT_QUOTES);
+                                $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
+                                $nama_tukang = htmlspecialchars(ucwords($row['nama_tukang']), ENT_QUOTES);
+                                $jabatan = htmlspecialchars(ucwords($row['jabatan']), ENT_QUOTES);
+                                $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
+                                $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
+                                $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
+                                $jam_keluar = htmlspecialchars($row['jam_keluar'], ENT_QUOTES);
+                                $total_hadir = htmlspecialchars($row['total_hadir'], ENT_QUOTES);
 
-                                    echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-    <td class='py-4 px-6 text-center'>
-        <input type='checkbox' class='selectRow' value='{$id}'>
-    </td>
-    <td class='py-4 px-6 text-center'>{$nik}</td>
-    <td class='py-4 px-6'>{$nama_tukang}</td>
-    <td class='py-4 px-6'>{$jabatan}</td>
-    <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
-    <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
-    <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
-    <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
-    <td class='py-4 px-6'>{$total_hadir} hari</td>
-    <td class='py-4 px-6 text-center flex gap-2 justify-center'>
-        <a href='#' class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
-            data-id='{$id}'
-            data-nik='{$nik}'
-            data-nama='{$nama_tukang}' 
-            data-bulan='{$bulanFilter}'
-            data-tahun='{$tahunFilter}'
-            data-minggu='{$mingguFilter}'
-            data-minggu='{$mingguFilter}'
-            data-jam-masuk='{$jam_masuk}'
-            data-jam-keluar='{$jam_keluar}'
-            data-tanggal-masuk='{$tanggal_masuk}'
-            data-tanggal-keluar='{$tanggal_keluar}'>
-            <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-        </a>
-        <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-            <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-        </a>
-    </td>
-</tr>";
-                                }
-                            } else {
-                                echo "<tr>
-                            <td colspan='10' class='text-center text-gray-400 py-4'>Data belum tersedia untuk filter tersebut.</td>
-                        </tr>";
+                                echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
+                <td class='py-4 px-6 text-center'>
+                    <input type='checkbox' class='selectRow' value='{$id}'>
+                </td>
+                <td class='py-4 px-6 text-center'>{$nik}</td>
+                <td class='py-4 px-6'>{$nama_tukang}</td>
+                <td class='py-4 px-6'>{$jabatan}</td>
+                <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_masuk)) . "</td>
+                <td class='py-4 px-6'>" . strftime('%d %B %Y', strtotime($tanggal_keluar)) . "</td>
+                <td class='py-4 px-6'>" . date('H:i', strtotime($jam_masuk)) . "</td>
+                <td class='py-4 px-6'>" . date('H:i', strtotime($jam_keluar)) . "</td>
+                <td class='py-4 px-6'>{$total_hadir} hari</td>
+                <td class='py-4 px-6 text-center flex gap-2 justify-center'>
+                    <a href='#' class='edit-button bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'
+                        data-id='{$id}'
+                        data-nik='{$nik}'
+                        data-nama='{$nama_tukang}' 
+                        data-bulan='{$bulanFilter}'
+                        data-tahun='{$tahunFilter}'
+                        data-minggu='{$mingguFilter}'
+                        data-jam-masuk='{$jam_masuk}'
+                        data-jam-keluar='{$jam_keluar}'
+                        data-tanggal-masuk='{$tanggal_masuk}'
+                        data-tanggal-keluar='{$tanggal_keluar}'>
+                        <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                    </a>
+                    <a href='#' onclick=\"openDeleteModal('aksi_absensi.php?act=delete&id={$id}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                        <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                    </a>
+                </td>
+            </tr>";
                             }
                         } else {
                             echo "<tr>
-                        <td colspan='10' class='text-center text-gray-400 py-4'>Silakan pilih bulan, tahun, dan minggu terlebih dahulu.</td>
-                    </tr>";
+            <td colspan='10' class='text-center text-gray-400 py-4'>Data belum tersedia untuk filter tersebut.</td>
+        </tr>";
+                        }
+
+                        // Tambahkan pesan jika tampilkan semua
+                        if ($tampilkanSemua) {
+                            echo "<tr>
+            <td colspan='10' class='text-center text-gray-400 py-2 italic'>Menampilkan semua data.</td>
+        </tr>";
                         }
                         ?>
                     </tbody>
                 </table>
             </div>
+
+            <!-- form tambah absensi -->
             <div id="formTambah" class="mt-6 hidden bg-gray-50 p-4 border border-gray-200 rounded-lg">
                 <h3 class="font-semibold text-gray-700 mb-4">Tambah Data Absensi Tukang</h3>
                 <form action="aksi_absensi.php?act=tambah" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
