@@ -158,10 +158,14 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         </div>
 
         <!-- Submenu for Laporan -->
-        <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold">
+        <div id="submenuLaporan" class="hidden text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold">
             <a href="slip_gaji.php"
                 class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">
-                Slip Gaji
+                Slip Gaji Tukang
+            </a>
+            <a href="laporan_gaji_karyawan.php"
+                class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link <?php echo ($current_page == 'slip_gaji_karyawan.php') ? 'bg-blue-600' : ''; ?>">
+                Laporan Gaji Karyawan
             </a>
         </div>
 
