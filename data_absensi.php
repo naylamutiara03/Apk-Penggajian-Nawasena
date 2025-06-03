@@ -198,7 +198,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             // Jika filter belum lengkap, tampilkan semua data tapi tandai bahwa ini default
                             $tampilkanSemua = true;
                             $queryAbsensi = mysqli_query($konek, "
-            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.jabatan
+            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan
             FROM absensi_tukang a
             JOIN tukang_nws t ON a.nik = t.nik
             ORDER BY a.id DESC

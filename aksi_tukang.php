@@ -9,7 +9,7 @@ if (isset($_GET['act'])) {
         $nik = mysqli_real_escape_string($konek, $_POST['nik']);
         $nama_tukang = mysqli_real_escape_string($konek, $_POST['nama_tukang']);
         $jenis_kelamin = mysqli_real_escape_string($konek, $_POST['jenis_kelamin']);
-        $jabatan = mysqli_real_escape_string($konek, $_POST['jabatan']);
+        $jabatan = mysqli_real_escape_string($konek, $_POST['id_jabatan']);
         $tgl_masuk = mysqli_real_escape_string($konek, $_POST['tgl_masuk']);
         $status = mysqli_real_escape_string($konek, $_POST['status']);
 
@@ -20,7 +20,7 @@ if (isset($_GET['act'])) {
         }
 
         // Query untuk menambah tukang
-        $query = "INSERT INTO tukang_nws (nik, nama_tukang, jenis_kelamin, jabatan, tgl_masuk, status) VALUES ('$nik', '$nama_tukang', '$jenis_kelamin', '$jabatan', '$tgl_masuk', '$status')";
+        $query = "INSERT INTO tukang_nws (nik, nama_tukang, jenis_kelamin, id_jabatan, tgl_masuk, status) VALUES ('$nik', '$nama_tukang', '$jenis_kelamin', '$jabatan', '$tgl_masuk', '$status')";
 
         if (mysqli_query($konek, $query)) {
             echo json_encode(['success' => true, 'message' => 'Tukang berhasil ditambahkan.']);
@@ -54,7 +54,7 @@ if (isset($_GET['act'])) {
         $nik = mysqli_real_escape_string($konek, $_POST['nik']);
         $nama_tukang = mysqli_real_escape_string($konek, $_POST['nama_tukang']);
         $jenis_kelamin = mysqli_real_escape_string($konek, $_POST['jenis_kelamin']);
-        $jabatan = mysqli_real_escape_string($konek, $_POST['jabatan']);
+        $jabatan = mysqli_real_escape_string($konek, $_POST['id_jabatan']);
         $tgl_masuk = mysqli_real_escape_string($konek, $_POST['tgl_masuk']);
         $status = mysqli_real_escape_string($konek, $_POST['status']);
 
@@ -65,7 +65,7 @@ if (isset($_GET['act'])) {
         }
 
         // Query untuk memperbarui tukang
-        $query = "UPDATE tukang_nws SET nik='$nik', nama_tukang='$nama_tukang', jenis_kelamin='$jenis_kelamin', jabatan='$jabatan', tgl_masuk='$tgl_masuk', status='$status' WHERE id='$id'";
+        $query = "UPDATE tukang_nws SET nik='$nik', nama_tukang='$nama_tukang', jenis_kelamin='$jenis_kelamin', id_jabatan='$jabatan', tgl_masuk='$tgl_masuk', status='$status' WHERE id='$id'";
 
         if (mysqli_query($konek, $query)) {
             echo json_encode(['success' => true, 'message' => 'Tukang berhasil diperbarui.']);

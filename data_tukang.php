@@ -85,10 +85,15 @@ include("sidebar.php");
                                 <tbody class="text-gray-700 text-sm">
                                     <?php
                                     $no = 1;
-                                    $sql = mysqli_query($konek, "SELECT * FROM tukang_nws ORDER BY tgl_masuk ASC");
+                                    $sql = mysqli_query($konek, "
+    SELECT tukang_nws.*, jabatan.jabatan AS nama_jabatan 
+    FROM tukang_nws 
+    LEFT JOIN jabatan ON tukang_nws.id_jabatan = jabatan.id 
+    ORDER BY tukang_nws.tgl_masuk ASC
+");
                                     while ($d = mysqli_fetch_array($sql)) {
                                         $namaTukang = ucwords(strtolower($d['nama_tukang']));
-                                        $jabatan = ucwords(strtolower($d['jabatan']));
+                                        $jabatan = ucwords(strtolower($d['nama_jabatan']));
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
             <td class='py-4 px-6 text-center font-bold'>$no</td>
             <td class='py-4 px-6 '>{$d['nik']}</td>
@@ -158,9 +163,18 @@ include("sidebar.php");
 
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Jabatan</label>
-                                <input type="text" name="jabatan" required
+                                <select name="id_jabatan" required
                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Pilih Jabatan</option>
+                                    <?php
+                                    $result = mysqli_query($konek, "SELECT id, jabatan FROM jabatan WHERE jenis = 'tukang' ORDER BY jabatan ASC");
+                                    while ($row = mysqli_fetch_assoc($result)) {
+                                        echo "<option value='" . $row['id'] . "'>" . htmlspecialchars($row['jabatan']) . "</option>";
+                                    }
+                                    ?>
+                                </select>
                             </div>
+
 
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Tanggal Masuk</label>
@@ -372,7 +386,7 @@ include("sidebar.php");
                         let nik = formData.get("nik").trim();
                         let nama = formData.get("nama_tukang").trim();
                         let jk = formData.get("jenis_kelamin").trim();
-                        let jabatan = formData.get("jabatan").trim();
+                        let jabatan = formData.get("id_jabatan").trim();
                         let tglMasuk = formData.get("tgl_masuk").trim();
                         let status = formData.get("status").trim();
 
