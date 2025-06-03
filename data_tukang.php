@@ -343,8 +343,17 @@ include("sidebar.php");
 
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Jabatan</label>
-                                <input type="text" name="jabatan" value="<?= $data['jabatan'] ?>" required
+                                <select name="id_jabatan" required
                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Pilih Jabatan</option>
+                                    <?php
+                                    $jabatanQuery = mysqli_query($konek, "SELECT id, jabatan FROM jabatan WHERE jenis = 'tukang' ORDER BY jabatan ASC");
+                                    while ($jabatan = mysqli_fetch_assoc($jabatanQuery)) {
+                                        $selected = ($jabatan['id'] == $data['id_jabatan']) ? 'selected' : '';
+                                        echo "<option value='{$jabatan['id']}' $selected>" . htmlspecialchars($jabatan['jabatan']) . "</option>";
+                                    }
+                                    ?>
+                                </select>
                             </div>
 
                             <div class="mb-4">
@@ -368,7 +377,7 @@ include("sidebar.php");
                                     class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">
                                     Batal
                                 </a>
-                                <button type="button" onclick="validasiEditTukang(event)"
+                                <button type="submit"
                                     class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
                                     Simpan Perubahan
                                 </button>
