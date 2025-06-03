@@ -45,7 +45,8 @@ include("sidebar.php");
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
                 <div class="flex items-center mt-4 lg:mt-0">
-                    <span class="mr-4">Selamat Datang, <strong><?php echo htmlspecialchars($username); ?></strong></span>
+                    <span class="mr-4">Selamat Datang,
+                        <strong><?php echo htmlspecialchars($username); ?></strong></span>
                     <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
             </div>
@@ -84,28 +85,32 @@ include("sidebar.php");
                                 <tbody class="text-gray-700 text-sm">
                                     <?php
                                     $no = 1;
-                                    $sql = mysqli_query($konek, "SELECT * FROM karyawan ORDER BY tgl_masuk ASC");
+                                    $sql = mysqli_query($konek, "SELECT k.id, k.nik, k.nama_karyawan, k.jenis_kelamin, j.jabatan, k.tgl_masuk, k.status
+    FROM karyawan k
+    JOIN jabatan j ON k.id_jabatan = j.id
+    WHERE j.jenis = 'karyawan'
+    ORDER BY k.nama_karyawan ASC;");
                                     while ($d = mysqli_fetch_array($sql)) {
                                         // Menggunakan ucwords untuk menampilkan nama karyawan dengan huruf kapital di awal setiap kata
                                         $namaKaryawan = ucwords(strtolower($d['nama_karyawan'])); // Mengubah nama karyawan menjadi format yang diinginkan
                                         $jabatan = ucwords(strtolower($d['jabatan'])); // Mengubah jabatan menjadi format yang diinginkan
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-            <td class='py-4 px-6 text-center font-bold'>$no</td>
-            <td class='py-4 px-6 '>{$d['nik']}</td>
-            <td class='py-4 px-6 '>$namaKaryawan</td>
-            <td class='py-4 px-6 '>{$d['jenis_kelamin']}</td>
-            <td class='py-4 px-6 '>$jabatan</td>
-            <td class='py-4 px-6 '>" . date('d F Y', strtotime($d['tgl_masuk'])) . "</td>
-            <td class='py-4 px-6 '>{$d['status']}</td>
-            <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
-                <a href='data_karyawan.php?view=edit&id={$d['id']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
-                    <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                </a>
-                <a href='#' onclick=\"openDeleteModal('aksi_karyawan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                    <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                </a>
-            </td>
-        </tr>";
+                <td class='py-4 px-6 text-center font-bold'>$no</td>
+                <td class='py-4 px-6 '>{$d['nik']}</td>
+                <td class='py-4 px-6 '>$namaKaryawan</td>
+                <td class='py-4 px-6 '>{$d['jenis_kelamin']}</td>
+                <td class='py-4 px-6 '>$jabatan</td>
+                <td class='py-4 px-6 '>" . date('d F Y', strtotime($d['tgl_masuk'])) . "</td>
+                <td class='py-4 px-6 '>{$d['status']}</td>
+                <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
+                    <a href='data_karyawan.php?view=edit&id={$d['id']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                        <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+                    </a>
+                    <a href='#' onclick=\"openDeleteModal('aksi_karyawan.php?act=delete&id={$d['id']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                        <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                    </a>
+                </td>
+            </tr>";
                                         $no++;
                                     }
                                     ?>
@@ -158,8 +163,17 @@ include("sidebar.php");
 
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Jabatan</label>
-                                <input type="text" name="jabatan" required
-                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select name="id_jabatan" required
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Pilih Jabatan</option>
+                                    <?php
+                                    $jabatanQuery = mysqli_query($konek, "SELECT id, jabatan FROM jabatan WHERE jenis = 'karyawan' ORDER BY jabatan ASC");
+                                    while ($jabatan = mysqli_fetch_assoc($jabatanQuery)) {
+                                        $selected = ($jabatan['id'] == $data['id_jabatan']) ? 'selected' : '';
+                                        echo "<option value='{$jabatan['id']}' $selected>{$jabatan['jabatan']}</option>";
+                                    }
+                                    ?>
+                                </select>
                             </div>
 
                             <div class="mb-4">
@@ -227,7 +241,7 @@ include("sidebar.php");
                                 // Jika NIK tidak terdaftar, lanjutkan dengan validasi dan pengiriman data
                                 let nama = formData.get("nama_karyawan").trim();
                                 let jk = formData.get("jenis_kelamin").trim();
-                                let jabatan = formData.get("jabatan").trim();
+                                let jabatan = formData.get("id_jabatan").trim();
                                 let tglMasuk = formData.get("tgl_masuk").trim();
                                 let status = formData.get("status").trim();
 
@@ -326,8 +340,16 @@ include("sidebar.php");
 
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Jabatan</label>
-                                <input type="text" name="jabatan" value="<?= $data['jabatan'] ?>" required
-                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select name="id_jabatan" required>
+                                    <option value="">Pilih Jabatan</option>
+                                    <?php
+                                    $jabatanQuery = mysqli_query($konek, "SELECT id, jabatan FROM jabatan WHERE jenis = 'karyawan' ORDER BY jabatan ASC");
+                                    while ($jabatan = mysqli_fetch_assoc($jabatanQuery)) {
+                                        $selected = ($jabatan['id'] == $data['id_jabatan']) ? 'selected' : '';
+                                        echo "<option value='{$jabatan['id']}' $selected>{$jabatan['jabatan']}</option>";
+                                    }
+                                    ?>
+                                </select>
                             </div>
 
                             <div class="mb-4">
@@ -369,7 +391,7 @@ include("sidebar.php");
                         let nik = formData.get("nik").trim();
                         let nama = formData.get("nama_karyawan").trim();
                         let jk = formData.get("jenis_kelamin").trim();
-                        let jabatan = formData.get("jabatan").trim();
+                        let jabatan = formData.get("id_jabatan").trim();
                         let tglMasuk = formData.get("tgl_masuk").trim();
                         let status = formData.get("status").trim();
 
