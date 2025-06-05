@@ -60,6 +60,7 @@ include("sidebar.php");
         </div>
         <!-- END Title & Tanggal Section -->
 
+        <!-- View Tabel Data Karyawan Section -->
         <?php
         $view = isset($_GET["view"]) ? $_GET["view"] : null;
         switch ($view) {
@@ -93,7 +94,7 @@ include("sidebar.php");
                                     while ($d = mysqli_fetch_array($sql)) {
                                         // Menggunakan ucwords untuk menampilkan nama karyawan dengan huruf kapital di awal setiap kata
                                         $namaKaryawan = ucwords(strtolower($d['nama_karyawan'])); // Mengubah nama karyawan menjadi format yang diinginkan
-                                        $jabatan = ucwords(strtolower($d['jabatan'])); // Mengubah jabatan menjadi format yang diinginkan
+                                        $jabatan = $d['jabatan'];
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
                 <td class='py-4 px-6 text-center font-bold'>$no</td>
                 <td class='py-4 px-6 '>{$d['nik']}</td>
@@ -340,7 +341,8 @@ include("sidebar.php");
 
                             <div class="mb-4">
                                 <label class="block text-gray-700 text-sm font-semibold mb-2">Jabatan</label>
-                                <select name="id_jabatan" required>
+                                <select name="id_jabatan" required
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Pilih Jabatan</option>
                                     <?php
                                     $jabatanQuery = mysqli_query($konek, "SELECT id, jabatan FROM jabatan WHERE jenis = 'karyawan' ORDER BY jabatan ASC");
