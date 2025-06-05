@@ -186,23 +186,26 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             $mingguInt = intval($mingguFilter);
 
                             $queryAbsensi = mysqli_query($konek, "
-            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan
-            FROM absensi_tukang a
-            JOIN tukang_nws t ON a.nik = t.nik
-            WHERE MONTH(a.tanggal_masuk) = $bulanInt
-            AND YEAR(a.tanggal_masuk) = '$tahunFilter'
-            AND a.minggu = $mingguInt
-            ORDER BY a.id DESC
-        ");
+    SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan, j.jabatan AS nama_jabatan
+    FROM absensi_tukang a
+    JOIN tukang_nws t ON a.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    ORDER BY a.id DESC
+");
+
+
                         } else {
                             // Jika filter belum lengkap, tampilkan semua data tapi tandai bahwa ini default
                             $tampilkanSemua = true;
                             $queryAbsensi = mysqli_query($konek, "
-            SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan
-            FROM absensi_tukang a
-            JOIN tukang_nws t ON a.nik = t.nik
-            ORDER BY a.id DESC
-        ");
+    SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan, j.jabatan AS nama_jabatan
+    FROM absensi_tukang a
+    JOIN tukang_nws t ON a.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    ORDER BY a.id DESC
+");
+
+
                         }
 
                         if (mysqli_num_rows($queryAbsensi) > 0) {
@@ -210,7 +213,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                                 $id = htmlspecialchars($row['id'], ENT_QUOTES);
                                 $nik = htmlspecialchars($row['nik'], ENT_QUOTES);
                                 $nama_tukang = htmlspecialchars(ucwords($row['nama_tukang']), ENT_QUOTES);
-                                $jabatan = htmlspecialchars(ucwords($row['id_jabatan']), ENT_QUOTES);
+                                $jabatan = htmlspecialchars(ucwords($row['nama_jabatan']), ENT_QUOTES);
                                 $tanggal_masuk = htmlspecialchars($row['tanggal_masuk'], ENT_QUOTES);
                                 $tanggal_keluar = htmlspecialchars($row['tanggal_keluar'], ENT_QUOTES);
                                 $jam_masuk = htmlspecialchars($row['jam_masuk'], ENT_QUOTES);
