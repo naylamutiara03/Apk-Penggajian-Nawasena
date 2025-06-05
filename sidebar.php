@@ -185,7 +185,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     </div>
 
     <!-- Modal Logout -->
-    <div id="logoutModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+    <div id="logoutModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-[9999]">
         <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
             <h2 class="text-xl font-bold text-gray-800">Konfirmasi Logout</h2>
             <p class="text-gray-600 mt-2">Apakah Anda yakin ingin keluar?</p>
