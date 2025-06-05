@@ -10,10 +10,18 @@ $minggu = $_GET['minggu'] ?? '';
 $periode = "$tahun-$bulan";
 
 $bulanNama = [
-    "01" => "Januari", "02" => "Februari", "03" => "Maret",
-    "04" => "April", "05" => "Mei", "06" => "Juni",
-    "07" => "Juli", "08" => "Agustus", "09" => "September",
-    "10" => "Oktober", "11" => "November", "12" => "Desember"
+    "01" => "Januari",
+    "02" => "Februari",
+    "03" => "Maret",
+    "04" => "April",
+    "05" => "Mei",
+    "06" => "Juni",
+    "07" => "Juli",
+    "08" => "Agustus",
+    "09" => "September",
+    "10" => "Oktober",
+    "11" => "November",
+    "12" => "Desember"
 ];
 
 $tanggalAwal = '';
@@ -22,18 +30,28 @@ $judulMinggu = '';
 $whereTanggal = '';
 
 if (!empty($minggu)) {
-    $jumlahHari = cal_days_in_month(CAL_GREGORIAN, (int)$bulan, (int)$tahun);
-    $mingguInt = (int)$minggu;
+    // Ambil rentang tanggal real dari data absensi sesuai minggu yang dipilih
+    $qTanggal = mysqli_query($konek, "
+        SELECT 
+            MIN(tanggal_masuk) AS tanggal_awal, 
+            MAX(tanggal_masuk) AS tanggal_akhir 
+        FROM absensi_tukang 
+        WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periode'
+            AND minggu = '$minggu'
+    ");
 
-    $tanggalAwal = date("Y-m-d", strtotime("$tahun-$bulan-01 + " . ($mingguInt - 1) * 7 . " days"));
-    $tanggalAkhir = date("Y-m-d", strtotime("$tanggalAwal + 6 days"));
+    $dataTanggal = mysqli_fetch_assoc($qTanggal);
+    $tanggalAwal = $dataTanggal['tanggal_awal'];
+    $tanggalAkhir = $dataTanggal['tanggal_akhir'];
 
-    if ((int)date('d', strtotime($tanggalAkhir)) > $jumlahHari) {
-        $tanggalAkhir = "$tahun-$bulan-$jumlahHari";
+    if ($tanggalAwal && $tanggalAkhir) {
+        $judulMinggu = " (Minggu ke-$minggu: " . date('d/m/Y', strtotime($tanggalAwal)) . " - " . date('d/m/Y', strtotime($tanggalAkhir)) . ")";
+        $whereTanggal = "a.tanggal_masuk BETWEEN '$tanggalAwal' AND '$tanggalAkhir'";
+    } else {
+        // Jika tidak ditemukan data, gunakan WHERE yang tidak akan mengembalikan hasil
+        $judulMinggu = " (Minggu ke-$minggu: tidak ada data)";
+        $whereTanggal = "1=0";
     }
-
-    $judulMinggu = " (Minggu ke-$minggu: " . date('d/m/Y', strtotime($tanggalAwal)) . " - " . date('d/m/Y', strtotime($tanggalAkhir)) . ")";
-    $whereTanggal = "a.tanggal_masuk BETWEEN '$tanggalAwal' AND '$tanggalAkhir'";
 } else {
     $whereTanggal = "DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periode'";
 }
