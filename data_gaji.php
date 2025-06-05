@@ -5,26 +5,28 @@ include 'sidebar.php';
 // Ambil filter bulan dan tahun dari parameter GET
 $bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : '';
 $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
+$mingguFilter = isset($_GET['minggu']) ? $_GET['minggu'] : '';
 
 // Inisialisasi variabel query
 $q = null;
 
 // Cek apakah filter bulan dan tahun sudah dipilih
-if (!empty($bulanFilter) && !empty($tahunFilter)) {
+if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     $periodeFilter = $tahunFilter . '-' . $bulanFilter;
 
-    // Ambil data gaji hanya jika filter dipilih
     $q = mysqli_query($konek, "
         SELECT 
             a.nik, 
             t.nama_tukang, 
-            t.jabatan, 
+            t.id_jabatan, 
+            j.jabatan,
             SUM(a.total_hadir) AS total_hadir, 
             j.gapok 
         FROM absensi_tukang a
         JOIN tukang_nws t ON a.nik = t.nik
-        JOIN jabatan j ON t.jabatan = j.jabatan
+        JOIN jabatan j ON t.id_jabatan = j.id
         WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
+            AND a.minggu = '$mingguFilter'
         GROUP BY a.nik
     ");
 }
@@ -107,12 +109,25 @@ if (!empty($bulanFilter) && !empty($tahunFilter)) {
                         ?>
                     </select>
                 </label>
+                <label class="flex items-center gap-2">
+                    Minggu:
+                    <select name="minggu" class="border border-gray-300 rounded px-2 py-1" required>
+                        <option value="">--Pilih Minggu--</option>
+                        <?php
+                        for ($i = 1; $i <= 5; $i++) {
+                            $selected = ($mingguFilter == $i) ? "selected" : "";
+                            echo "<option value='$i' $selected>Minggu ke-$i</option>";
+                        }
+                        ?>
+                    </select>
+                </label>
                 <div class="ml-auto flex gap-2">
                     <button type="submit"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-eye"></i> Tampilkan Data
                     </button>
-                    <a href="cetak_gaji.php?bulan=<?= $bulanFilter ?>&tahun=<?= $tahunFilter ?>" target="_blank"
+                    <a href="cetak_gaji.php?bulan=<?= $bulanFilter ?>&tahun=<?= $tahunFilter ?>&minggu=<?= $mingguFilter ?>"
+                        target="_blank"
                         class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-print"></i> Cetak Daftar Gaji
                     </a>
@@ -123,12 +138,13 @@ if (!empty($bulanFilter) && !empty($tahunFilter)) {
 
             <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
-                <?php if ($bulanFilter && $tahunFilter): ?>
+                <?php if ($bulanFilter && $tahunFilter && $mingguFilter): ?>
                     Menampilkan Data Gaji Tukang Bulan:
-                    <strong><?= $bulanNama[$bulanFilter] ?? $bulanFilter ?></strong>, Tahun:
-                    <strong><?= $tahunFilter ?></strong>
+                    <strong><?= $bulanNama[$bulanFilter] ?? $bulanFilter ?></strong>,
+                    Tahun: <strong><?= $tahunFilter ?></strong>,
+                    Minggu ke-<strong><?= $mingguFilter ?></strong>
                 <?php else: ?>
-                    Silakan pilih bulan dan tahun untuk menampilkan data.
+                    Silakan pilih bulan, tahun, dan minggu untuk menampilkan data.
                 <?php endif; ?>
             </div>
             <!-- END Info Text -->
@@ -174,7 +190,6 @@ if (!empty($bulanFilter) && !empty($tahunFilter)) {
                                     </td>
                                 </tr>
                             <?php endif; ?>
-
                         <?php else: ?>
                             <tr>
                                 <td colspan="7" class="text-center text-gray-400 py-4">
