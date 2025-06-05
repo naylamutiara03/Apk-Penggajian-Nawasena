@@ -190,10 +190,11 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
     FROM absensi_tukang a
     JOIN tukang_nws t ON a.nik = t.nik
     JOIN jabatan j ON t.id_jabatan = j.id
+    WHERE MONTH(a.tanggal_masuk) = $bulanInt
+        AND YEAR(a.tanggal_masuk) = $tahunFilter
+        AND WEEK(a.tanggal_masuk, 1) - WEEK(DATE_SUB(a.tanggal_masuk, INTERVAL DAYOFMONTH(a.tanggal_masuk)-1 DAY), 1) + 1 = $mingguInt
     ORDER BY a.id DESC
 ");
-
-
                         } else {
                             // Jika filter belum lengkap, tampilkan semua data tapi tandai bahwa ini default
                             $tampilkanSemua = true;
