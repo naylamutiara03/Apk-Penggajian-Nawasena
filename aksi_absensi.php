@@ -4,8 +4,7 @@ include 'koneksi.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Matikan tampilan error agar JSON bersih
 
-// Fungsi perhitungan total hadir berdasarkan shift yang sudah diperbaiki
-// Fungsi hitungTotalHadir yang sudah benar:
+// Fungsi perhitungan total hadir berdasarkan shift
 function hitungTotalHadir($start, $end)
 {
     $shifts = [
@@ -54,7 +53,7 @@ function hitungTotalHadir($start, $end)
     return $totalHari;
 }
 
-$action = isset($_GET['act']) ? $_GET['act'] : '';
+$action = $_GET['act'] ?? '';
 
 if ($action === 'tambah') {
     $nik = mysqli_real_escape_string($konek, $_POST['nik'] ?? '');
@@ -99,15 +98,14 @@ if ($action === 'tambah') {
         VALUES
         ('$nik', '$bulan', '$tahun', '$minggu', '$jamMasuk', '$jamKeluar', '$totalHadir', '$tanggalMasuk', '$tanggalKeluar')");
 
+    header('Content-Type: application/json');
     if ($query) {
-        header('Content-Type: application/json');
         echo json_encode([
             'success' => true,
             'message' => 'Data absensi berhasil ditambahkan.',
             'redirect' => "data_absensi.php?bulan=$bulan&tahun=$tahun&minggu=$minggu"
         ]);
     } else {
-        header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
             'message' => 'Gagal tambah data: ' . mysqli_error($konek)
@@ -141,11 +139,11 @@ if ($action === 'edit') {
         nik = '$nik',
         bulan = '$bulan',
         tahun = '$tahun',
+        minggu = '$minggu',
         jam_masuk = '$jamMasuk',
         jam_keluar = '$jamKeluar',
         tanggal_masuk = '$tanggalMasuk',
         tanggal_keluar = '$tanggalKeluar',
-        minggu = '$minggu',
         total_hadir = '$totalHadir'
         WHERE id = '$id'");
 
@@ -161,33 +159,45 @@ if ($action === 'edit') {
     exit;
 }
 
-// Bagian tampilan data (jika digunakan dalam file ini)
-if (isset($bulanFilter) && isset($tahunFilter) && isset($mingguFilter)) {
-    $bulanInt = intval($bulanFilter);
-    $mingguInt = intval($mingguFilter);
+if ($action === 'delete') {
+    header('Content-Type: application/json');
 
-    $queryAbsensi = mysqli_query($konek, "
-        SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan
-        FROM absensi_tukang a
-        JOIN tukang_nws t ON a.nik = t.nik
-        WHERE MONTH(a.tanggal_masuk) = $bulanInt
-        AND YEAR(a.tanggal_masuk) = '$tahunFilter'
-        AND a.minggu = $mingguInt
-        ORDER BY a.id DESC
-    ");
+    if (isset($_GET['ids'])) {
+        $ids = explode(',', $_GET['ids']);
+        $cleanedIds = array_map(function ($id) use ($konek) {
+            return (int) mysqli_real_escape_string($konek, trim($id));
+        }, $ids);
+        $cleanedIds = array_filter($cleanedIds, function ($value) {
+            return is_numeric($value) && $value > 0;
+        });
+        $idsList = implode(',', $cleanedIds);
 
-    if (mysqli_num_rows($queryAbsensi) > 0) {
-        while ($row = mysqli_fetch_assoc($queryAbsensi)) {
-            // Tampilkan data di tabel
+        if (!empty($idsList)) {
+            $query = "DELETE FROM absensi_tukang WHERE id IN ($idsList)";
+            if (mysqli_query($konek, $query)) {
+                echo json_encode(['success' => true, 'message' => 'Data absensi terpilih berhasil dihapus.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Gagal menghapus data absensi terpilih: ' . mysqli_error($konek)]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Tidak ada ID yang valid dipilih untuk dihapus.']);
+        }
+    } elseif (isset($_GET['id'])) {
+        $id = (int) mysqli_real_escape_string($konek, $_GET['id']);
+        $query = "DELETE FROM absensi_tukang WHERE id = $id";
+        if (mysqli_query($konek, $query)) {
+            echo json_encode(['success' => true, 'message' => 'Data absensi berhasil dihapus.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Gagal menghapus data: ' . mysqli_error($konek)]);
         }
     } else {
-        echo "<tr>
-            <td colspan='10' class='text-center text-gray-400 py-4'>Data belum tersedia untuk filter tersebut.</td>
-        </tr>";
+        echo json_encode(['success' => false, 'message' => 'Parameter ID atau IDs tidak ditemukan.']);
     }
-} else {
-    echo "<tr>
-        <td colspan='10' class='text-center text-gray-400 py-4'>Silakan pilih bulan, tahun, dan minggu terlebih dahulu.</td>
-    </tr>";
+    exit;
 }
+
+// Fallback untuk aksi yang tidak valid
+header('Content-Type: application/json');
+echo json_encode(['success' => false, 'message' => 'Aksi tidak valid.']);
+exit;
 ?>
