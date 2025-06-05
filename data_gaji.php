@@ -10,7 +10,7 @@ $mingguFilter = isset($_GET['minggu']) ? $_GET['minggu'] : '';
 // Inisialisasi variabel query
 $q = null;
 
-// Cek apakah filter bulan dan tahun sudah dipilih
+// Jika semua filter diisi, tampilkan data yang difilter
 if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     $periodeFilter = $tahunFilter . '-' . $bulanFilter;
 
@@ -29,9 +29,24 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
             AND a.minggu = '$mingguFilter'
         GROUP BY a.nik
     ");
+} else {
+    // ✅ Jika belum ada filter, tampilkan SEMUA data
+    $q = mysqli_query($konek, "
+        SELECT 
+            a.nik, 
+            t.nama_tukang, 
+            t.id_jabatan, 
+            j.jabatan,
+            SUM(a.total_hadir) AS total_hadir, 
+            j.gapok 
+        FROM absensi_tukang a
+        JOIN tukang_nws t ON a.nik = t.nik
+        JOIN jabatan j ON t.id_jabatan = j.id
+        GROUP BY a.nik
+        ORDER BY a.id DESC
+    ");
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="id">
@@ -144,7 +159,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                     Tahun: <strong><?= $tahunFilter ?></strong>,
                     Minggu ke-<strong><?= $mingguFilter ?></strong>
                 <?php else: ?>
-                    Silakan pilih bulan, tahun, dan minggu untuk menampilkan data.
+                    Menampilkan <strong>seluruh data gaji tukang</strong> tanpa filter.
                 <?php endif; ?>
             </div>
             <!-- END Info Text -->
