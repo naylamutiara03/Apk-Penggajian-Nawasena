@@ -315,7 +315,7 @@ include("sidebar.php");
                     <div class="max-w-7xl w-full p-6 bg-white shadow-lg rounded-lg mb-10">
                         <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Edit Tukang</h2>
 
-                        <form id="editTukangForm" action="aksi_tukang.php?act=update" method="POST">
+                        <form id="editTukangForm" action="aksi_tukang.php?act=update" method="POST" onsubmit="validasiEditTukang(event)">
                             <input type="hidden" name="id" value="<?= $data['id'] ?>">
 
                             <div class="mb-4">
@@ -385,6 +385,20 @@ include("sidebar.php");
                         </form>
                     </div>
                 </div>
+
+                <!-- Modal sukses edit -->
+                <div id="successModal"
+                    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
+                    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center">
+                        <h2 class="text-xl font-semibold text-green-600 mb-2">Berhasil!</h2>
+                        <p id="successMessage" class="text-gray-700">Data tukang berhasil diperbarui.</p>
+                        <button onclick="closeModal()"
+                            class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            OK
+                        </button>
+                    </div>
+                </div>
+
                 <script>
                     function validasiEditTukang(event) {
                         event.preventDefault();
@@ -409,6 +423,7 @@ include("sidebar.php");
                             return;
                         }
 
+                        // TARUH DI SINI
                         fetch("aksi_tukang.php?act=update", {
                             method: "POST",
                             body: formData
@@ -418,13 +433,15 @@ include("sidebar.php");
                                 if (data.success) {
                                     document.getElementById("successMessage").innerText = data.message;
                                     document.getElementById("successModal").classList.remove("hidden");
-                                    setTimeout(() => {
-                                        window.location.href = "data_tukang.php";
-                                    }, 2000);
                                 } else {
                                     alert(data.message);
                                 }
                             });
+                    }
+
+                    function closeModal() {
+                        document.getElementById("successModal").classList.add("hidden");
+                        window.location.href = "data_tukang.php";
                     }
                 </script>
 
