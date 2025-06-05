@@ -4,10 +4,59 @@ include 'koneksi.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Matikan tampilan error agar JSON bersih
 
+// Fungsi perhitungan total hadir berdasarkan shift yang sudah diperbaiki
+// Fungsi hitungTotalHadir yang sudah benar:
+function hitungTotalHadir($start, $end)
+{
+    $shifts = [
+        ['start' => '09:00', 'end' => '17:00'],
+        ['start' => '18:00', 'end' => '23:59'],
+        ['start' => '00:00', 'end' => '06:00']
+    ];
+
+    $totalHari = 0;
+    $checkedShifts = [];
+
+    $tanggalSekarang = $start;
+
+    while (strtotime(date('Y-m-d', $tanggalSekarang)) <= strtotime(date('Y-m-d', $end))) {
+        foreach ($shifts as $shift) {
+            $shiftDate = date('Y-m-d', $tanggalSekarang);
+            if ($shift['end'] === '06:00') {
+                $shiftDate = date('Y-m-d', strtotime('+1 day', strtotime($shiftDate)));
+            }
+            $shiftStart = strtotime($shiftDate . ' ' . $shift['start']);
+            $shiftEnd = strtotime($shiftDate . ' ' . $shift['end']);
+
+            $shiftKey = $shiftDate . '_' . $shift['start'] . '_' . $shift['end'];
+            if (in_array($shiftKey, $checkedShifts))
+                continue;
+
+            $overlapStart = max($start, $shiftStart);
+            $overlapEnd = min($end, $shiftEnd);
+
+            if ($overlapEnd > $overlapStart) {
+                $durasiJam = ($overlapEnd - $overlapStart) / 3600;
+
+                if ($durasiJam >= 4) {
+                    $totalHari += 1;
+                } elseif ($durasiJam >= 2) {
+                    $totalHari += 0.5;
+                }
+
+                $checkedShifts[] = $shiftKey;
+            }
+        }
+
+        $tanggalSekarang = strtotime('+1 day', $tanggalSekarang);
+    }
+
+    return $totalHari;
+}
+
 $action = isset($_GET['act']) ? $_GET['act'] : '';
 
 if ($action === 'tambah') {
-    // Ambil dan sanitasi data input
     $nik = mysqli_real_escape_string($konek, $_POST['nik'] ?? '');
     $bulan = mysqli_real_escape_string($konek, $_POST['bulan'] ?? '');
     $tahun = mysqli_real_escape_string($konek, $_POST['tahun'] ?? '');
@@ -19,14 +68,12 @@ if ($action === 'tambah') {
     $minggu = isset($_POST['minggu']) ? (int) $_POST['minggu'] : 1;
     $minggu = max(1, min($minggu, 5));
 
-    // Validasi tanggal
     if ($tanggalKeluar < $tanggalMasuk) {
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']);
         exit;
     }
 
-    // CEK DUPLIKAT: berdasarkan nik, tanggal masuk, jam masuk, jam keluar
     $cekDuplikat = mysqli_query($konek, "SELECT id FROM absensi_tukang 
         WHERE nik = '$nik' 
         AND tanggal_masuk = '$tanggalMasuk' 
@@ -43,23 +90,10 @@ if ($action === 'tambah') {
         exit;
     }
 
-    // Hitung total_hadir
-    $start = strtotime("$tanggalMasuk $jamMasuk");
-    $end = strtotime("$tanggalKeluar $jamKeluar");
-    $totalHadir = 0;
-    if ($end > $start) {
-        $selisihDetik = $end - $start;
-        $selisihJam = $selisihDetik / 3600;
-        if ($selisihJam <= 2) {
-            $totalHadir = 0;
-        } elseif ($selisihJam < 5) {
-            $totalHadir = 0.5;
-        } else {
-            $totalHadir = round(($selisihJam / 8) * 2) / 2;
-        }
-    }
+    $startTimestamp = strtotime("$tanggalMasuk $jamMasuk");
+    $endTimestamp = strtotime("$tanggalKeluar $jamKeluar");
+    $totalHadir = hitungTotalHadir($startTimestamp, $endTimestamp);
 
-    // Simpan ke database
     $query = mysqli_query($konek, "INSERT INTO absensi_tukang
         (nik, bulan, tahun, minggu, jam_masuk, jam_keluar, total_hadir, tanggal_masuk, tanggal_keluar)
         VALUES
@@ -72,15 +106,14 @@ if ($action === 'tambah') {
             'message' => 'Data absensi berhasil ditambahkan.',
             'redirect' => "data_absensi.php?bulan=$bulan&tahun=$tahun&minggu=$minggu"
         ]);
-        exit;
     } else {
         header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
             'message' => 'Gagal tambah data: ' . mysqli_error($konek)
         ]);
-        exit;
     }
+    exit;
 }
 
 if ($action === 'edit') {
@@ -93,19 +126,16 @@ if ($action === 'edit') {
     $jamKeluar = mysqli_real_escape_string($konek, $_POST['jam_keluar']);
     $tanggalMasuk = mysqli_real_escape_string($konek, $_POST['tanggal_masuk']);
     $tanggalKeluar = mysqli_real_escape_string($konek, $_POST['tanggal_keluar']);
-
-
-    // Tangkap dan validasi minggu
-    $minggu = isset($_POST['minggu']) ? (int) $_POST['minggu'] : 1;
-    if ($minggu < 1)
-        $minggu = 1;
-    if ($minggu > 5)
-        $minggu = 5;
+    $minggu = max(1, min((int) ($_POST['minggu'] ?? 1), 5));
 
     if ($tanggalKeluar < $tanggalMasuk) {
         echo json_encode(['success' => false, 'message' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.']);
         exit;
     }
+
+    $startTimestamp = strtotime("$tanggalMasuk $jamMasuk");
+    $endTimestamp = strtotime("$tanggalKeluar $jamKeluar");
+    $totalHadir = hitungTotalHadir($startTimestamp, $endTimestamp);
 
     $query = mysqli_query($konek, "UPDATE absensi_tukang SET
         nik = '$nik',
@@ -115,15 +145,15 @@ if ($action === 'edit') {
         jam_keluar = '$jamKeluar',
         tanggal_masuk = '$tanggalMasuk',
         tanggal_keluar = '$tanggalKeluar',
-        minggu = '$minggu'
+        minggu = '$minggu',
+        total_hadir = '$totalHadir'
         WHERE id = '$id'");
-
 
     if ($query) {
         echo json_encode([
             'success' => true,
             'message' => 'Data absensi berhasil diperbarui.',
-            'redirect' => "data_absensi.php?bulan=$bulan&tahun=$tahun&minggu=$minggu" // Pastikan ini benar
+            'redirect' => "data_absensi.php?bulan=$bulan&tahun=$tahun&minggu=$minggu"
         ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Gagal edit data: ' . mysqli_error($konek)]);
@@ -131,8 +161,8 @@ if ($action === 'edit') {
     exit;
 }
 
-// Bagian tampilan data
-if ($bulanFilter && $tahunFilter && $mingguFilter) {
+// Bagian tampilan data (jika digunakan dalam file ini)
+if (isset($bulanFilter) && isset($tahunFilter) && isset($mingguFilter)) {
     $bulanInt = intval($bulanFilter);
     $mingguInt = intval($mingguFilter);
 
