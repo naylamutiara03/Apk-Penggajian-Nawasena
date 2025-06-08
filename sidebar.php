@@ -17,6 +17,8 @@ if (session_status() == PHP_SESSION_NONE) {
 $current_page = basename($_SERVER['PHP_SELF']);
 $is_transaksi_active = in_array($current_page, ['data_absensi.php', 'data_gaji.php']);
 $master_data_pages = ['data_karyawan.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
+$laporan_pages = ['laporan.php', 'laporan_gaji_karyawan.php', 'slip_gaji.php'];
+$is_laporan_active = in_array($current_page, $laporan_pages);
 $is_master_data_active = in_array($current_page, $master_data_pages);
 ?>
 
@@ -143,7 +145,7 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
 
         <!-- Menu Laporan -->
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
-    <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
+<?php echo ($is_laporan_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
             onclick="toggleDropdown('submenuLaporan', 'arrowLaporan')">
             <ion-icon name="document-text-outline" class="text-xl"></ion-icon>
             <div class="flex justify-between w-full items-center">
@@ -158,13 +160,15 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         </div>
 
         <!-- Submenu for Laporan -->
-        <div id="submenuLaporan" class="hidden text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold">
-            <a href="slip_gaji.php"
-                class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link <?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">
+        <div id="submenuLaporan" class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
+<?php echo ($is_laporan_active) ? '' : 'hidden'; ?>">
+            <a href="slip_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
+<?php echo ($current_page == 'slip_gaji.php') ? 'bg-blue-600' : ''; ?>">
                 Slip Gaji Tukang
             </a>
-            <a href="laporan_gaji_karyawan.php"
-                class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link <?php echo ($current_page == 'slip_gaji_karyawan.php') ? 'bg-blue-600' : ''; ?>">
+
+            <a href="laporan_gaji_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
+<?php echo ($current_page == 'laporan_gaji_karyawan.php') ? 'bg-blue-600' : ''; ?>">
                 Laporan Gaji Karyawan
             </a>
         </div>
@@ -185,7 +189,8 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     </div>
 
     <!-- Modal Logout -->
-    <div id="logoutModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-[9999]">
+    <div id="logoutModal"
+        class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-[9999]">
         <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
             <h2 class="text-xl font-bold text-gray-800">Konfirmasi Logout</h2>
             <p class="text-gray-600 mt-2">Apakah Anda yakin ingin keluar?</p>
