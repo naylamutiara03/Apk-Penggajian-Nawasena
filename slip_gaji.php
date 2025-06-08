@@ -16,6 +16,7 @@ $username = $_SESSION['username'];
 <head>
     <title>Slip Gaji Tukang</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ionicons/5.5.2/ionicons.min.js"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -25,7 +26,8 @@ $username = $_SESSION['username'];
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
                 <div class="flex items-center mt-4 lg:mt-0">
-                    <span class="mr-4">Selamat Datang, <strong><?php echo htmlspecialchars($username); ?></strong></span>
+                    <span class="mr-4">Selamat Datang,
+                        <strong><?php echo htmlspecialchars($username); ?></strong></span>
                     <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
             </div>
@@ -52,10 +54,18 @@ $username = $_SESSION['username'];
                         <option value="">-- Pilih Bulan --</option>
                         <?php
                         $bulanList = [
-                            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
-                            '04' => 'April', '05' => 'Mei', '06' => 'Juni',
-                            '07' => 'Juli', '08' => 'Agustus', '09' => 'September',
-                            '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+                            '01' => 'Januari',
+                            '02' => 'Februari',
+                            '03' => 'Maret',
+                            '04' => 'April',
+                            '05' => 'Mei',
+                            '06' => 'Juni',
+                            '07' => 'Juli',
+                            '08' => 'Agustus',
+                            '09' => 'September',
+                            '10' => 'Oktober',
+                            '11' => 'November',
+                            '12' => 'Desember'
                         ];
                         foreach ($bulanList as $num => $nama) {
                             echo "<option value='$num'>$nama</option>";
@@ -94,7 +104,16 @@ $username = $_SESSION['username'];
                     </select>
                 </div>
 
-                <div class="flex justify-end mt-8">
+                <!-- Tombol Aksi -->
+                <div class="flex justify-between mt-8 gap-4 flex-wrap">
+                    <!-- Tombol Cetak Slip Gaji -->
+                    <button type="submit" formaction="cetak_slip_gaji.php"
+                        class="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition duration-200">
+                        <ion-icon name="print-outline" class="text-xl"></ion-icon>
+                        Cetak Slip Gaji
+                    </button>
+
+                    <!-- Tombol Tampilkan Slip Gaji -->
                     <button type="submit"
                         class="px-6 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition duration-200">
                         Tampilkan Slip Gaji
@@ -102,7 +121,6 @@ $username = $_SESSION['username'];
                 </div>
             </form>
         </div>
-        <?php include 'footer.php'; ?>
     </div>
 </body>
 
