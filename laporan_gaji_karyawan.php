@@ -13,7 +13,7 @@ $username = $_SESSION['username'];
 <html lang="id">
 
 <head>
-    <title>Slip Gaji Tukang</title>
+    <title>Laporan Gaji Karyawan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ionicons/5.5.2/ionicons.min.js"></script>
 </head>
@@ -35,16 +35,16 @@ $username = $_SESSION['username'];
 
         <!-- Title & Tanggal Section -->
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold ml-2">Slip Gaji Tukang</h1>
+            <h1 class="text-2xl font-bold ml-2">Laporan Gaji Karyawan</h1>
             <span class="text-gray-500 mr-2"><?php echo date('d F Y'); ?></span>
         </div>
         <!-- END Title & Tanggal Section -->
 
-        <!-- Form Filter Slip Gaji -->
+        <!-- Form Filter Laporan Gaji -->
         <div class="w-full lg:max-w-[800px] mx-auto bg-white/80 px-8 py-10 rounded-2xl shadow-xl mt-16">
-            <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Filter Slip Gaji Tukang</h2>
+            <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Filter Laporan Gaji Karyawan</h2>
 
-            <form action="hasil_slip_gaji.php" method="GET" class="space-y-6">
+            <form action="hasil_laporan_gaji.php" method="GET" class="space-y-6">
                 <!-- Bulan -->
                 <div>
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Bulan</label>
@@ -81,32 +81,18 @@ $username = $_SESSION['username'];
                     </select>
                 </div>
 
-                <!-- Nama Tukang (Statis) -->
-                <div>
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">Nama Tukang</label>
-                    <select name="nama_tukang" required
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
-                        <option value="">-- Pilih Nama Tukang --</option>
-                        <option value="Marvin">Marvin</option>
-                        <option value="Rizki">Rizki</option>
-                        <option value="Bambang">Bambang</option>
-                        <option value="Yanto">Yanto</option>
-                    </select>
-                </div>
-
-                <!-- Tombol Aksi -->
-                <div class="flex justify-between mt-8 gap-4 flex-wrap">
-                    <!-- Tombol Cetak Slip Gaji -->
-                    <button type="submit" formaction="cetak_slip_gaji.php"
-                        class="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition duration-200">
+                <div class="flex flex-wrap justify-between mt-8 gap-4">
+                    <!-- Tombol Cetak Laporan -->
+                    <button type="submit" formaction="cetak_laporan_gaji.php"
+                        class="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition duration-200 flex-grow sm:flex-grow-0 sm:w-auto justify-center min-w-[150px]">
                         <ion-icon name="print-outline" class="text-xl"></ion-icon>
-                        Cetak Slip Gaji
+                        Cetak Laporan Gaji
                     </button>
 
-                    <!-- Tombol Tampilkan Slip Gaji -->
+                    <!-- Tombol Tampilkan Laporan -->
                     <button type="submit"
-                        class="px-6 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition duration-200">
-                        Tampilkan Slip Gaji
+                        class="px-6 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition duration-200 flex-grow sm:flex-grow-0 sm:w-auto min-w-[150px]">
+                        Tampilkan Laporan
                     </button>
                 </div>
             </form>
