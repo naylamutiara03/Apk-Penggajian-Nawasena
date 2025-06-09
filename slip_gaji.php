@@ -1,5 +1,4 @@
 <?php
-include("koneksi.php");
 include("sidebar.php");
 
 if (!isset($_SESSION['username'])) {
@@ -42,7 +41,7 @@ $username = $_SESSION['username'];
         <!-- END Title & Tanggal Section -->
 
         <!-- Form Filter Slip Gaji -->
-        <div class="w-full lg:max-w-[700px] mx-auto bg-white/80 px-8 py-10 rounded-2xl shadow-xl mt-16">
+        <div class="w-full lg:max-w-[800px] mx-auto bg-white/80 px-8 py-10 rounded-2xl shadow-xl mt-16">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Filter Slip Gaji Tukang</h2>
 
             <form action="hasil_slip_gaji.php" method="GET" class="space-y-6">
@@ -52,25 +51,18 @@ $username = $_SESSION['username'];
                     <select name="bulan" required
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Bulan --</option>
-                        <?php
-                        $bulanList = [
-                            '01' => 'Januari',
-                            '02' => 'Februari',
-                            '03' => 'Maret',
-                            '04' => 'April',
-                            '05' => 'Mei',
-                            '06' => 'Juni',
-                            '07' => 'Juli',
-                            '08' => 'Agustus',
-                            '09' => 'September',
-                            '10' => 'Oktober',
-                            '11' => 'November',
-                            '12' => 'Desember'
-                        ];
-                        foreach ($bulanList as $num => $nama) {
-                            echo "<option value='$num'>$nama</option>";
-                        }
-                        ?>
+                        <option value="01">Januari</option>
+                        <option value="02">Februari</option>
+                        <option value="03">Maret</option>
+                        <option value="04">April</option>
+                        <option value="05">Mei</option>
+                        <option value="06">Juni</option>
+                        <option value="07">Juli</option>
+                        <option value="08">Agustus</option>
+                        <option value="09">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
                     </select>
                 </div>
 
@@ -89,18 +81,16 @@ $username = $_SESSION['username'];
                     </select>
                 </div>
 
-                <!-- Nama Tukang -->
+                <!-- Nama Tukang (Statis) -->
                 <div>
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Nama Tukang</label>
                     <select name="nama_tukang" required
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Nama Tukang --</option>
-                        <?php
-                        $tukangQuery = mysqli_query($konek, "SELECT DISTINCT nama FROM absensi ORDER BY nama ASC");
-                        while ($row = mysqli_fetch_assoc($tukangQuery)) {
-                            echo "<option value='" . htmlspecialchars($row['nama']) . "'>" . htmlspecialchars($row['nama']) . "</option>";
-                        }
-                        ?>
+                        <option value="Marvin">Marvin</option>
+                        <option value="Rizki">Rizki</option>
+                        <option value="Bambang">Bambang</option>
+                        <option value="Yanto">Yanto</option>
                     </select>
                 </div>
 
