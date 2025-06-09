@@ -14,6 +14,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .dropdown-content {
             display: none;
@@ -32,7 +33,8 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
                 <div class="flex items-center mt-4 lg:mt-0">
-                    <span class="mr-4">Selamat Datang, <strong><?php echo htmlspecialchars($username); ?></strong></span>
+                    <span class="mr-4">Selamat Datang,
+                        <strong><?php echo htmlspecialchars($username); ?></strong></span>
                     <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
 
@@ -76,7 +78,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                                     DATA TUKANG
                                 </h2>
                                 <p class="text-2xl font-bold">
-                                    1
+                                    13
                                 </p>
                             </div>
                             <i class="fas fa-user-cog text-gray-300 text-3xl">
@@ -90,7 +92,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                                     DATA KEHADIRAN TUKANG
                                 </h2>
                                 <p class="text-2xl font-bold">
-                                    4
+                                    3
                                 </p>
                             </div>
                             <i class="fas fa-briefcase text-gray-300 text-3xl">
@@ -104,7 +106,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                                     DATA ADMIN
                                 </h2>
                                 <p class="text-2xl font-bold">
-                                    13
+                                    1
                                 </p>
                             </div>
                             <i class="fas fa-comments text-gray-300 text-3xl">
@@ -114,28 +116,60 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User";
                 </div>
                 <!-- END Grid Section -->
 
-                <!-- Chart Section -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Bungkus chart pakai grid 2 kolom -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div class="bg-white p-4 rounded shadow">
-                        <h2 class="text-sm font-semibold text-gray-500 mb-2">
-                            Data Kehadiran Tukang
-                        </h2>
-                        <img alt="Bar chart showing data of employees based on gender" height="400"
-                            src="https://storage.googleapis.com/a1aa/image/Ph1zHBqhCX_1YOPPaSx_QZRpjcmUol1m1y39g41BIGs.jpg"
-                            width="600" />
+                        <h2 class="text-sm font-semibold text-gray-500 mb-2">Data Kehadiran Tukang</h2>
+                        <canvas id="barChart" height="300"></canvas> <!-- height lebih kecil -->
                     </div>
                     <div class="bg-white p-4 rounded shadow">
-                        <h2 class="text-sm font-semibold text-gray-500 mb-2">
-                            Total Pekerja Nawasena
-                        </h2>
-                        <img alt="Pie chart showing status of employees" height="400"
-                            src="https://storage.googleapis.com/a1aa/image/zjkEmBhlo4yNJJqWDz_8y7UAXZQnnLsL5OlnERLOVt8.jpg"
-                            width="600" />
+                        <h2 class="text-sm font-semibold text-gray-500 mb-2">Total Data</h2>
+                        <canvas id="pieChart" height="200"></canvas> <!-- height lebih kecil -->
                     </div>
                 </div>
-                <!-- END Chart Section -->
-                 
+
                 <?php include 'footer.php'; ?>
+
+                <script>
+                    const barCtx = document.getElementById('barChart').getContext('2d');
+                    const barChart = new Chart(barCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+                            datasets: [{
+                                label: 'Kehadiran Tukang',
+                                data: [12, 19, 3, 5, 2, 3],
+                                backgroundColor: 'rgba(59, 130, 246, 0.7)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+
+                    const pieCtx = document.getElementById('pieChart').getContext('2d');
+                    const pieChart = new Chart(pieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Karyawan', 'Admin', 'Tukang'],
+                            datasets: [{
+                                label: 'Total Pekerja',
+                                data: [4, 1, 13],
+                                backgroundColor: [
+                                    'rgba(16, 185, 129, 0.7)',
+                                    'rgba(59, 130, 246, 0.7)',
+                                    'rgba(234, 179, 8, 0.7)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    });
+                </script>
         </body>
 
 </html>
