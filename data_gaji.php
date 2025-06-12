@@ -10,6 +10,18 @@ $periodeFilter = $tahunFilter . '-' . $bulanFilter;
 $q = null;
 
 if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
+    // Hapus data gaji_tukang yang tidak punya absensi lagi untuk periode ini
+    mysqli_query($konek, "
+    DELETE FROM gaji_tukang 
+    WHERE CONCAT(tahun, '-', bulan) = '$periodeFilter'
+    AND minggu = '$mingguFilter'
+    AND nik NOT IN (
+        SELECT nik FROM absensi_tukang 
+        WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
+        AND minggu = '$mingguFilter'
+    )
+");
+
     $q = mysqli_query($konek, "
         SELECT 
             a.nik, 
@@ -75,6 +87,14 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
 
             // Cek apakah data sudah ada
             $cek = mysqli_query($konek, "SELECT * FROM gaji_tukang WHERE nik='$nik' AND bulan='$bulanFilter' AND tahun='$tahunFilter' AND minggu='$mingguFilter'");
+            // Hapus data lama untuk nik yang sama pada periode yang sama agar tidak double
+            mysqli_query($konek, "
+    DELETE FROM gaji_tukang 
+    WHERE nik = '$nik' 
+    AND bulan = '$bulanFilter' 
+    AND tahun = '$tahunFilter' 
+    AND minggu = '$mingguFilter'
+");
             if (mysqli_num_rows($cek) == 0) {
                 mysqli_query($konek, "INSERT INTO gaji_tukang 
                     (nik, nama, id_jabatan, gapok, total_hadir, total_gaji, bulan, tahun, minggu, tanggal_masuk, tanggal_keluar, jam_masuk, jam_keluar)
