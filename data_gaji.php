@@ -23,20 +23,28 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
 ");
 
     $q = mysqli_query($konek, "
-        SELECT 
-            a.nik, 
-            t.nama_tukang, 
-            t.id_jabatan, 
-            j.jabatan,
-            SUM(a.total_hadir) AS total_hadir, 
-            j.gapok 
-        FROM absensi_tukang a
-        JOIN tukang_nws t ON a.nik = t.nik
-        JOIN jabatan j ON t.id_jabatan = j.id
-        WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
-            AND a.minggu = '$mingguFilter'
-        GROUP BY a.nik
-    ");
+    SELECT 
+        a.nik, 
+        t.nama_tukang, 
+        t.id_jabatan, 
+        j.jabatan,
+        SUM(sub.hadir) AS total_hadir, 
+        j.gapok 
+    FROM (
+        SELECT nik, tanggal_masuk, MAX(total_hadir) AS hadir
+        FROM absensi_tukang
+        WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
+          AND minggu = '$mingguFilter'
+        GROUP BY nik, tanggal_masuk
+    ) AS sub
+    JOIN tukang_nws t ON sub.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    JOIN absensi_tukang a ON sub.nik = a.nik
+    WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
+      AND a.minggu = '$mingguFilter'
+    GROUP BY a.nik
+");
+
 
     if ($q && mysqli_num_rows($q) > 0) {
         $results = [];
@@ -88,55 +96,70 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
             // Cek apakah data sudah ada
             $cek = mysqli_query($konek, "SELECT * FROM gaji_tukang WHERE nik='$nik' AND bulan='$bulanFilter' AND tahun='$tahunFilter' AND minggu='$mingguFilter'");
             // Hapus data lama untuk nik yang sama pada periode yang sama agar tidak double
+            // Insert atau Update data gaji (hindari data hilang)
             mysqli_query($konek, "
-    DELETE FROM gaji_tukang 
-    WHERE nik = '$nik' 
-    AND bulan = '$bulanFilter' 
-    AND tahun = '$tahunFilter' 
-    AND minggu = '$mingguFilter'
+    INSERT INTO gaji_tukang 
+    (nik, nama, id_jabatan, gapok, total_hadir, total_gaji, bulan, tahun, minggu, tanggal_masuk, tanggal_keluar, jam_masuk, jam_keluar)
+    VALUES 
+    ('$nik', '$nama', '$jabatan', '$gapok', '$total_hadir', '$total_gaji', '$bulanFilter', '$tahunFilter', '$mingguFilter',
+     '$tanggal_masuk', '$tanggal_keluar', '$jam_masuk', '$jam_keluar')
+    ON DUPLICATE KEY UPDATE 
+        nama='$nama',
+        id_jabatan='$jabatan',
+        gapok='$gapok',
+        total_hadir='$total_hadir',
+        total_gaji='$total_gaji',
+        tanggal_masuk='$tanggal_masuk',
+        tanggal_keluar='$tanggal_keluar',
+        jam_masuk='$jam_masuk',
+        jam_keluar='$jam_keluar'
 ");
-            if (mysqli_num_rows($cek) == 0) {
-                mysqli_query($konek, "INSERT INTO gaji_tukang 
-                    (nik, nama, id_jabatan, gapok, total_hadir, total_gaji, bulan, tahun, minggu, tanggal_masuk, tanggal_keluar, jam_masuk, jam_keluar)
-                    VALUES 
-                    ('$nik', '$nama', '$jabatan', '$gapok', '$total_hadir', '$total_gaji', '$bulanFilter', '$tahunFilter', '$mingguFilter',
-                     '$tanggal_masuk', '$tanggal_keluar', '$jam_masuk', '$jam_keluar')");
-            }
         }
-
-        // Re-query untuk ditampilkan di tabel
-        $q = mysqli_query($konek, "
-            SELECT 
-                a.nik, 
-                t.nama_tukang, 
-                t.id_jabatan, 
-                j.jabatan,
-                SUM(a.total_hadir) AS total_hadir, 
-                j.gapok 
-            FROM absensi_tukang a
-            JOIN tukang_nws t ON a.nik = t.nik
-            JOIN jabatan j ON t.id_jabatan = j.id
-            WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
-                AND a.minggu = '$mingguFilter'
-            GROUP BY a.nik
-        ");
     }
+
+    // Re-query untuk ditampilkan di tabel
+    $q = mysqli_query($konek, "
+    SELECT 
+        a.nik, 
+        t.nama_tukang, 
+        t.id_jabatan, 
+        j.jabatan,
+        SUM(sub.hadir) AS total_hadir, 
+        j.gapok 
+    FROM (
+        SELECT nik, tanggal_masuk, MAX(total_hadir) AS hadir
+        FROM absensi_tukang
+        WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
+          AND minggu = '$mingguFilter'
+        GROUP BY nik, tanggal_masuk
+    ) AS sub
+    JOIN tukang_nws t ON sub.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    JOIN absensi_tukang a ON sub.nik = a.nik
+    WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
+      AND a.minggu = '$mingguFilter'
+    GROUP BY a.nik
+");
 } else {
     // Tampilkan semua data jika belum ada filter
     $q = mysqli_query($konek, "
-        SELECT 
-            a.nik, 
-            t.nama_tukang, 
-            t.id_jabatan, 
-            j.jabatan,
-            SUM(a.total_hadir) AS total_hadir, 
-            j.gapok 
-        FROM absensi_tukang a
-        JOIN tukang_nws t ON a.nik = t.nik
-        JOIN jabatan j ON t.id_jabatan = j.id
-        GROUP BY a.nik
-        ORDER BY a.id DESC
-    ");
+    SELECT 
+    a.nik, 
+    t.nama_tukang, 
+    t.id_jabatan, 
+    j.jabatan,
+    IFNULL(SUM(sub.hadir), 0) AS total_hadir, 
+    j.gapok 
+    FROM (
+        SELECT nik, tanggal_masuk, MAX(total_hadir) AS hadir
+        FROM absensi_tukang
+        GROUP BY nik, tanggal_masuk
+    ) AS sub
+    JOIN tukang_nws t ON sub.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    JOIN absensi_tukang a ON sub.nik = a.nik
+    GROUP BY a.nik
+");
 }
 ?>
 
