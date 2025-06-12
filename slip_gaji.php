@@ -76,7 +76,7 @@ $koneksi = new mysqli("localhost", "root", "", "penggajian");
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Tahun --</option>
                         <?php
-                        $query_tahun = $koneksi->query("SELECT DISTINCT tahun FROM absensi_tukang ORDER BY tahun DESC");
+                        $query_tahun = $koneksi->query("SELECT DISTINCT tahun FROM gaji_tukang ORDER BY tahun DESC");
                         while ($row = $query_tahun->fetch_assoc()) {
                             $thn = $row['tahun'];
                             echo "<option value='$thn'>$thn</option>";
@@ -92,9 +92,9 @@ $koneksi = new mysqli("localhost", "root", "", "penggajian");
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Nama Tukang --</option>
                         <?php
-                        $result = $koneksi->query("SELECT DISTINCT nama FROM gaji_tukang ORDER BY nama ASC");
+                        $result = $koneksi->query("SELECT DISTINCT nama_tukang FROM tukang_nws ORDER BY nama_tukang ASC");
                         while ($row = $result->fetch_assoc()) {
-                            echo '<option value="' . htmlspecialchars($row['nama']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                            echo '<option value="' . htmlspecialchars($row['nama_tukang']) . '">' . htmlspecialchars($row['nama_tukang']) . '</option>';
                         }
                         ?>
                     </select>

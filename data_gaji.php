@@ -1,168 +1,251 @@
 <?php
 include 'koneksi.php';
 include 'sidebar.php';
+$username = $_SESSION['username'] ?? 'Guest';
 
-$bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : '';
-$tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
-$mingguFilter = isset($_GET['minggu']) ? $_GET['minggu'] : '';
+$bulanFilter = isset($_GET['bulan']) ? htmlspecialchars($_GET['bulan']) : '';
+$tahunFilter = isset($_GET['tahun']) ? htmlspecialchars($_GET['tahun']) : '';
+$mingguFilter = isset($_GET['minggu']) ? htmlspecialchars($_GET['minggu']) : '';
 
-$periodeFilter = $tahunFilter . '-' . $bulanFilter;
-$q = null;
+$periodeFilter = '';
+if (!empty($tahunFilter) && !empty($bulanFilter)) {
+    $periodeFilter = $tahunFilter . '-' . $bulanFilter;
+}
 
+$q = null; // Inisialisasi variabel query untuk tampilan
+
+// --- LOGIKA BACKEND: PROSES DAN SIMPAN DATA GAJI ---
+// Bagian ini hanya berjalan jika SEMUA filter periode (bulan, tahun, minggu) dipilih
 if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
-    // Hapus data gaji_tukang yang tidak punya absensi lagi untuk periode ini
-    mysqli_query($konek, "
-    DELETE FROM gaji_tukang 
-    WHERE CONCAT(tahun, '-', bulan) = '$periodeFilter'
-    AND minggu = '$mingguFilter'
-    AND nik NOT IN (
-        SELECT nik FROM absensi_tukang 
-        WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
-        AND minggu = '$mingguFilter'
-    )
-");
+    // Mulai transaksi untuk memastikan integritas data
+    mysqli_begin_transaction($konek);
 
-    $q = mysqli_query($konek, "
-    SELECT 
-        a.nik, 
-        t.nama_tukang, 
-        t.id_jabatan, 
-        j.jabatan,
-        SUM(sub.hadir) AS total_hadir, 
-        j.gapok 
-    FROM (
-        SELECT nik, tanggal_masuk, MAX(total_hadir) AS hadir
-        FROM absensi_tukang
-        WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
-          AND minggu = '$mingguFilter'
-        GROUP BY nik, tanggal_masuk
-    ) AS sub
-    JOIN tukang_nws t ON sub.nik = t.nik
-    JOIN jabatan j ON t.id_jabatan = j.id
-    JOIN absensi_tukang a ON sub.nik = a.nik
-    WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
-      AND a.minggu = '$mingguFilter'
-    GROUP BY a.nik
-");
-
-
-    if ($q && mysqli_num_rows($q) > 0) {
-        $results = [];
-        while ($row = mysqli_fetch_assoc($q)) {
-            $results[] = $row;
+    try {
+        // 1. Hapus data gaji_tukang yang tidak lagi memiliki absensi untuk periode ini.
+        // Ini membersihkan data gaji lama yang mungkin tidak valid lagi.
+        $delete_query = "
+            DELETE FROM gaji_tukang
+            WHERE CONCAT(tahun, '-', bulan) = ?
+            AND minggu = ?
+            AND nik NOT IN (
+                SELECT nik FROM absensi_tukang
+                WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = ?
+                AND minggu = ?
+            )
+        ";
+        $stmt_delete = mysqli_prepare($konek, $delete_query);
+        if (!$stmt_delete) {
+            throw new Exception("Error preparing delete statement: " . mysqli_error($konek));
         }
+        mysqli_stmt_bind_param($stmt_delete, "ssss", $periodeFilter, $mingguFilter, $periodeFilter, $mingguFilter);
+        mysqli_stmt_execute($stmt_delete);
+        mysqli_stmt_close($stmt_delete);
 
-        foreach ($results as $row) {
-            $nik = $row['nik'];
-            $nama = $row['nama_tukang'];
-            $jabatan = $row['id_jabatan'];
-            $gapok = $row['gapok'];
-            $total_hadir = $row['total_hadir'];
-            $total_gaji = $gapok * $total_hadir;
+        // 2. Query untuk mendapatkan data absensi tukang, nama, jabatan, dan gapok
+        // untuk periode yang difilter. Ini adalah data SUMBER untuk perhitungan gaji.
+        $main_query = "
+            SELECT
+                a.nik,
+                t.nama_tukang,
+                t.id_jabatan,
+                j.jabatan,
+                COUNT(DISTINCT a.tanggal_masuk) AS total_hadir, -- Menghitung unik hari hadir
+                j.gapok
+            FROM absensi_tukang a
+            JOIN tukang_nws t ON a.nik = t.nik
+            JOIN jabatan j ON t.id_jabatan = j.id
+            WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = ?
+                AND a.minggu = ?
+            GROUP BY a.nik, t.nama_tukang, t.id_jabatan, j.jabatan, j.gapok
+            ORDER BY t.nama_tukang ASC
+        ";
+        $stmt_main = mysqli_prepare($konek, $main_query);
+        if (!$stmt_main) {
+            throw new Exception("Error preparing main query statement: " . mysqli_error($konek));
+        }
+        mysqli_stmt_bind_param($stmt_main, "ss", $periodeFilter, $mingguFilter);
+        mysqli_stmt_execute($stmt_main);
+        $result_main_query = mysqli_stmt_get_result($stmt_main);
 
-            // Ambil tanggal dan jam dari absensi — PERBAIKAN FILTER!
-            $qAbsensi = mysqli_query($konek, "
-    SELECT 
-        tanggal_masuk,
-        tanggal_keluar,
-        jam_masuk,
-        jam_keluar
-    FROM absensi_tukang
-    WHERE nik = '$nik'
-      AND DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
-      AND minggu = '$mingguFilter'
-");
-
-            $tanggal_masuk_list = [];
-            $tanggal_keluar_list = [];
-            $jam_masuk_list = [];
-            $jam_keluar_list = [];
-
-            while ($absensi = mysqli_fetch_assoc($qAbsensi)) {
-                $tanggal_masuk_list[] = $absensi['tanggal_masuk'];
-                $tanggal_keluar_list[] = $absensi['tanggal_keluar'];
-                $jam_masuk_list[] = $absensi['jam_masuk'];
-                $jam_keluar_list[] = $absensi['jam_keluar'];
+        if ($result_main_query && mysqli_num_rows($result_main_query) > 0) {
+            $results_to_process = [];
+            while ($row = mysqli_fetch_assoc($result_main_query)) {
+                $results_to_process[] = $row;
             }
+            mysqli_free_result($result_main_query); // Bebaskan hasil query utama
+            mysqli_stmt_close($stmt_main); // Tutup statement utama
 
-            // Gabungkan ke dalam string agar bisa disimpan di satu field database
-            $tanggal_masuk = implode(', ', $tanggal_masuk_list);
-            $tanggal_keluar = implode(', ', $tanggal_keluar_list);
-            $jam_masuk = implode(', ', $jam_masuk_list);
-            $jam_keluar = implode(', ', $jam_keluar_list);
+            foreach ($results_to_process as $row) {
+                $nik = $row['nik'];
+                $nama = $row['nama_tukang'];
+                $jabatan_id = $row['id_jabatan'];
+                $gapok = $row['gapok'];
+                $total_hadir = $row['total_hadir'];
+                $total_gaji = $gapok * $total_hadir;
 
+                // 3. Ambil detail tanggal dan jam absensi untuk NIK dan periode ini
+                $absensi_detail_query = "
+                    SELECT
+                        tanggal_masuk,
+                        tanggal_keluar,
+                        jam_masuk,
+                        jam_keluar
+                    FROM absensi_tukang
+                    WHERE nik = ?
+                        AND DATE_FORMAT(tanggal_masuk, '%Y-%m') = ?
+                        AND minggu = ?
+                    ORDER BY tanggal_masuk ASC
+                ";
+                $stmt_absensi_detail = mysqli_prepare($konek, $absensi_detail_query);
+                if (!$stmt_absensi_detail) {
+                    throw new Exception("Error preparing absensi detail statement: " . mysqli_error($konek));
+                }
+                mysqli_stmt_bind_param($stmt_absensi_detail, "sss", $nik, $periodeFilter, $mingguFilter);
+                mysqli_stmt_execute($stmt_absensi_detail);
+                $result_absensi_detail = mysqli_stmt_get_result($stmt_absensi_detail);
 
+                $tanggal_masuk_list = [];
+                $tanggal_keluar_list = [];
+                $jam_masuk_list = [];
+                $jam_keluar_list = [];
 
-            // Cek apakah data sudah ada
-            $cek = mysqli_query($konek, "SELECT * FROM gaji_tukang WHERE nik='$nik' AND bulan='$bulanFilter' AND tahun='$tahunFilter' AND minggu='$mingguFilter'");
-            // Hapus data lama untuk nik yang sama pada periode yang sama agar tidak double
-            // Insert atau Update data gaji (hindari data hilang)
-            mysqli_query($konek, "
-    INSERT INTO gaji_tukang 
-    (nik, nama, id_jabatan, gapok, total_hadir, total_gaji, bulan, tahun, minggu, tanggal_masuk, tanggal_keluar, jam_masuk, jam_keluar)
-    VALUES 
-    ('$nik', '$nama', '$jabatan', '$gapok', '$total_hadir', '$total_gaji', '$bulanFilter', '$tahunFilter', '$mingguFilter',
-     '$tanggal_masuk', '$tanggal_keluar', '$jam_masuk', '$jam_keluar')
-    ON DUPLICATE KEY UPDATE 
-        nama='$nama',
-        id_jabatan='$jabatan',
-        gapok='$gapok',
-        total_hadir='$total_hadir',
-        total_gaji='$total_gaji',
-        tanggal_masuk='$tanggal_masuk',
-        tanggal_keluar='$tanggal_keluar',
-        jam_masuk='$jam_masuk',
-        jam_keluar='$jam_keluar'
-");
+                while ($absensi = mysqli_fetch_assoc($result_absensi_detail)) {
+                    $tanggal_masuk_list[] = $absensi['tanggal_masuk'];
+                    $tanggal_keluar_list[] = $absensi['tanggal_keluar'];
+                    $jam_masuk_list[] = $absensi['jam_masuk'];
+                    $jam_keluar_list[] = $absensi['jam_keluar'];
+                }
+                mysqli_free_result($result_absensi_detail); // Bebaskan hasil query absensi detail
+                mysqli_stmt_close($stmt_absensi_detail); // Tutup statement absensi detail
+
+                // Gabungkan ke dalam string agar bisa disimpan di satu field database
+                $tanggal_masuk_str = implode(', ', $tanggal_masuk_list);
+                $tanggal_keluar_str = implode(', ', $tanggal_keluar_list);
+                $jam_masuk_str = implode(', ', $jam_masuk_list);
+                $jam_keluar_str = implode(', ', $jam_keluar_list);
+
+                // 4. Insert atau Update data gaji menggunakan prepared statements
+                $insert_update_query = "
+                    INSERT INTO gaji_tukang
+                    (nik, nama, id_jabatan, gapok, total_hadir, total_gaji, bulan, tahun, minggu, tanggal_masuk, tanggal_keluar, jam_masuk, jam_keluar)
+                    VALUES
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        nama=?,
+                        id_jabatan=?,
+                        gapok=?,
+                        total_hadir=?,
+                        total_gaji=?,
+                        tanggal_masuk=?,
+                        tanggal_keluar=?,
+                        jam_masuk=?,
+                        jam_keluar=?
+                ";
+                $stmt_insert_update = mysqli_prepare($konek, $insert_update_query);
+                if (!$stmt_insert_update) {
+                    throw new Exception("Error preparing insert/update statement: " . mysqli_error($konek));
+                }
+                // Bind parameter untuk bagian INSERT dan UPDATE
+                mysqli_stmt_bind_param(
+                    $stmt_insert_update,
+                    "ssididssisssssididssss", // <-- CORRECTED TYPE STRING
+                    $nik,
+                    $nama,
+                    $jabatan_id,
+                    $gapok,
+                    $total_hadir,
+                    $total_gaji,
+                    $bulanFilter,
+                    $tahunFilter,
+                    $mingguFilter,
+                    $tanggal_masuk_str,
+                    $tanggal_keluar_str,
+                    $jam_masuk_str,
+                    $jam_keluar_str, // Untuk INSERT (13 vars)
+                    $nama,
+                    $jabatan_id,
+                    $gapok,
+                    $total_hadir,
+                    $total_gaji,
+                    $tanggal_masuk_str,
+                    $tanggal_keluar_str,
+                    $jam_masuk_str,
+                    $jam_keluar_str  // Untuk UPDATE (9 vars)
+                );
+                mysqli_stmt_execute($stmt_insert_update);
+                mysqli_stmt_close($stmt_insert_update);
+            }
         }
+        mysqli_commit($konek); // Commit transaksi jika semua operasi berhasil
+
+    } catch (Exception $e) {
+        mysqli_rollback($konek); // Rollback jika terjadi error
+        error_log("Error processing salary data: " . $e->getMessage()); // Log error ke server
+        echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative' role='alert'>";
+        echo "<strong class='font-bold'>Terjadi Kesalahan!</strong>";
+        echo "<span class='block sm:inline'> Gagal memproses data gaji. Silakan coba lagi atau hubungi administrator.</span>";
+        echo "</div>";
+    }
+    // Tidak perlu close $stmt_main di finally karena sudah di-close di dalam if ($result_main_query)
+
+    // --- LOGIKA FRONTEND: AMBIL DATA UNTUK DITAMPILKAN ---
+    // Setelah data disimpan/diperbarui, ambil dari tabel gaji_tukang untuk ditampilkan
+    $display_query = "
+        SELECT
+            g.nik,
+            g.nama,
+            g.id_jabatan,
+            j.jabatan,
+            g.total_hadir,
+            g.gapok,
+            g.total_gaji
+        FROM gaji_tukang g
+        JOIN jabatan j ON g.id_jabatan = j.id
+        WHERE CONCAT(g.tahun, '-', g.bulan) = ?
+          AND g.minggu = ?
+        ORDER BY g.nama ASC
+    ";
+    $stmt_display = mysqli_prepare($konek, $display_query);
+    if ($stmt_display) {
+        mysqli_stmt_bind_param($stmt_display, "ss", $periodeFilter, $mingguFilter);
+        mysqli_stmt_execute($stmt_display);
+        $q = mysqli_stmt_get_result($stmt_display);
+        mysqli_stmt_close($stmt_display);
+    } else {
+        error_log("Error preparing display query: " . mysqli_error($konek));
+        echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative' role='alert'>";
+        echo "<strong class='font-bold'>Terjadi Kesalahan!</strong>";
+        echo "<span class='block sm:inline'> Gagal mengambil data untuk ditampilkan.</span>";
+        echo "</div>";
     }
 
-    // Re-query untuk ditampilkan di tabel
-    $q = mysqli_query($konek, "
-    SELECT 
-        a.nik, 
-        t.nama_tukang, 
-        t.id_jabatan, 
-        j.jabatan,
-        SUM(sub.hadir) AS total_hadir, 
-        j.gapok 
-    FROM (
-        SELECT nik, tanggal_masuk, MAX(total_hadir) AS hadir
-        FROM absensi_tukang
-        WHERE DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
-          AND minggu = '$mingguFilter'
-        GROUP BY nik, tanggal_masuk
-    ) AS sub
-    JOIN tukang_nws t ON sub.nik = t.nik
-    JOIN jabatan j ON t.id_jabatan = j.id
-    JOIN absensi_tukang a ON sub.nik = a.nik
-    WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
-      AND a.minggu = '$mingguFilter'
-    GROUP BY a.nik
-");
 } else {
-    // Tampilkan semua data jika belum ada filter
-    $q = mysqli_query($konek, "
-    SELECT 
-    a.nik, 
-    t.nama_tukang, 
-    t.id_jabatan, 
-    j.jabatan,
-    IFNULL(SUM(sub.hadir), 0) AS total_hadir, 
-    j.gapok 
-    FROM (
-        SELECT nik, tanggal_masuk, MAX(total_hadir) AS hadir
-        FROM absensi_tukang
-        GROUP BY nik, tanggal_masuk
-    ) AS sub
-    JOIN tukang_nws t ON sub.nik = t.nik
-    JOIN jabatan j ON t.id_jabatan = j.id
-    JOIN absensi_tukang a ON sub.nik = a.nik
-    GROUP BY a.nik
-");
+    // --- LOGIKA FRONTEND: TAMPILKAN DATA TERBARU DARI GAJI_TUKANG (JIKA FILTER BELUM LENGKAP) ---
+    // Query ini hanya mengambil data dari tabel gaji_tukang yang sudah ada, tanpa perhitungan baru.
+    $display_latest_query = "
+        SELECT
+            g.nik,
+            g.nama,
+            g.id_jabatan,
+            j.jabatan,
+            g.total_hadir,
+            g.gapok,
+            g.total_gaji
+        FROM gaji_tukang g
+        JOIN jabatan j ON g.id_jabatan = j.id
+        ORDER BY g.tahun DESC, g.bulan DESC, g.minggu DESC, g.nama ASC
+        LIMIT 50 -- Batasi untuk performa jika data sangat banyak
+    ";
+    $q = mysqli_query($konek, $display_latest_query);
+    if (!$q) {
+        error_log("Error fetching latest salary data: " . mysqli_error($konek));
+        echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative' role='alert'>";
+        echo "<strong class='font-bold'>Terjadi Kesalahan!</strong>";
+        echo "<span class='block sm:inline'> Gagal mengambil data gaji terbaru.</span>";
+        echo "</div>";
+    }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="id">
@@ -193,9 +276,9 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
             <span class="text-gray-500 mr-2"><?= date('d F Y') ?></span>
         </div>
 
-        <!-- Main Content -->
+        ---
+
         <section class="bg-white p-6 rounded-xl shadow">
-            <!-- Filter Section -->
             <div class="bg-blue-600 text-white text-sm font-semibold rounded px-3 py-2 mb-4">
                 Filter Data Gaji Tukang
             </div>
@@ -222,7 +305,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
 
                         foreach ($bulanNama as $key => $nama) {
                             $selected = ($bulanFilter == $key) ? "selected" : "";
-                            echo "<option value='$key' $selected>$nama</option>";
+                            echo "<option value='" . htmlspecialchars($key) . "' $selected>" . htmlspecialchars($nama) . "</option>";
                         }
                         ?>
                     </select>
@@ -235,7 +318,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                         $currentYear = date('Y');
                         for ($y = $currentYear; $y >= 2020; $y--) {
                             $selected = ($tahunFilter == $y) ? "selected" : "";
-                            echo "<option value='$y' $selected>$y</option>";
+                            echo "<option value='" . htmlspecialchars($y) . "' $selected>" . htmlspecialchars($y) . "</option>";
                         }
                         ?>
                     </select>
@@ -247,7 +330,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                         <?php
                         for ($i = 1; $i <= 5; $i++) {
                             $selected = ($mingguFilter == $i) ? "selected" : "";
-                            echo "<option value='$i' $selected>Minggu ke-$i</option>";
+                            echo "<option value='" . htmlspecialchars($i) . "' $selected>Minggu ke-" . htmlspecialchars($i) . "</option>";
                         }
                         ?>
                     </select>
@@ -257,7 +340,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-eye"></i> Tampilkan Data
                     </button>
-                    <a href="cetak_gaji.php?bulan=<?= $bulanFilter ?>&tahun=<?= $tahunFilter ?>&minggu=<?= $mingguFilter ?>"
+                    <a href="cetak_gaji.php?bulan=<?= htmlspecialchars($bulanFilter) ?>&tahun=<?= htmlspecialchars($tahunFilter) ?>&minggu=<?= htmlspecialchars($mingguFilter) ?>"
                         target="_blank"
                         class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-print"></i> Cetak Daftar Gaji
@@ -265,22 +348,18 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                 </div>
 
             </form>
-            <!-- END Filter Section -->
-
-            <!-- Info Text -->
             <div class="bg-blue-100 text-blue-800 rounded px-4 py-2 mb-4 text-sm">
                 <?php if ($bulanFilter && $tahunFilter && $mingguFilter): ?>
                     Menampilkan Data Gaji Tukang Bulan:
-                    <strong><?= $bulanNama[$bulanFilter] ?? $bulanFilter ?></strong>,
-                    Tahun: <strong><?= $tahunFilter ?></strong>,
-                    Minggu ke-<strong><?= $mingguFilter ?></strong>
+                    <strong><?= htmlspecialchars($bulanNama[$bulanFilter] ?? $bulanFilter) ?></strong>,
+                    Tahun: <strong><?= htmlspecialchars($tahunFilter) ?></strong>,
+                    Minggu ke-<strong><?= htmlspecialchars($mingguFilter) ?></strong>
                 <?php else: ?>
-                    Menampilkan <strong>seluruh data gaji tukang</strong> tanpa filter.
+                    Menampilkan **data gaji tukang terbaru** (maks. 50 data). Silakan pilih bulan, tahun, dan minggu untuk
+                    perhitungan spesifik.
                 <?php endif; ?>
             </div>
-            <!-- END Info Text -->
 
-            <!-- Data Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-gray-600 border border-gray-300">
                     <thead class="bg-gray-100 text-gray-500">
@@ -295,44 +374,38 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($q): ?>
+                        <?php if ($q && mysqli_num_rows($q) > 0): ?>
                             <?php
                             $no = 1;
                             while ($row = mysqli_fetch_assoc($q)):
-                                $total_gaji = $row['total_hadir'] * $row['gapok'];
                                 ?>
                                 <tr class="border-b border-gray-200 hover:bg-blue-100">
                                     <td class="py-4 px-6 text-center"><?= $no++ ?></td>
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['nik']) ?></td>
-                                    <td class="py-4 px-6"><?= htmlspecialchars($row['nama_tukang']) ?></td>
+                                    <td class="py-4 px-6"><?= htmlspecialchars($row['nama']) ?></td>
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['jabatan']) ?></td>
-                                    <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, ',', '.') ?>
+                                    <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 0, ',', '.') ?>
                                     </td>
                                     <td class="py-4 px-6 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
-                                    <td class="py-4 px-6 text-right font-bold"><?= number_format($total_gaji, 0, ',', '.') ?>
+                                    <td class="py-4 px-6 text-right font-bold">
+                                        <?= number_format($row['total_gaji'], 0, ',', '.') ?>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
-
-                            <?php if (mysqli_num_rows($q) == 0): ?>
-                                <tr>
-                                    <td colspan="7" class="text-center text-gray-400 py-4">
-                                        Tidak ada data gaji untuk bulan dan tahun ini.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
                         <?php else: ?>
                             <tr>
                                 <td colspan="7" class="text-center text-gray-400 py-4">
-                                    Silakan pilih bulan dan tahun untuk menampilkan data.
+                                    <?php if ($bulanFilter && $tahunFilter && $mingguFilter): ?>
+                                        Tidak ada data gaji untuk periode ini.
+                                    <?php else: ?>
+                                        Silakan pilih bulan, tahun, dan minggu untuk menampilkan data spesifik.
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
-
                 </table>
             </div>
-            <!-- END Data Table -->
         </section>
     </div>
 </body>
