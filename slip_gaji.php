@@ -7,6 +7,81 @@ if (!isset($_SESSION['username'])) {
 }
 
 $username = $_SESSION['username'];
+
+require 'vendor/autoload.php'; // dompdf
+
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
+// Koneksi ke database
+$koneksi = new mysqli("localhost", "root", "", "penggajian");
+
+// Cek apakah form sudah diisi
+$nama_tukang = $_GET['nama'] ?? '';
+$bulan = $_GET['bulan'] ?? '';
+$tahun = $_GET['tahun'] ?? '';
+
+// Jika semua parameter ada, jalankan proses cetak PDF
+if (!empty($nama_tukang) && !empty($bulan) && !empty($tahun)) {
+
+    $query = $koneksi->query("SELECT * FROM data_gaji 
+        WHERE nama_tukang = '$nama_tukang' 
+        AND bulan = '$bulan' 
+        AND tahun = '$tahun' 
+        ORDER BY tanggal_awal ASC");
+
+    $data_gaji = [];
+    while ($row = $query->fetch_assoc()) {
+        $data_gaji[] = $row;
+    }
+
+    $html = '
+        <style>
+            body { font-family: Arial, sans-serif; font-size: 12px; }
+            h2, h3, h4 { text-align: center; margin: 0; }
+            .section { margin-top: 15px; }
+            .total { font-weight: bold; margin-top: 20px; }
+            hr { margin-top: 10px; margin-bottom: 10px; }
+        </style>
+
+        <h2>Slip Gaji Tukang</h2>
+        <p><strong>Nama:</strong> ' . htmlspecialchars($nama_tukang) . '</p>
+        <p><strong>Bulan:</strong> ' . date('F', mktime(0, 0, 0, $bulan, 10)) . ' ' . $tahun . '</p>
+        <hr>
+    ';
+
+    $total_bulanan = 0;
+    $minggu_ke = 1;
+
+    foreach ($data_gaji as $gaji) {
+        $tanggal_awal = date('d M Y', strtotime($gaji['tanggal_awal']));
+        $tanggal_akhir = date('d M Y', strtotime($gaji['tanggal_akhir']));
+        $total_gaji = number_format($gaji['total_gaji'], 0, ',', '.');
+
+        $html .= '
+            <div class="section">
+                <h4>Minggu ke-' . $minggu_ke++ . '</h4>
+                <p>Tanggal: ' . $tanggal_awal . ' s/d ' . $tanggal_akhir . '</p>
+                <p>Gaji Minggu Ini: Rp. ' . $total_gaji . '</p>
+            </div>
+            <hr>
+        ';
+        $total_bulanan += $gaji['total_gaji'];
+    }
+
+    $html .= '
+        <p class="total">Total Gaji Bulan Ini: Rp. ' . number_format($total_bulanan, 0, ',', '.') . '</p>
+    ';
+
+    $options = new Options();
+    $options->set('defaultFont', 'Arial');
+    $dompdf = new Dompdf($options);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+    $dompdf->stream("Slip_Gaji_{$nama_tukang}_{$bulan}_{$tahun}.pdf", array("Attachment" => false));
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -44,6 +119,15 @@ $username = $_SESSION['username'];
         <div class="w-full lg:max-w-[800px] mx-auto bg-white/80 px-8 py-10 rounded-2xl shadow-xl mt-16">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Filter Slip Gaji Tukang</h2>
 
+            <?php
+            $result = $koneksi->query("SELECT DISTINCT nama FROM gaji_tukang ORDER BY nama ASC");
+            echo "<pre>";
+            while ($row = $result->fetch_assoc()) {
+                echo "Nama: " . $row['nama'] . "\n";
+            }
+            echo "</pre>";
+            ?>
+
             <form action="hasil_slip_gaji.php" method="GET" class="space-y-6">
                 <!-- Bulan -->
                 <div>
@@ -51,18 +135,27 @@ $username = $_SESSION['username'];
                     <select name="bulan" required
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Bulan --</option>
-                        <option value="01">Januari</option>
-                        <option value="02">Februari</option>
-                        <option value="03">Maret</option>
-                        <option value="04">April</option>
-                        <option value="05">Mei</option>
-                        <option value="06">Juni</option>
-                        <option value="07">Juli</option>
-                        <option value="08">Agustus</option>
-                        <option value="09">September</option>
-                        <option value="10">Oktober</option>
-                        <option value="11">November</option>
-                        <option value="12">Desember</option>
+                        <?php
+                        $query_bulan = $koneksi->query("SELECT DISTINCT bulan FROM gaji_tukang ORDER BY bulan ASC");
+                        $bulan_nama = [
+                            "01" => "Januari",
+                            "02" => "Februari",
+                            "03" => "Maret",
+                            "04" => "April",
+                            "05" => "Mei",
+                            "06" => "Juni",
+                            "07" => "Juli",
+                            "08" => "Agustus",
+                            "09" => "September",
+                            "10" => "Oktober",
+                            "11" => "November",
+                            "12" => "Desember"
+                        ];
+                        while ($row = $query_bulan->fetch_assoc()) {
+                            $bln = $row['bulan'];
+                            echo "<option value='$bln'>{$bulan_nama[$bln]}</option>";
+                        }
+                        ?>
                     </select>
                 </div>
 
@@ -73,24 +166,27 @@ $username = $_SESSION['username'];
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Tahun --</option>
                         <?php
-                        $tahunSekarang = date('Y');
-                        for ($i = $tahunSekarang; $i >= $tahunSekarang - 5; $i--) {
-                            echo "<option value='$i'>$i</option>";
+                        $query_tahun = $koneksi->query("SELECT DISTINCT tahun FROM absensi_tukang ORDER BY tahun DESC");
+                        while ($row = $query_tahun->fetch_assoc()) {
+                            $thn = $row['tahun'];
+                            echo "<option value='$thn'>$thn</option>";
                         }
                         ?>
                     </select>
                 </div>
 
-                <!-- Nama Tukang (Statis) -->
+                <!-- Nama Tukang (Dinamis dari data_gaji) -->
                 <div>
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Nama Tukang</label>
                     <select name="nama_tukang" required
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Nama Tukang --</option>
-                        <option value="Marvin">Marvin</option>
-                        <option value="Rizki">Rizki</option>
-                        <option value="Bambang">Bambang</option>
-                        <option value="Yanto">Yanto</option>
+                        <?php
+                        $result = $koneksi->query("SELECT DISTINCT nama FROM gaji_tukang ORDER BY nama ASC");
+                        while ($row = $result->fetch_assoc()) {
+                            echo '<option value="' . htmlspecialchars($row['nama']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                        }
+                        ?>
                     </select>
                 </div>
 
