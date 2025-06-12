@@ -51,15 +51,26 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     WHERE nik = '$nik'
       AND DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
       AND minggu = '$mingguFilter'
-    LIMIT 1
 ");
 
-            $absensi = mysqli_fetch_assoc($qAbsensi);
+            $tanggal_masuk_list = [];
+            $tanggal_keluar_list = [];
+            $jam_masuk_list = [];
+            $jam_keluar_list = [];
 
-            $tanggal_masuk = $absensi['tanggal_masuk'];
-            $tanggal_keluar = $absensi['tanggal_keluar'];
-            $jam_masuk = $absensi['jam_masuk'];
-            $jam_keluar = $absensi['jam_keluar'];
+            while ($absensi = mysqli_fetch_assoc($qAbsensi)) {
+                $tanggal_masuk_list[] = $absensi['tanggal_masuk'];
+                $tanggal_keluar_list[] = $absensi['tanggal_keluar'];
+                $jam_masuk_list[] = $absensi['jam_masuk'];
+                $jam_keluar_list[] = $absensi['jam_keluar'];
+            }
+
+            // Gabungkan ke dalam string agar bisa disimpan di satu field database
+            $tanggal_masuk = implode(', ', $tanggal_masuk_list);
+            $tanggal_keluar = implode(', ', $tanggal_keluar_list);
+            $jam_masuk = implode(', ', $jam_masuk_list);
+            $jam_keluar = implode(', ', $jam_keluar_list);
+
 
 
             // Cek apakah data sudah ada
