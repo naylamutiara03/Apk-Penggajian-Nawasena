@@ -2,18 +2,14 @@
 include 'koneksi.php';
 include 'sidebar.php';
 
-// Ambil filter bulan dan tahun dari parameter GET
 $bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : '';
 $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 $mingguFilter = isset($_GET['minggu']) ? $_GET['minggu'] : '';
 
-// Inisialisasi variabel query
+$periodeFilter = $tahunFilter . '-' . $bulanFilter;
 $q = null;
 
-// Jika semua filter diisi, tampilkan data yang difilter
 if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
-    $periodeFilter = $tahunFilter . '-' . $bulanFilter;
-
     $q = mysqli_query($konek, "
         SELECT 
             a.nik, 
@@ -29,8 +25,73 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
             AND a.minggu = '$mingguFilter'
         GROUP BY a.nik
     ");
+
+    if ($q && mysqli_num_rows($q) > 0) {
+        $results = [];
+        while ($row = mysqli_fetch_assoc($q)) {
+            $results[] = $row;
+        }
+
+        foreach ($results as $row) {
+            $nik = $row['nik'];
+            $nama = $row['nama_tukang'];
+            $jabatan = $row['id_jabatan'];
+            $gapok = $row['gapok'];
+            $total_hadir = $row['total_hadir'];
+            $total_gaji = $gapok * $total_hadir;
+
+            // Ambil tanggal dan jam dari absensi — PERBAIKAN FILTER!
+            $qAbsensi = mysqli_query($konek, "
+    SELECT 
+        tanggal_masuk,
+        tanggal_keluar,
+        jam_masuk,
+        jam_keluar
+    FROM absensi_tukang
+    WHERE nik = '$nik'
+      AND DATE_FORMAT(tanggal_masuk, '%Y-%m') = '$periodeFilter'
+      AND minggu = '$mingguFilter'
+    LIMIT 1
+");
+
+            $absensi = mysqli_fetch_assoc($qAbsensi);
+
+            $tanggal_masuk = $absensi['tanggal_masuk'];
+            $tanggal_keluar = $absensi['tanggal_keluar'];
+            $jam_masuk = $absensi['jam_masuk'];
+            $jam_keluar = $absensi['jam_keluar'];
+
+
+            // Cek apakah data sudah ada
+            $cek = mysqli_query($konek, "SELECT * FROM gaji_tukang WHERE nik='$nik' AND bulan='$bulanFilter' AND tahun='$tahunFilter' AND minggu='$mingguFilter'");
+            if (mysqli_num_rows($cek) == 0) {
+                mysqli_query($konek, "INSERT INTO gaji_tukang 
+                    (nik, nama, id_jabatan, gapok, total_hadir, total_gaji, bulan, tahun, minggu, tanggal_masuk, tanggal_keluar, jam_masuk, jam_keluar)
+                    VALUES 
+                    ('$nik', '$nama', '$jabatan', '$gapok', '$total_hadir', '$total_gaji', '$bulanFilter', '$tahunFilter', '$mingguFilter',
+                     '$tanggal_masuk', '$tanggal_keluar', '$jam_masuk', '$jam_keluar')");
+            }
+        }
+
+        // Re-query untuk ditampilkan di tabel
+        $q = mysqli_query($konek, "
+            SELECT 
+                a.nik, 
+                t.nama_tukang, 
+                t.id_jabatan, 
+                j.jabatan,
+                SUM(a.total_hadir) AS total_hadir, 
+                j.gapok 
+            FROM absensi_tukang a
+            JOIN tukang_nws t ON a.nik = t.nik
+            JOIN jabatan j ON t.id_jabatan = j.id
+            WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = '$periodeFilter'
+                AND a.minggu = '$mingguFilter'
+            GROUP BY a.nik
+        ");
+    }
 } else {
-    // ✅ Jika belum ada filter, tampilkan SEMUA data
+    // Tampilkan semua data jika belum ada filter
     $q = mysqli_query($konek, "
         SELECT 
             a.nik, 
@@ -47,6 +108,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     ");
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">
