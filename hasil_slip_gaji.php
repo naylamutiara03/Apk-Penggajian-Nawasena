@@ -89,7 +89,6 @@ function formatRupiah($angka)
                 </tr>
             </thead>
             <tbody>';
-                $minggu_ke = 1;
                 $total_bulanan = 0;
                 while ($row = $query->fetch_assoc()) {
                     $tanggal_awal = date('d M Y', strtotime($row['tanggal_masuk']));
@@ -97,15 +96,16 @@ function formatRupiah($angka)
                     $periode = "$tanggal_awal - $tanggal_akhir";
 
                     echo '
-        <tr class="text-center">
-            <td class="border px-4 py-2">Minggu ke-' . $minggu_ke++ . '</td>
-            <td class="border px-4 py-2">' . $periode . '</td>
-            <td class="border px-4 py-2">' . $row['total_hadir'] . ' Hari</td>
-            <td class="border px-4 py-2">' . formatRupiah($row['gapok']) . '</td>
-            <td class="border px-4 py-2 font-semibold">' . formatRupiah($row['total_gaji']) . '</td>
-        </tr>';
+    <tr class="text-center">
+        <td class="border px-4 py-2">Minggu ke-' . htmlspecialchars($row['minggu']) . '</td>
+        <td class="border px-4 py-2">' . $periode . '</td>
+        <td class="border px-4 py-2">' . $row['total_hadir'] . ' Hari</td>
+        <td class="border px-4 py-2">' . formatRupiah($row['gapok']) . '</td>
+        <td class="border px-4 py-2 font-semibold">' . formatRupiah($row['total_gaji']) . '</td>
+    </tr>';
                     $total_bulanan += $row['total_gaji'];
                 }
+
 
                 echo '
     <tr class="bg-gray-100 font-bold text-center">
