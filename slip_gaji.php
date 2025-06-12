@@ -8,80 +8,7 @@ if (!isset($_SESSION['username'])) {
 
 $username = $_SESSION['username'];
 
-require 'vendor/autoload.php'; // dompdf
-
-use Dompdf\Dompdf;
-use Dompdf\Options;
-
-// Koneksi ke database
 $koneksi = new mysqli("localhost", "root", "", "penggajian");
-
-// Cek apakah form sudah diisi
-$nama_tukang = $_GET['nama'] ?? '';
-$bulan = $_GET['bulan'] ?? '';
-$tahun = $_GET['tahun'] ?? '';
-
-// Jika semua parameter ada, jalankan proses cetak PDF
-if (!empty($nama_tukang) && !empty($bulan) && !empty($tahun)) {
-
-    $query = $koneksi->query("SELECT * FROM data_gaji 
-        WHERE nama_tukang = '$nama_tukang' 
-        AND bulan = '$bulan' 
-        AND tahun = '$tahun' 
-        ORDER BY tanggal_awal ASC");
-
-    $data_gaji = [];
-    while ($row = $query->fetch_assoc()) {
-        $data_gaji[] = $row;
-    }
-
-    $html = '
-        <style>
-            body { font-family: Arial, sans-serif; font-size: 12px; }
-            h2, h3, h4 { text-align: center; margin: 0; }
-            .section { margin-top: 15px; }
-            .total { font-weight: bold; margin-top: 20px; }
-            hr { margin-top: 10px; margin-bottom: 10px; }
-        </style>
-
-        <h2>Slip Gaji Tukang</h2>
-        <p><strong>Nama:</strong> ' . htmlspecialchars($nama_tukang) . '</p>
-        <p><strong>Bulan:</strong> ' . date('F', mktime(0, 0, 0, $bulan, 10)) . ' ' . $tahun . '</p>
-        <hr>
-    ';
-
-    $total_bulanan = 0;
-    $minggu_ke = 1;
-
-    foreach ($data_gaji as $gaji) {
-        $tanggal_awal = date('d M Y', strtotime($gaji['tanggal_awal']));
-        $tanggal_akhir = date('d M Y', strtotime($gaji['tanggal_akhir']));
-        $total_gaji = number_format($gaji['total_gaji'], 0, ',', '.');
-
-        $html .= '
-            <div class="section">
-                <h4>Minggu ke-' . $minggu_ke++ . '</h4>
-                <p>Tanggal: ' . $tanggal_awal . ' s/d ' . $tanggal_akhir . '</p>
-                <p>Gaji Minggu Ini: Rp. ' . $total_gaji . '</p>
-            </div>
-            <hr>
-        ';
-        $total_bulanan += $gaji['total_gaji'];
-    }
-
-    $html .= '
-        <p class="total">Total Gaji Bulan Ini: Rp. ' . number_format($total_bulanan, 0, ',', '.') . '</p>
-    ';
-
-    $options = new Options();
-    $options->set('defaultFont', 'Arial');
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-    $dompdf->stream("Slip_Gaji_{$nama_tukang}_{$bulan}_{$tahun}.pdf", array("Attachment" => false));
-    exit;
-}
 ?>
 
 <!DOCTYPE html>
@@ -119,15 +46,6 @@ if (!empty($nama_tukang) && !empty($bulan) && !empty($tahun)) {
         <div class="w-full lg:max-w-[800px] mx-auto bg-white/80 px-8 py-10 rounded-2xl shadow-xl mt-16">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Filter Slip Gaji Tukang</h2>
 
-            <?php
-            $result = $koneksi->query("SELECT DISTINCT nama FROM gaji_tukang ORDER BY nama ASC");
-            echo "<pre>";
-            while ($row = $result->fetch_assoc()) {
-                echo "Nama: " . $row['nama'] . "\n";
-            }
-            echo "</pre>";
-            ?>
-
             <form action="hasil_slip_gaji.php" method="GET" class="space-y-6">
                 <!-- Bulan -->
                 <div>
@@ -138,18 +56,10 @@ if (!empty($nama_tukang) && !empty($bulan) && !empty($tahun)) {
                         <?php
                         $query_bulan = $koneksi->query("SELECT DISTINCT bulan FROM gaji_tukang ORDER BY bulan ASC");
                         $bulan_nama = [
-                            "01" => "Januari",
-                            "02" => "Februari",
-                            "03" => "Maret",
-                            "04" => "April",
-                            "05" => "Mei",
-                            "06" => "Juni",
-                            "07" => "Juli",
-                            "08" => "Agustus",
-                            "09" => "September",
-                            "10" => "Oktober",
-                            "11" => "November",
-                            "12" => "Desember"
+                            "01" => "Januari", "02" => "Februari", "03" => "Maret",
+                            "04" => "April", "05" => "Mei", "06" => "Juni",
+                            "07" => "Juli", "08" => "Agustus", "09" => "September",
+                            "10" => "Oktober", "11" => "November", "12" => "Desember"
                         ];
                         while ($row = $query_bulan->fetch_assoc()) {
                             $bln = $row['bulan'];
@@ -175,7 +85,7 @@ if (!empty($nama_tukang) && !empty($bulan) && !empty($tahun)) {
                     </select>
                 </div>
 
-                <!-- Nama Tukang (Dinamis dari data_gaji) -->
+                <!-- Nama Tukang -->
                 <div>
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Nama Tukang</label>
                     <select name="nama_tukang" required
@@ -191,15 +101,7 @@ if (!empty($nama_tukang) && !empty($bulan) && !empty($tahun)) {
                 </div>
 
                 <!-- Tombol Aksi -->
-                <div class="flex justify-between mt-8 gap-4 flex-wrap">
-                    <!-- Tombol Cetak Slip Gaji -->
-                    <button type="submit" formaction="cetak_slip_gaji.php"
-                        class="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition duration-200">
-                        <ion-icon name="print-outline" class="text-xl"></ion-icon>
-                        Cetak Slip Gaji
-                    </button>
-
-                    <!-- Tombol Tampilkan Slip Gaji -->
+                <div class="flex justify-center mt-8">
                     <button type="submit"
                         class="px-6 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition duration-200">
                         Tampilkan Slip Gaji
@@ -207,6 +109,7 @@ if (!empty($nama_tukang) && !empty($bulan) && !empty($tahun)) {
                 </div>
             </form>
         </div>
+
         <?php include("footer.php"); ?>
     </div>
 </body>
