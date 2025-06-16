@@ -276,8 +276,6 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
             <span class="text-gray-500 mr-2"><?= date('d F Y') ?></span>
         </div>
 
-        ---
-
         <section class="bg-white p-6 rounded-xl shadow">
             <div class="bg-blue-600 text-white text-sm font-semibold rounded px-3 py-2 mb-4">
                 Filter Data Gaji Tukang
@@ -384,7 +382,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['nik']) ?></td>
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['nama']) ?></td>
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['jabatan']) ?></td>
-                                    <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 0, ',', '.') ?>
+                                    <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, '.', '.') ?></td>
                                     </td>
                                     <td class="py-4 px-6 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
                                     <td class="py-4 px-6 text-right font-bold">
