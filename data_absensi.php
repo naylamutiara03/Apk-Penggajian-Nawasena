@@ -11,6 +11,27 @@ $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
 // The actual values for edit modal come from data attributes on the edit button
 $bulan = isset($_GET['bulan']) ? $_GET['bulan'] : '';
 $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
+
+// Fungsi untuk mendapatkan rentang tanggal berdasarkan minggu (bebas user input)
+function getRangeMinggu($bulan, $tahun, $mingguKe)
+{
+    $startDay = ($mingguKe - 1) * 7 + 1;
+    $endDay = $startDay + 6;
+
+    // Maksimal jumlah hari dalam bulan
+    $totalHariBulan = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+
+    // Batasi endDay tidak lebih dari akhir bulan
+    if ($endDay > $totalHariBulan) {
+        $endDay = $totalHariBulan;
+    }
+
+    // Format ke tanggal Y-m-d
+    $startDate = sprintf("%04d-%02d-%02d", $tahun, $bulan, $startDay);
+    $endDate = sprintf("%04d-%02d-%02d", $tahun, $bulan, $endDay);
+
+    return [$startDate, $endDate];
+}
 ?>
 
 <!DOCTYPE html>
@@ -185,16 +206,17 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
                             $bulanInt = intval($bulanFilter);
                             $mingguInt = intval($mingguFilter);
 
+                            list($startDate, $endDate) = getRangeMinggu($bulanInt, $tahunFilter, $mingguInt);
+
                             $queryAbsensi = mysqli_query($konek, "
     SELECT a.*, t.nama_tukang, t.jenis_kelamin, t.id_jabatan, j.jabatan AS nama_jabatan
     FROM absensi_tukang a
     JOIN tukang_nws t ON a.nik = t.nik
     JOIN jabatan j ON t.id_jabatan = j.id
-    WHERE MONTH(a.tanggal_masuk) = $bulanInt
-        AND YEAR(a.tanggal_masuk) = $tahunFilter
-        AND WEEK(a.tanggal_masuk, 1) - WEEK(DATE_SUB(a.tanggal_masuk, INTERVAL DAYOFMONTH(a.tanggal_masuk)-1 DAY), 1) + 1 = $mingguInt
+    WHERE a.tanggal_masuk BETWEEN '$startDate' AND '$endDate'
     ORDER BY a.id DESC
 ");
+
                         } else {
                             // Jika filter belum lengkap, tampilkan semua data tapi tandai bahwa ini default
                             $tampilkanSemua = true;
@@ -835,6 +857,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
         document.getElementById('cancelDeleteSelected').addEventListener('click', function () {
             document.getElementById('deleteSelectedModal').classList.add('hidden');
         });
+
 
     </script>
 </body>
