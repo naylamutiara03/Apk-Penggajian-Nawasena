@@ -62,7 +62,7 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
                                         <th class="py-4 px-6 text-center">No</th>
                                         <th class="py-4 px-6 text-left">Nama Jabatan</th>
                                         <th class="py-4 px-6 text-left">Gaji</th>
-                                        <th class="py-4 px-6 text-left">Tunjangan Jabatan</th>
+                                        <th class="py-4 px-6 text-left">Fee Jabatan</th>
                                         <th class="py-4 px-6 text-left">Total</th>
                                         <th class="py-4 px-6 text-center">Aksi</th>
                                     </tr>
