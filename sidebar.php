@@ -1,16 +1,14 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (!isset($_SESSION["login"])) {
     header("Location: login.php");
     exit;
 }
-$username = isset($_SESSION["username"]) ? $_SESSION["username"] : "User ";
-?>
 
-<?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+$username = $_SESSION["username"] ?? "User";
 ?>
 
 <?php
