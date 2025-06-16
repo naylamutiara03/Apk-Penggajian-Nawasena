@@ -147,10 +147,9 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             onclick="toggleDropdown('submenuLaporan', 'arrowLaporan')">
             <ion-icon name="document-text-outline" class="text-xl"></ion-icon>
             <div class="flex justify-between w-full items-center">
-                <a href="laporan.php" class="text-[15px] ml-4 text-gray-200 font-bold"
-                    onclick="showLoading()">Laporan</a>
+                <span class="text-[15px] ml-4 text-gray-200 font-bold">Laporan</span>
                 <span
-                    class="text-sm <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji.php' || $current_page == 'slip_gaji.php') ? 'rotate-180' : ''; ?>"
+                    class="text-sm <?php echo ($current_page == 'laporan.php' || $current_page == 'laporan_gaji_karyawan.php' || $current_page == 'slip_gaji.php') ? 'rotate-180' : ''; ?>"
                     id="arrowLaporan">
                     <ion-icon name="chevron-down-outline"></ion-icon>
                 </span>
