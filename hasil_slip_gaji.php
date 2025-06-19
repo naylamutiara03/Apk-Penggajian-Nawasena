@@ -9,9 +9,12 @@ if (!isset($_SESSION['username'])) {
 $username = $_SESSION['username'];
 $koneksi = new mysqli("localhost", "root", "", "penggajian");
 
-$nama_tukang = $_GET['nama_tukang'] ?? '';
+$nik = $_GET['nik'] ?? '';
 $bulan = $_GET['bulan'] ?? '';
 $tahun = $_GET['tahun'] ?? '';
+
+$getNama = $koneksi->query("SELECT nama_tukang FROM tukang_nws WHERE nik = '$nik'");
+$nama_tukang = ($getNama && $getNama->num_rows > 0) ? $getNama->fetch_assoc()['nama_tukang'] : 'TIDAK DIKETAHUI';
 
 function formatRupiah($angka)
 {
@@ -21,6 +24,7 @@ function formatRupiah($angka)
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <title>Hasil Slip Gaji</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,12 +33,16 @@ function formatRupiah($angka)
             body * {
                 visibility: hidden;
             }
-            #slip, #slip * {
+
+            #slip,
+            #slip * {
                 visibility: visible;
             }
+
             .no-print {
                 display: none !important;
             }
+
             #slip {
                 position: absolute;
                 left: 0;
@@ -44,6 +52,7 @@ function formatRupiah($angka)
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <div class="p-6 lg:ml-[300px]">
         <div class="bg-white p-4 rounded shadow mb-6">
@@ -71,7 +80,7 @@ function formatRupiah($angka)
                 ORDER BY tanggal_masuk ASC");
 
             if ($query->num_rows > 0) {
-            ?>
+                ?>
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto border border-gray-300 text-sm">
                         <thead class="bg-gray-200">
@@ -89,7 +98,7 @@ function formatRupiah($angka)
                             while ($row = $query->fetch_assoc()) {
                                 $periode = date('d M Y', strtotime($row['tanggal_masuk'])) . " - " . date('d M Y', strtotime($row['tanggal_keluar']));
                                 $total_bulanan += $row['total_gaji'];
-                            ?>
+                                ?>
                                 <tr class="text-center">
                                     <td class="border px-4 py-2">Minggu ke-<?= htmlspecialchars($row['minggu']) ?></td>
                                     <td class="border px-4 py-2"><?= $periode ?></td>
@@ -105,7 +114,7 @@ function formatRupiah($angka)
                         </tbody>
                     </table>
                 </div>
-            <?php
+                <?php
             } else {
                 echo '<p class="text-red-500 mt-4">Data slip gaji tidak ditemukan untuk bulan dan nama tukang yang dipilih.</p>';
             }
@@ -119,16 +128,18 @@ function formatRupiah($angka)
 
         <!-- Tombol Aksi -->
         <div class="mt-6 flex justify-between items-center no-print">
-            <a href="slip_gaji.php" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow">
+            <a href="slip_gaji.php"
+                class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow">
                 ← Kembali
             </a>
             <?php if ($query->num_rows > 0): ?>
-                <a href="download_slip_gaji.php?nama_tukang=<?= urlencode($nama_tukang); ?>&bulan=<?= $bulan; ?>&tahun=<?= $tahun; ?>" 
-                   class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded shadow">
+                <a href="download_slip_gaji.php?nik=<?= urlencode($nik); ?>&bulan=<?= $bulan; ?>&tahun=<?= $tahun; ?>"
+                    class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded shadow">
                     ⬇ Download Slip Gaji (PDF)
                 </a>
             <?php endif; ?>
         </div>
     </div>
 </body>
+
 </html>
