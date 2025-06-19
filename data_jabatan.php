@@ -15,7 +15,8 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
 
 <body class="bg-gray-100">
     <div class="p-6 lg:ml-[300px] flex-grow">
-        <div id="successModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="successModal"
+            class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
             <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
                 <h2 class="text-lg font-bold text-gray-800">Sukses!</h2>
                 <p class="text-gray-600 mt-2" id="successMessage">Data berhasil diproses.</p>
@@ -162,7 +163,7 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
                             document.getElementById('deleteModal').classList.add('hidden');
                             document.getElementById("successMessage").innerText = data.message;
                             document.getElementById("successModal").classList.remove("hidden");
-                            
+
                             // Remove the row from the table
                             const rowToRemove = document.querySelector(`#jabatanData tr[data-id='${deleteId}']`);
                             if (rowToRemove) {
@@ -229,7 +230,13 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
 
             <div class="mb-4" id="addTunjanganContainer">
                 <label for="addTunjangan" class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
-                <input type="text" id="addTunjangan" name="tunjangan_jabatan" class="currency border rounded-lg p-2 w-full">
+                <input type="text" id="addTunjangan" name="tunjangan_jabatan"
+                    class="currency border rounded-lg p-2 w-full">
+            </div>
+
+            <!-- Warning Message pindah ke sini, sebelum baris tombol -->
+            <div id="warningMessage"
+                class="mb-4 hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
             </div>
 
             <div class="flex justify-end mt-4">
@@ -259,6 +266,7 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
 
     function closeAddJabatanModal() {
         document.getElementById("addJabatanModal").classList.add("hidden");
+        document.getElementById("warningMessage").classList.add("hidden"); // Sembunyikan warning saat ditutup
     }
 
     function toggleAddFormFields() {
@@ -296,22 +304,23 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                closeAddJabatanModal();
-                document.getElementById("successMessage").innerText = data.message;
-                document.getElementById("successModal").classList.remove("hidden");
-                // Reload the page or dynamically add the new row to the table
-                location.reload(); // Simple reload for now, dynamic add is more complex
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menambahkan data.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeAddJabatanModal();
+                    document.getElementById("successMessage").innerText = data.message;
+                    document.getElementById("successModal").classList.remove("hidden");
+                    location.reload();
+                } else {
+                    const warningBox = document.getElementById("warningMessage");
+                    warningBox.innerText = data.message;
+                    warningBox.classList.remove("hidden");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menambahkan data.');
+            });
     });
 </script>
 
@@ -420,21 +429,21 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                closeEditJabatanModal();
-                document.getElementById("successMessage").innerText = data.message;
-                document.getElementById("successModal").classList.remove("hidden");
-                // Reload the page or dynamically update the row in the table
-                location.reload(); // Simple reload for now, dynamic update is more complex
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat mengupdate data.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeEditJabatanModal();
+                    document.getElementById("successMessage").innerText = data.message;
+                    document.getElementById("successModal").classList.remove("hidden");
+                    // Reload the page or dynamically update the row in the table
+                    location.reload(); // Simple reload for now, dynamic update is more complex
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mengupdate data.');
+            });
     });
 </script>
