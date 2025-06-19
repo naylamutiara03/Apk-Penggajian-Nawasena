@@ -338,11 +338,20 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1">
                         <i class="fas fa-eye"></i> Tampilkan Data
                     </button>
-                    <a href="cetak_gaji.php?bulan=<?= htmlspecialchars($bulanFilter) ?>&tahun=<?= htmlspecialchars($tahunFilter) ?>&minggu=<?= htmlspecialchars($mingguFilter) ?>"
-                        target="_blank"
-                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1">
-                        <i class="fas fa-print"></i> Cetak Daftar Gaji
-                    </a>
+                    <?php if ($bulanFilter && $tahunFilter && $mingguFilter): ?>
+                        <a href="cetak_gaji.php?bulan=<?= htmlspecialchars($bulanFilter) ?>&tahun=<?= htmlspecialchars($tahunFilter) ?>&minggu=<?= htmlspecialchars($mingguFilter) ?>"
+                            target="_blank"
+                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1">
+                            <i class="fas fa-print"></i> Cetak Daftar Gaji
+                        </a>
+                    <?php else: ?>
+                        <button type="button"
+                            onclick="alert('Silakan pilih bulan, tahun, dan minggu terlebih dahulu sebelum mencetak daftar gaji.')"
+                            class="bg-gray-400 cursor-not-allowed text-white px-3 py-1 rounded flex items-center gap-1"
+                            disabled>
+                            <i class="fas fa-print"></i> Cetak Daftar Gaji
+                        </button>
+                    <?php endif; ?>
                 </div>
 
             </form>
@@ -353,8 +362,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                     Tahun: <strong><?= htmlspecialchars($tahunFilter) ?></strong>,
                     Minggu ke-<strong><?= htmlspecialchars($mingguFilter) ?></strong>
                 <?php else: ?>
-                    Menampilkan **data gaji tukang terbaru** (maks. 50 data). Silakan pilih bulan, tahun, dan minggu untuk
-                    perhitungan spesifik.
+                    Silakan pilih bulan, tahun, dan minggu untuk cetak daftar gaji.
                 <?php endif; ?>
             </div>
 
@@ -382,7 +390,8 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['nik']) ?></td>
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['nama']) ?></td>
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['jabatan']) ?></td>
-                                    <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, '.', '.') ?></td>
+                                    <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, '.', '.') ?>
+                                    </td>
                                     </td>
                                     <td class="py-4 px-6 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
                                     <td class="py-4 px-6 text-right font-bold">
