@@ -16,9 +16,10 @@ include("sidebar.php");
 <body class="bg-gray-100">
     <div class="p-6 lg:ml-[300px] flex-grow">
         <!-- Modal untuk Pesan Sukses -->
-        <div id="successModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+        <div id="successModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
             <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
-                <h2 class="text-lg font-bold text-gray-800" id="successTitle">Sukses!</h2>
+                <h2 class="text-lg font-bold text-green-700" id="successTitle">Sukses!</h2>
                 <p class="text-gray-600 mt-2" id="successMessage">Pesan sukses akan ditampilkan di sini.</p>
                 <div class="mt-4">
                     <button onclick="closeSuccessModal()"
@@ -26,14 +27,26 @@ include("sidebar.php");
                 </div>
             </div>
         </div>
-        <!-- END Modal untuk Pesan Sukses -->
+
+        <!-- Modal Error -->
+        <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <h2 class="text-xl font-semibold mb-2 text-red-700">Gagal!</h2>
+                <p id="errorMessage" class="text-gray-700">Terjadi kesalahan.</p>
+                <div class="mt-4">
+                    <button onclick="closeErrorModal()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Header Section -->
         <div class="bg-white p-4 rounded shadow mb-6">
             <div class="flex flex-col lg:flex-row justify-between items-center">
                 <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
                 <div class="flex items-center mt-4 lg:mt-0">
-                    <span class="mr-4">Selamat Datang, <strong><?php echo htmlspecialchars($username); ?></strong></span>
+                    <span class="mr-4">Selamat Datang,
+                        <strong><?php echo htmlspecialchars($username); ?></strong></span>
                     <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
                 </div>
             </div>
@@ -209,12 +222,11 @@ include("sidebar.php");
                             });
                     }
 
-                    function closeErrorModal() {
-                        document.getElementById("errorModal").classList.add("hidden"); // Hide modal
-                    }
-
                     function closeSuccessModal() {
-                        document.getElementById("successModal").classList.add("hidden"); // Hide modal
+                        document.getElementById("successModal").classList.add("hidden");
+                    }
+                    function closeErrorModal() {
+                        document.getElementById("errorModal").classList.add("hidden");
                     }
 
                     function togglePassword() {
@@ -294,21 +306,25 @@ include("sidebar.php");
                         })
                             .then(response => response.json())
                             .then(data => {
+                                console.log("RESPON DARI SERVER:", data); // 🔍 DEBUG LOG
+
                                 if (data.success) {
-                                    // Set success message and show success modal
                                     document.getElementById("successTitle").innerText = "Sukses!";
                                     document.getElementById("successMessage").innerText = data.message;
-                                    document.getElementById("successModal").classList.remove("hidden"); // Show success modal
+                                    document.getElementById("successModal").classList.remove("hidden");
 
-                                    // Redirect after a delay
                                     setTimeout(() => {
-                                        window.location.href = "data_admin.php"; // Redirect after 2 seconds
-                                    }, 2000); // Redirect after 2 seconds
+                                        window.location.href = "data_admin.php";
+                                    }, 2000);
                                 } else {
-                                    // Ganti alert dengan modal kesalahan
                                     document.getElementById("errorMessage").innerText = data.message;
-                                    document.getElementById("errorModal").classList.remove("hidden"); // Tampilkan modal error
+                                    document.getElementById("errorModal").classList.remove("hidden");
                                 }
+                            })
+                            .catch(error => {
+                                console.error("GAGAL FETCH:", error); // 🔍 TANGKAP ERROR
+                                document.getElementById("errorMessage").innerText = "Terjadi kesalahan koneksi ke server.";
+                                document.getElementById("errorModal").classList.remove("hidden");
                             });
                     }
 
@@ -383,7 +399,6 @@ include("sidebar.php");
         </script>
         <?php include 'footer.php'; ?>
     </div>
-
 </body>
 
 </html>

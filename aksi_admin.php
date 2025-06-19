@@ -11,6 +11,12 @@ if ($_GET['act'] == 'tambah') {
     $namalengkap = $_POST['namalengkap'];
     $password = $_POST['password'];
 
+    $cekUsername = mysqli_query($konek, "SELECT * FROM admin WHERE username = '$username'");
+    if (mysqli_num_rows($cekUsername) > 0) {
+        echo json_encode(["success" => false, "message" => "Username '$username' sudah terdaftar, gunakan username lain."]);
+        exit;
+    }
+
     // Validasi panjang password
     if (strlen($password) < 8) {
         echo json_encode(["success" => false, "message" => "Password harus terdiri dari minimal 8 karakter."]);
@@ -38,7 +44,14 @@ elseif ($act == 'update') {
     $id = $_POST['idadmin'];
     $username = $_POST['username'];
     $namalengkap = $_POST['namalengkap'];
-    $password = $_POST['password'];
+    $password = isset($_POST['password']) ? $_POST['password'] : ''; // ✅ CEK DULU
+
+    // Cek apakah username sudah digunakan admin lain
+    $cekUsername = mysqli_query($konek, "SELECT * FROM admin WHERE username = '$username' AND idadmin != '$id'");
+    if (mysqli_num_rows($cekUsername) > 0) {
+        echo json_encode(["success" => false, "message" => "Username '$username' sudah digunakan admin lain."]);
+        exit;
+    }
 
     if (!empty($password)) {
         $password = password_hash($password, PASSWORD_DEFAULT);
