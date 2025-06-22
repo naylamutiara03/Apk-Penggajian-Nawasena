@@ -3,6 +3,20 @@ include 'koneksi.php';
 include 'sidebar.php';
 $username = $_SESSION['username'] ?? 'Guest';
 
+$hapusGajiInvalidQuery = "
+    DELETE FROM gaji_tukang
+    WHERE CONCAT(tahun, '-', LPAD(bulan, 2, '0')) NOT IN (
+        SELECT DISTINCT DATE_FORMAT(tanggal_masuk, '%Y-%m') FROM absensi_tukang
+    )
+    OR minggu NOT IN (
+        SELECT DISTINCT minggu FROM absensi_tukang
+    )
+    OR nik NOT IN (
+        SELECT DISTINCT nik FROM absensi_tukang
+    )
+";
+mysqli_query($konek, $hapusGajiInvalidQuery);
+
 $bulanFilter = isset($_GET['bulan']) ? htmlspecialchars($_GET['bulan']) : '';
 $tahunFilter = isset($_GET['tahun']) ? htmlspecialchars($_GET['tahun']) : '';
 $mingguFilter = isset($_GET['minggu']) ? htmlspecialchars($_GET['minggu']) : '';
@@ -10,6 +24,30 @@ $mingguFilter = isset($_GET['minggu']) ? htmlspecialchars($_GET['minggu']) : '';
 $periodeFilter = '';
 if (!empty($tahunFilter) && !empty($bulanFilter)) {
     $periodeFilter = $tahunFilter . '-' . $bulanFilter;
+}
+
+// fungsi refresh gaji tukang
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh_gaji'])) {
+    $update_query = "
+        UPDATE gaji_tukang g
+        JOIN tukang_nws t ON g.nik = t.nik
+        JOIN jabatan j ON t.id_jabatan = j.id
+        SET g.nama = t.nama_tukang,
+            g.id_jabatan = j.id,
+            g.gapok = j.gapok
+    ";
+
+    if (mysqli_query($konek, $update_query)) {
+        echo "<div class='bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4' role='alert'>
+                <strong class='font-bold'>Berhasil!</strong>
+                <span class='block sm:inline'> Data gaji tukang telah diperbarui berdasarkan data terbaru.</span>
+              </div>";
+    } else {
+        echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4' role='alert'>
+                <strong class='font-bold'>Gagal!</strong>
+                <span class='block sm:inline'> Tidak dapat memperbarui data gaji: " . htmlspecialchars(mysqli_error($konek)) . "</span>
+              </div>";
+    }
 }
 
 $q = null; // Inisialisasi variabel query untuk tampilan
@@ -191,20 +229,24 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     // --- LOGIKA FRONTEND: AMBIL DATA UNTUK DITAMPILKAN ---
     // Setelah data disimpan/diperbarui, ambil dari tabel gaji_tukang untuk ditampilkan
     $display_query = "
-        SELECT
-            g.nik,
-            g.nama,
-            g.id_jabatan,
-            j.jabatan,
-            g.total_hadir,
-            g.gapok,
-            g.total_gaji
-        FROM gaji_tukang g
-        JOIN jabatan j ON g.id_jabatan = j.id
-        WHERE CONCAT(g.tahun, '-', g.bulan) = ?
-          AND g.minggu = ?
-        ORDER BY g.nama ASC
-    ";
+    SELECT 
+        g.nik,
+        t.nama_tukang,
+        j.jabatan,
+        g.total_hadir,
+        j.gapok,
+        g.total_gaji,
+        g.bulan,
+        g.tahun,
+        g.minggu
+    FROM gaji_tukang g
+    JOIN tukang_nws t ON g.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    WHERE CONCAT(g.tahun, '-', g.bulan) = ?
+      AND g.minggu = ?
+    ORDER BY t.nama_tukang ASC
+";
+
     $stmt_display = mysqli_prepare($konek, $display_query);
     if ($stmt_display) {
         mysqli_stmt_bind_param($stmt_display, "ss", $periodeFilter, $mingguFilter);
@@ -220,31 +262,32 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     }
 
 } else {
-    // --- LOGIKA FRONTEND: TAMPILKAN DATA TERBARU DARI GAJI_TUKANG (JIKA FILTER BELUM LENGKAP) ---
-    // Query ini hanya mengambil data dari tabel gaji_tukang yang sudah ada, tanpa perhitungan baru.
+    // Menampilkan data real-time (total hadir & total gaji) langsung dari absensi
     $display_latest_query = "
-        SELECT
-            g.nik,
-            g.nama,
-            g.id_jabatan,
-            j.jabatan,
-            g.total_hadir,
-            g.gapok,
-            g.total_gaji
-        FROM gaji_tukang g
-        JOIN jabatan j ON g.id_jabatan = j.id
-        ORDER BY g.tahun DESC, g.bulan DESC, g.minggu DESC, g.nama ASC
-        LIMIT 50 -- Batasi untuk performa jika data sangat banyak
+    SELECT 
+        a.nik,
+        t.nama_tukang,
+        j.jabatan,
+        j.gapok,
+        COUNT(DISTINCT a.tanggal_masuk) AS total_hadir,
+        (COUNT(DISTINCT a.tanggal_masuk) * j.gapok) AS total_gaji
+    FROM absensi_tukang a
+    JOIN tukang_nws t ON a.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    GROUP BY a.nik, t.nama_tukang, j.jabatan, j.gapok
+    ORDER BY t.nama_tukang ASC
     ";
+
     $q = mysqli_query($konek, $display_latest_query);
     if (!$q) {
-        error_log("Error fetching latest salary data: " . mysqli_error($konek));
+        error_log("Error fetching latest real-time salary data: " . mysqli_error($konek));
         echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative' role='alert'>";
         echo "<strong class='font-bold'>Terjadi Kesalahan!</strong>";
-        echo "<span class='block sm:inline'> Gagal mengambil data gaji terbaru.</span>";
+        echo "<span class='block sm:inline'> Gagal mengambil data gaji real-time dari absensi.</span>";
         echo "</div>";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -344,6 +387,12 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                             class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1">
                             <i class="fas fa-print"></i> Cetak Daftar Gaji
                         </a>
+                        <form method="POST" action="">
+                            <button type="submit" name="refresh_gaji"
+                                class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded flex items-center gap-1 mt-2">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </form>
                     <?php else: ?>
                         <button type="button"
                             onclick="alert('Silakan pilih bulan, tahun, dan minggu terlebih dahulu sebelum mencetak daftar gaji.')"
@@ -388,12 +437,12 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                                 <tr class="border-b border-gray-200 hover:bg-blue-100">
                                     <td class="py-4 px-6 text-center"><?= $no++ ?></td>
                                     <td class="py-4 px-6"><?= htmlspecialchars($row['nik']) ?></td>
-                                    <td class="py-4 px-6"><?= htmlspecialchars($row['nama']) ?></td>
-                                    <td class="py-4 px-6"><?= htmlspecialchars($row['jabatan']) ?></td>
+                                    <td><?= htmlspecialchars($row['nama_tukang']) ?></td>
+                                    <td><?= htmlspecialchars($row['jabatan']) ?></td>
                                     <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, '.', '.') ?>
                                     </td>
                                     </td>
-                                    <td class="py-4 px-6 text-right"><?= number_format($row['gapok'], 0, ',', '.') ?></td>
+                                    <td><?= number_format($row['gapok'], 0, ',', '.') ?></td>
                                     <td class="py-4 px-6 text-right font-bold">
                                         <?= number_format($row['total_gaji'], 0, ',', '.') ?>
                                     </td>
