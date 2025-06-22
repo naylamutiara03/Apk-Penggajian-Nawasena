@@ -96,7 +96,25 @@ function formatRupiah($angka)
                             <?php
                             $total_bulanan = 0;
                             while ($row = $query->fetch_assoc()) {
-                                $periode = date('d M Y', strtotime($row['tanggal_masuk'])) . " - " . date('d M Y', strtotime($row['tanggal_keluar']));
+                                $nik = $row['nik'];
+                                $minggu = $row['minggu'];
+
+                                $periode_query = $koneksi->query("
+    SELECT 
+        MIN(tanggal_masuk) AS tgl_awal, 
+        MAX(tanggal_masuk) AS tgl_akhir
+    FROM absensi_tukang
+    WHERE nik = '$nik' 
+      AND MONTH(tanggal_masuk) = '$bulan' 
+      AND YEAR(tanggal_masuk) = '$tahun'
+      AND minggu = '$minggu'
+");
+
+                                $periode_data = $periode_query->fetch_assoc();
+                                $tanggal_awal = date('d M Y', strtotime($periode_data['tgl_awal']));
+                                $tanggal_akhir = date('d M Y', strtotime($periode_data['tgl_akhir']));
+                                $periode = "$tanggal_awal - $tanggal_akhir";
+
                                 $total_bulanan += $row['total_gaji'];
                                 ?>
                                 <tr class="text-center">
