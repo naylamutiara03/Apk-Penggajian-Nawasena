@@ -229,7 +229,7 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
             </div>
 
             <div class="mb-4" id="addTunjanganContainer">
-                <label for="addTunjangan" class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
+                <label for="addTunjangan" class="block text-sm font-medium text-gray-700">Fee Jabatan</label>
                 <input type="text" id="addTunjangan" name="tunjangan_jabatan"
                     class="currency border rounded-lg p-2 w-full">
             </div>
@@ -338,7 +338,7 @@ include("sidebar.php"); // Assuming sidebar.php sets $username
                 <input type="text" id="editGapok" name="gapok" required class="currency border rounded-lg p-2 w-full">
             </div>
             <div class="mb-4" id="editTunjanganContainer">
-                <label class="block text-sm font-medium text-gray-700">Tunjangan Jabatan</label>
+                <label class="block text-sm font-medium text-gray-700">Fee Jabatan</label>
                 <input type="text" id="editTunjangan" name="tunjangan_jabatan"
                     class="currency border rounded-lg p-2 w-full">
             </div>
