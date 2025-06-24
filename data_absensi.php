@@ -161,7 +161,7 @@ function getRangeMinggu($bulan, $tahun, $mingguKe)
             </form>
             <!-- Container baru: kiri search, kanan tombol hapus -->
             <div class="flex justify-between items-center mb-4">
-                <input type="text" id="searchInput" placeholder="Cari Nama Karyawan..."
+                <input type="text" id="searchInput" placeholder="Cari Nama Tukang..."
                     class="border border-gray-300 rounded px-2 py-1 w-64">
 
                 <button id="deleteSelected" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-4">
@@ -187,7 +187,7 @@ function getRangeMinggu($bulan, $tahun, $mingguKe)
                             <th class="border px-3 py-2 text-center font-semibold"><input type="checkbox" id="selectAll"
                                     class="cursor-pointer"></th>
                             <th class='border px-3 py-2 text-center font-semibold'>NIK</th>
-                            <th class='border px-3 py-2 text-center font-semibold'>Nama Karyawan</th>
+                            <th class='border px-3 py-2 text-center font-semibold'>Nama Tukang</th>
                             <th class='border px-3 py-2 text-center font-semibold'>Jabatan</th>
                             <th class='border px-3 py-2 text-center font-semibold'>Tanggal Masuk</th>
                             <th class='border px-3 py-2 text-center font-semibold'>Tanggal Keluar</th>
@@ -297,7 +297,7 @@ function getRangeMinggu($bulan, $tahun, $mingguKe)
                 <h3 class="font-semibold text-gray-700 mb-4">Tambah Data Absensi Tukang</h3>
                 <form action="aksi_absensi.php?act=tambah" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block mb-1">Nama Karyawan</label>
+                        <label class="block mb-1">Nama Tukang</label>
                         <select name="nik" class="w-full border px-3 py-1 rounded" required>
                             <option value="">-- Pilih Karyawan --</option>
                             <?php
