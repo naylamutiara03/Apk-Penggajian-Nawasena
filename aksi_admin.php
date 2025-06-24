@@ -7,25 +7,38 @@ $act = $_GET['act'];
 // FUNGSI: TAMBAH ADMIN
 // ==============================
 if ($act == 'tambah') {
-    $username = $_POST['username'];
-    $namalengkap = $_POST['namalengkap'];
+    $username = $_POST['username'] ?? '';
+    $namalengkap = $_POST['namalengkap'] ?? '';
+    $password = $_POST['password'] ?? '';
 
+    // Validasi password minimal 8 karakter
+    if (strlen($password) < 8) {
+        echo json_encode(["success" => false, "message" => "Password harus minimal 8 karakter."]);
+        exit;
+    }
+
+    // Cek apakah username sudah terdaftar
     $cekUsername = mysqli_query($konek, "SELECT * FROM admin WHERE username = '$username'");
     if (mysqli_num_rows($cekUsername) > 0) {
         echo json_encode(["success" => false, "message" => "Username '$username' sudah terdaftar, gunakan username lain."]);
         exit;
     }
 
-    $query = mysqli_query($konek, "INSERT INTO admin (username, namalengkap) VALUES ('$username', '$namalengkap')");
+    // Hash password sebelum disimpan
+    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+    // Simpan ke database
+    $query = mysqli_query($konek, "INSERT INTO admin (username, namalengkap, password) VALUES ('$username', '$namalengkap', '$passwordHash')");
 
     if ($query) {
         $last_id = mysqli_insert_id($konek);
         echo json_encode(["success" => true, "message" => "Admin berhasil ditambahkan!", "idadmin" => $last_id]);
     } else {
-        echo json_encode(["success" => false, "message" => "Gagal menambahkan admin!"]);
+        echo json_encode(["success" => false, "message" => "Gagal menambahkan admin: " . mysqli_error($konek)]);
     }
     exit;
 }
+
 
 // ==============================
 // FUNGSI: UPDATE ADMIN
