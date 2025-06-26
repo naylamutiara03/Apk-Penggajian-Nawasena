@@ -1,38 +1,35 @@
 <?php
 include("koneksi.php");
 include("sidebar.php");
-setlocale(LC_TIME, 'id_ID.UTF-8'); // Atur locale ke Indonesia (format tanggal IDN)
+setlocale(LC_TIME, 'id_ID.UTF-8');
 
-// define variabel untuk filter bulan dan tahun
+// Ambil filter dari URL
 $bulanFilter = isset($_GET['bulan']) ? $_GET['bulan'] : '';
 $tahunFilter = isset($_GET['tahun']) ? $_GET['tahun'] : '';
+$mingguFilter = isset($_GET['minggu']) ? $_GET['minggu'] : '';
 
-// define variabel default (untuk fungsi edit) - These are now primarily used for initial filter display
-// The actual values for edit modal come from data attributes on the edit button
-$bulan = isset($_GET['bulan']) ? $_GET['bulan'] : '';
-$tahun = isset($_GET['tahun']) ? $_GET['tahun'] : '';
-
-// Fungsi untuk mendapatkan rentang tanggal berdasarkan minggu (bebas user input)
+// Fungsi rentang minggu
 function getRangeMinggu($bulan, $tahun, $mingguKe)
 {
     $startDay = ($mingguKe - 1) * 7 + 1;
     $endDay = $startDay + 6;
 
-    // Maksimal jumlah hari dalam bulan
     $totalHariBulan = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
 
-    // Batasi endDay tidak lebih dari akhir bulan
     if ($endDay > $totalHariBulan) {
         $endDay = $totalHariBulan;
     }
 
-    // Format ke tanggal Y-m-d
     $startDate = sprintf("%04d-%02d-%02d", $tahun, $bulan, $startDay);
     $endDate = sprintf("%04d-%02d-%02d", $tahun, $bulan, $endDay);
 
     return [$startDate, $endDate];
 }
+
+// Ambil data sesuai filter
+$query = mysqli_query($konek, "SELECT * FROM absensi_tukang WHERE bulan='$bulanFilter' AND tahun='$tahunFilter' AND minggu='$mingguFilter' ORDER BY tanggal_masuk ASC");
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">
@@ -213,9 +210,13 @@ function getRangeMinggu($bulan, $tahun, $mingguKe)
     FROM absensi_tukang a
     JOIN tukang_nws t ON a.nik = t.nik
     JOIN jabatan j ON t.id_jabatan = j.id
-    WHERE a.tanggal_masuk BETWEEN '$startDate' AND '$endDate'
+    WHERE a.bulan = '$bulanFilter'
+      AND a.tahun = '$tahunFilter'
+      AND a.minggu = '$mingguFilter'
     ORDER BY a.id DESC
 ");
+
+
 
                         } else {
                             // Jika filter belum lengkap, tampilkan semua data tapi tandai bahwa ini default
@@ -260,9 +261,10 @@ function getRangeMinggu($bulan, $tahun, $mingguKe)
                         data-id='{$id}'
                         data-nik='{$nik}'
                         data-nama='{$nama_tukang}' 
-                        data-bulan='{$bulanFilter}'
-                        data-tahun='{$tahunFilter}'
-                        data-minggu='{$mingguFilter}'
+                        data-bulan='{$row['bulan']}'
+data-tahun='{$row['tahun']}'
+data-minggu='{$row['minggu']}'
+
                         data-jam-masuk='{$jam_masuk}'
                         data-jam-keluar='{$jam_keluar}'
                         data-tanggal-masuk='{$tanggal_masuk}'
@@ -727,38 +729,36 @@ function getRangeMinggu($bulan, $tahun, $mingguKe)
         });
 
         // modal pop up untuk menyimpan perubahan edit absensi
-        document.querySelector('form[action="aksi_absensi.php?act=edit"]').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const form = e.target;
-            const formData = new FormData(form);
+        document.querySelector('#editModal form').addEventListener('submit', function (event) {
+            event.preventDefault();
 
-            fetch(form.action, {
+            const form = this;
+            const formData = new FormData(form);
+            const url = form.action;
+
+            fetch(url, {
                 method: 'POST',
                 body: formData
             })
-                .then(res => {
-                    if (!res.ok) throw new Error('Network error: ' + res.status);
-                    return res.text();
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error: ' + response.status);
+                    return response.json();
                 })
-                .then(text => {
-                    try {
-                        const data = JSON.parse(text);
-                        if (data.success) {
-                            showSuccessPopup(data.message);
-                            setTimeout(() => {
-                                window.location.href = data.redirect;
-                            }, 1000);
-                        } else {
-                            showSuccessPopup(data.message || 'Gagal menyimpan perubahan.');
-                        }
-                    } catch (err) {
-                        console.error('Failed to parse JSON:', err, 'Response:', text);
-                        showSuccessPopup('Respons server tidak valid.');
+                .then(data => {
+                    if (data.success) {
+                        showSuccessPopup(data.message || 'Berhasil menyimpan data.');
+                        closeEditModal();
+
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1000);
+                    } else {
+                        openMessageModal('Peringatan', data.message || 'Gagal menyimpan perubahan.');
                     }
                 })
-                .catch(err => {
-                    console.error('Fetch error:', err);
-                    showSuccessPopup('Terjadi kesalahan saat menyimpan perubahan.');
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    openMessageModal('Error', 'Terjadi kesalahan saat menyimpan perubahan.');
                 });
         });
 
