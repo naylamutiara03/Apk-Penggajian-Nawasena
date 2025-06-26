@@ -3,6 +3,7 @@ include 'koneksi.php';
 include 'sidebar.php';
 $username = $_SESSION['username'] ?? 'Guest';
 
+// Delete invalid salary data that no longer has corresponding attendance records
 $hapusGajiInvalidQuery = "
     DELETE FROM gaji_tukang
     WHERE CONCAT(tahun, '-', LPAD(bulan, 2, '0')) NOT IN (
@@ -26,41 +27,19 @@ if (!empty($tahunFilter) && !empty($bulanFilter)) {
     $periodeFilter = $tahunFilter . '-' . $bulanFilter;
 }
 
-// fungsi refresh gaji tukang
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh_gaji'])) {
-    $update_query = "
-        UPDATE gaji_tukang g
-        JOIN tukang_nws t ON g.nik = t.nik
-        JOIN jabatan j ON t.id_jabatan = j.id
-        SET g.nama = t.nama_tukang,
-            g.id_jabatan = j.id,
-            g.gapok = j.gapok
-    ";
+$q = null; // Initialize query variable for display
 
-    if (mysqli_query($konek, $update_query)) {
-        echo "<div class='bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4' role='alert'>
-                <strong class='font-bold'>Berhasil!</strong>
-                <span class='block sm:inline'> Data gaji tukang telah diperbarui berdasarkan data terbaru.</span>
-              </div>";
-    } else {
-        echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4' role='alert'>
-                <strong class='font-bold'>Gagal!</strong>
-                <span class='block sm:inline'> Tidak dapat memperbarui data gaji: " . htmlspecialchars(mysqli_error($konek)) . "</span>
-              </div>";
-    }
-}
-
-$q = null; // Inisialisasi variabel query untuk tampilan
-
-// --- LOGIKA BACKEND: PROSES DAN SIMPAN DATA GAJI ---
-// Bagian ini hanya berjalan jika SEMUA filter periode (bulan, tahun, minggu) dipilih
+// --- BACKEND LOGIC: PROCESS AND SAVE SALARY DATA ---
+// This section only runs if ALL period filters (month, year, week) are selected
+// Always reprocess salary data when filter is applied, even without clicking "refresh"
 if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
-    // Mulai transaksi untuk memastikan integritas data
+    // Langsung jalankan proses perhitungan dan simpan ke gaji_tukang...
+    // Start transaction to ensure data integrity
     mysqli_begin_transaction($konek);
 
     try {
-        // 1. Hapus data gaji_tukang yang tidak lagi memiliki absensi untuk periode ini.
-        // Ini membersihkan data gaji lama yang mungkin tidak valid lagi.
+        // 1. Delete 'gaji_tukang' data that no longer has attendance for this period.
+        // This cleans up old salary data that might no longer be valid.
         $delete_query = "
             DELETE FROM gaji_tukang
             WHERE CONCAT(tahun, '-', bulan) = ?
@@ -79,24 +58,24 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
         mysqli_stmt_execute($stmt_delete);
         mysqli_stmt_close($stmt_delete);
 
-        // 2. Query untuk mendapatkan data absensi tukang, nama, jabatan, dan gapok
-        // untuk periode yang difilter. Ini adalah data SUMBER untuk perhitungan gaji.
+        // 2. Query to get attendance data, name, position, and basic salary
+        // for the filtered period. This is the SOURCE data for salary calculation.
         $main_query = "
-            SELECT
-                a.nik,
-                t.nama_tukang,
-                t.id_jabatan,
-                j.jabatan,
-                COUNT(DISTINCT a.tanggal_masuk) AS total_hadir, -- Menghitung unik hari hadir
-                j.gapok
-            FROM absensi_tukang a
-            JOIN tukang_nws t ON a.nik = t.nik
-            JOIN jabatan j ON t.id_jabatan = j.id
-            WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = ?
-                AND a.minggu = ?
-            GROUP BY a.nik, t.nama_tukang, t.id_jabatan, j.jabatan, j.gapok
-            ORDER BY t.nama_tukang ASC
-        ";
+    SELECT
+        a.nik,
+        t.nama_tukang,
+        t.id_jabatan,
+        j.jabatan,
+        SUM(a.total_hadir) AS total_hadir,
+        j.gapok
+    FROM absensi_tukang a
+    JOIN tukang_nws t ON a.nik = t.nik
+    JOIN jabatan j ON t.id_jabatan = j.id
+    WHERE DATE_FORMAT(a.tanggal_masuk, '%Y-%m') = ?
+        AND a.minggu = ?
+    GROUP BY a.nik, t.nama_tukang, t.id_jabatan, j.jabatan, j.gapok
+    ORDER BY t.nama_tukang ASC
+";
         $stmt_main = mysqli_prepare($konek, $main_query);
         if (!$stmt_main) {
             throw new Exception("Error preparing main query statement: " . mysqli_error($konek));
@@ -110,8 +89,8 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
             while ($row = mysqli_fetch_assoc($result_main_query)) {
                 $results_to_process[] = $row;
             }
-            mysqli_free_result($result_main_query); // Bebaskan hasil query utama
-            mysqli_stmt_close($stmt_main); // Tutup statement utama
+            mysqli_free_result($result_main_query); // Free main query result
+            mysqli_stmt_close($stmt_main); // Close main statement
 
             foreach ($results_to_process as $row) {
                 $nik = $row['nik'];
@@ -121,7 +100,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                 $total_hadir = $row['total_hadir'];
                 $total_gaji = $gapok * $total_hadir;
 
-                // 3. Ambil detail tanggal dan jam absensi untuk NIK dan periode ini
+                // 3. Get detailed attendance dates and times for this NIK and period
                 $absensi_detail_query = "
                     SELECT
                         tanggal_masuk,
@@ -153,16 +132,16 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                     $jam_masuk_list[] = $absensi['jam_masuk'];
                     $jam_keluar_list[] = $absensi['jam_keluar'];
                 }
-                mysqli_free_result($result_absensi_detail); // Bebaskan hasil query absensi detail
-                mysqli_stmt_close($stmt_absensi_detail); // Tutup statement absensi detail
+                mysqli_free_result($result_absensi_detail); // Free absensi detail query result
+                mysqli_stmt_close($stmt_absensi_detail); // Close absensi detail statement
 
-                // Gabungkan ke dalam string agar bisa disimpan di satu field database
+                // Concatenate into strings to store in a single database field
                 $tanggal_masuk_str = implode(', ', $tanggal_masuk_list);
                 $tanggal_keluar_str = implode(', ', $tanggal_keluar_list);
                 $jam_masuk_str = implode(', ', $jam_masuk_list);
                 $jam_keluar_str = implode(', ', $jam_keluar_list);
 
-                // 4. Insert atau Update data gaji menggunakan prepared statements
+                // 4. Insert or Update salary data using prepared statements
                 $insert_update_query = "
                     INSERT INTO gaji_tukang
                     (nik, nama, id_jabatan, gapok, total_hadir, total_gaji, bulan, tahun, minggu, tanggal_masuk, tanggal_keluar, jam_masuk, jam_keluar)
@@ -183,10 +162,10 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                 if (!$stmt_insert_update) {
                     throw new Exception("Error preparing insert/update statement: " . mysqli_error($konek));
                 }
-                // Bind parameter untuk bagian INSERT dan UPDATE
+                // Bind parameters for INSERT and UPDATE parts
                 mysqli_stmt_bind_param(
                     $stmt_insert_update,
-                    "ssididssisssssididssss", // <-- CORRECTED TYPE STRING
+                    "ssididssisssssididssss", // <-- Corrected type string as per your original code
                     $nik,
                     $nama,
                     $jabatan_id,
@@ -199,7 +178,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                     $tanggal_masuk_str,
                     $tanggal_keluar_str,
                     $jam_masuk_str,
-                    $jam_keluar_str, // Untuk INSERT (13 vars)
+                    $jam_keluar_str, // For INSERT (13 vars)
                     $nama,
                     $jabatan_id,
                     $gapok,
@@ -208,26 +187,25 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                     $tanggal_masuk_str,
                     $tanggal_keluar_str,
                     $jam_masuk_str,
-                    $jam_keluar_str  // Untuk UPDATE (9 vars)
+                    $jam_keluar_str  // For UPDATE (9 vars)
                 );
                 mysqli_stmt_execute($stmt_insert_update);
                 mysqli_stmt_close($stmt_insert_update);
             }
         }
-        mysqli_commit($konek); // Commit transaksi jika semua operasi berhasil
+        mysqli_commit($konek); // Commit transaction if all operations succeed
 
     } catch (Exception $e) {
-        mysqli_rollback($konek); // Rollback jika terjadi error
-        error_log("Error processing salary data: " . $e->getMessage()); // Log error ke server
+        mysqli_rollback($konek); // Rollback if an error occurs
+        error_log("Error processing salary data: " . $e->getMessage()); // Log error to server
         echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative' role='alert'>";
         echo "<strong class='font-bold'>Terjadi Kesalahan!</strong>";
         echo "<span class='block sm:inline'> Gagal memproses data gaji. Silakan coba lagi atau hubungi administrator.</span>";
         echo "</div>";
     }
-    // Tidak perlu close $stmt_main di finally karena sudah di-close di dalam if ($result_main_query)
 
-    // --- LOGIKA FRONTEND: AMBIL DATA UNTUK DITAMPILKAN ---
-    // Setelah data disimpan/diperbarui, ambil dari tabel gaji_tukang untuk ditampilkan
+    // --- FRONTEND LOGIC: RETRIEVE DATA FOR DISPLAY ---
+    // After data is saved/updated, retrieve from 'gaji_tukang' table for display
     $display_query = "
     SELECT 
         g.nik,
@@ -235,18 +213,14 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
         j.jabatan,
         g.total_hadir,
         j.gapok,
-        g.total_gaji,
-        g.bulan,
-        g.tahun,
-        g.minggu
+        g.total_gaji
     FROM gaji_tukang g
     JOIN tukang_nws t ON g.nik = t.nik
     JOIN jabatan j ON t.id_jabatan = j.id
-    WHERE CONCAT(g.tahun, '-', g.bulan) = ?
-      AND g.minggu = ?
+    WHERE CONCAT(g.tahun, '-', LPAD(g.bulan, 2, '0')) = ?
+    AND g.minggu = ?
     ORDER BY t.nama_tukang ASC
 ";
-
     $stmt_display = mysqli_prepare($konek, $display_query);
     if ($stmt_display) {
         mysqli_stmt_bind_param($stmt_display, "ss", $periodeFilter, $mingguFilter);
@@ -262,15 +236,15 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     }
 
 } else {
-    // Menampilkan data real-time (total hadir & total gaji) langsung dari absensi
+    // Display real-time data (total attendance & total salary) directly from attendance if no filters are applied
     $display_latest_query = "
-    SELECT 
+    SELECT
         a.nik,
         t.nama_tukang,
         j.jabatan,
         j.gapok,
-        COUNT(DISTINCT a.tanggal_masuk) AS total_hadir,
-        (COUNT(DISTINCT a.tanggal_masuk) * j.gapok) AS total_gaji
+        SUM(a.total_hadir) AS total_hadir,
+        (SUM(a.total_hadir) * j.gapok) AS total_gaji
     FROM absensi_tukang a
     JOIN tukang_nws t ON a.nik = t.nik
     JOIN jabatan j ON t.id_jabatan = j.id
@@ -279,6 +253,7 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
     ";
 
     $q = mysqli_query($konek, $display_latest_query);
+
     if (!$q) {
         error_log("Error fetching latest real-time salary data: " . mysqli_error($konek));
         echo "<div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative' role='alert'>";
@@ -387,12 +362,6 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                             class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1">
                             <i class="fas fa-print"></i> Cetak Daftar Gaji
                         </a>
-                        <form method="POST" action="">
-                            <button type="submit" name="refresh_gaji"
-                                class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded flex items-center gap-1 mt-2">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </form>
                     <?php else: ?>
                         <button type="button"
                             onclick="alert('Silakan pilih bulan, tahun, dan minggu terlebih dahulu sebelum mencetak daftar gaji.')"
@@ -441,10 +410,9 @@ if (!empty($bulanFilter) && !empty($tahunFilter) && !empty($mingguFilter)) {
                                     <td><?= htmlspecialchars($row['jabatan']) ?></td>
                                     <td class="py-4 px-6 text-center"><?= number_format($row['total_hadir'], 1, '.', '.') ?>
                                     </td>
-                                    </td>
-                                    <td><?= number_format($row['gapok'], 0, ',', '.') ?></td>
+                                    <td>Rp <?= number_format($row['gapok'], 0, ',', '.') ?></td>
                                     <td class="py-4 px-6 text-right font-bold">
-                                        <?= number_format($row['total_gaji'], 0, ',', '.') ?>
+                                        Rp <?= number_format($row['total_gaji'], 0, ',', '.') ?>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
