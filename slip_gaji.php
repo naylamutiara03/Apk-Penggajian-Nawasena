@@ -54,7 +54,11 @@ $koneksi = new mysqli("localhost", "root", "", "penggajian");
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Bulan --</option>
                         <?php
-                        $query_bulan = $koneksi->query("SELECT DISTINCT bulan FROM gaji_tukang ORDER BY bulan ASC");
+                        $query_bulan = $koneksi->query("
+    SELECT DISTINCT DATE_FORMAT(tanggal_masuk, '%m') AS bulan 
+    FROM absensi_tukang 
+    ORDER BY bulan ASC
+");
                         $bulan_nama = [
                             "01" => "Januari",
                             "02" => "Februari",
@@ -84,7 +88,11 @@ $koneksi = new mysqli("localhost", "root", "", "penggajian");
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base">
                         <option value="">-- Pilih Tahun --</option>
                         <?php
-                        $query_tahun = $koneksi->query("SELECT DISTINCT tahun FROM gaji_tukang ORDER BY tahun DESC");
+                        $query_tahun = $koneksi->query("
+    SELECT DISTINCT DATE_FORMAT(tanggal_masuk, '%Y') AS tahun 
+    FROM absensi_tukang 
+    ORDER BY tahun DESC
+");
                         while ($row = $query_tahun->fetch_assoc()) {
                             $thn = $row['tahun'];
                             echo "<option value='$thn'>$thn</option>";
