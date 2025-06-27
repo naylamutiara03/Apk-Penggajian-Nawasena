@@ -219,6 +219,16 @@ include("sidebar.php");
                 </div>
 
                 <script>
+                    // Fungsi global agar bisa dipanggil langsung dari onclick HTML
+                    function closeErrorModal() {
+                        document.getElementById('errorModal').classList.add('hidden');
+                    }
+
+                    function closeSuccessAddModal() {
+                        document.getElementById('successAddModal').classList.add('hidden');
+                        window.location.href = 'data_tukang.php';
+                    }
+
                     document.addEventListener('DOMContentLoaded', function () {
                         const addTukangForm = document.getElementById('addTukangForm');
                         const errorModal = document.getElementById('errorModal');
@@ -226,17 +236,34 @@ include("sidebar.php");
                         const successAddModal = document.getElementById('successAddModal');
                         const successAddMessage = document.getElementById('successAddMessage');
 
-                        addTukangForm.addEventListener('submit', function (event) {
+                        addTukangForm.addEventListener('submit', validasiTambahTukang);
+
+                        function validasiTambahTukang(event) {
                             event.preventDefault();
 
                             const formData = new FormData(addTukangForm);
                             const nik = formData.get('nik').trim();
+                            const nama = formData.get('nama_tukang').trim();
+                            const jk = formData.get('jenis_kelamin').trim();
+                            const jabatan = formData.get('id_jabatan').trim();
+                            const tglMasuk = formData.get('tgl_masuk').trim();
+                            const status = formData.get('status').trim();
+
+                            if (!nik || !nama || !jk || !jabatan || !tglMasuk || !status) {
+                                errorMessage.innerText = 'Semua field wajib diisi.';
+                                errorModal.classList.remove('hidden');
+                                return;
+                            }
+
+                            if (nik.length !== 16 || isNaN(nik)) {
+                                errorMessage.innerText = 'NIK harus terdiri dari 16 digit angka.';
+                                errorModal.classList.remove('hidden');
+                                return;
+                            }
 
                             fetch(`cek_nik.php?nik=${nik}`)
                                 .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error(`HTTP error! status: ${response.status}`);
-                                    }
+                                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                                     return response.json();
                                 })
                                 .then(data => {
@@ -251,9 +278,7 @@ include("sidebar.php");
                                         body: formData
                                     })
                                         .then(response => {
-                                            if (!response.ok) {
-                                                throw new Error(`HTTP error! status: ${response.status}`);
-                                            }
+                                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                                             return response.json();
                                         })
                                         .then(data => {
@@ -263,11 +288,8 @@ include("sidebar.php");
                                                 setTimeout(() => {
                                                     window.location.href = 'data_tukang.php';
                                                 }, 2000);
-                                            } else if (data && data.message) {
-                                                errorMessage.innerText = data.message;
-                                                errorModal.classList.remove('hidden');
                                             } else {
-                                                errorMessage.innerText = 'Terjadi kesalahan yang tidak diketahui.';
+                                                errorMessage.innerText = data.message || 'Terjadi kesalahan yang tidak diketahui.';
                                                 errorModal.classList.remove('hidden');
                                             }
                                         })
@@ -282,15 +304,6 @@ include("sidebar.php");
                                     errorMessage.innerText = 'Gagal menghubungi server untuk memeriksa NIK.';
                                     errorModal.classList.remove('hidden');
                                 });
-                        });
-
-                        function closeErrorModal() {
-                            errorModal.classList.add('hidden');
-                        }
-
-                        function closeSuccessAddModal() {
-                            successAddModal.classList.add('hidden');
-                            window.location.href = 'data_tukang.php';
                         }
                     });
                 </script>
@@ -315,7 +328,8 @@ include("sidebar.php");
                     <div class="max-w-7xl w-full p-6 bg-white shadow-lg rounded-lg mb-10">
                         <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">Edit Tukang</h2>
 
-                        <form id="editTukangForm" action="aksi_tukang.php?act=update" method="POST" onsubmit="validasiEditTukang(event)">
+                        <form id="editTukangForm" action="aksi_tukang.php?act=update" method="POST"
+                            onsubmit="validasiEditTukang(event)">
                             <input type="hidden" name="id" value="<?= $data['id'] ?>">
 
                             <div class="mb-4">
@@ -399,6 +413,20 @@ include("sidebar.php");
                     </div>
                 </div>
 
+                <!-- Modal untuk Error Message -->
+                <div id="errorModal"
+                    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
+                    <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+                        <h2 class="text-lg font-bold text-gray-800">Error!</h2>
+                        <p class="text-gray-600 mt-2" id="errorMessage">Pesan error akan ditampilkan di sini.</p>
+                        <div class="mt-4">
+                            <button onclick="closeErrorModal()"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
+                        </div>
+                    </div>
+                </div>
+
+
                 <script>
                     function validasiEditTukang(event) {
                         event.preventDefault();
@@ -413,17 +441,21 @@ include("sidebar.php");
                         let tglMasuk = formData.get("tgl_masuk").trim();
                         let status = formData.get("status").trim();
 
+                        const errorModal = document.getElementById("errorModal");
+                        const errorMessage = document.getElementById("errorMessage");
+
                         if (!nik || !nama || !jk || !jabatan || !tglMasuk || !status) {
-                            alert("Semua field wajib diisi.");
+                            errorMessage.innerText = "Semua field wajib diisi.";
+                            errorModal.classList.remove("hidden");
                             return;
                         }
 
                         if (nik.length !== 16 || isNaN(nik)) {
-                            alert("NIK harus terdiri dari 16 digit angka.");
+                            errorMessage.innerText = "NIK harus terdiri dari 16 digit angka.";
+                            errorModal.classList.remove("hidden");
                             return;
                         }
 
-                        // TARUH DI SINI
                         fetch("aksi_tukang.php?act=update", {
                             method: "POST",
                             body: formData
@@ -434,14 +466,24 @@ include("sidebar.php");
                                     document.getElementById("successMessage").innerText = data.message;
                                     document.getElementById("successModal").classList.remove("hidden");
                                 } else {
-                                    alert(data.message);
+                                    errorMessage.innerText = data.message || "Terjadi kesalahan saat menyimpan.";
+                                    errorModal.classList.remove("hidden");
                                 }
+                            })
+                            .catch(error => {
+                                console.error("Error:", error);
+                                errorMessage.innerText = "Gagal mengirim data ke server.";
+                                errorModal.classList.remove("hidden");
                             });
                     }
 
                     function closeModal() {
                         document.getElementById("successModal").classList.add("hidden");
                         window.location.href = "data_tukang.php";
+                    }
+
+                    function closeErrorModal() {
+                        document.getElementById("errorModal").classList.add("hidden");
                     }
                 </script>
 
