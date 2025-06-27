@@ -383,6 +383,33 @@ include("sidebar.php");
                         </form>
                     </div>
                 </div>
+
+                <!-- Modal sukses -->
+                <div id="successModal"
+                    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
+                    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center">
+                        <h2 class="text-xl font-semibold text-green-600 mb-2">Berhasil!</h2>
+                        <p id="successMessage" class="text-gray-700">Data karyawan berhasil diperbarui.</p>
+                        <button onclick="closeModal()"
+                            class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            OK
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal error -->
+                <div id="errorModal"
+                    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
+                    <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+                        <h2 class="text-lg font-bold text-gray-800">Error!</h2>
+                        <p class="text-gray-600 mt-2" id="errorMessage">Pesan error akan ditampilkan di sini.</p>
+                        <div class="mt-4">
+                            <button onclick="closeErrorModal()"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tutup</button>
+                        </div>
+                    </div>
+                </div>
+
                 <script>
                     function validasiEditKaryawan(event) {
                         event.preventDefault();
@@ -397,13 +424,18 @@ include("sidebar.php");
                         let tglMasuk = formData.get("tgl_masuk").trim();
                         let status = formData.get("status").trim();
 
+                        const errorModal = document.getElementById("errorModal");
+                        const errorMessage = document.getElementById("errorMessage");
+
                         if (!nik || !nama || !jk || !jabatan || !tglMasuk || !status) {
-                            alert("Semua field wajib diisi.");
+                            errorMessage.innerText = "Semua field wajib diisi.";
+                            errorModal.classList.remove("hidden");
                             return;
                         }
 
                         if (nik.length !== 16 || isNaN(nik)) {
-                            alert("NIK harus terdiri dari 16 digit angka.");
+                            errorMessage.innerText = "NIK harus terdiri dari 16 digit angka.";
+                            errorModal.classList.remove("hidden");
                             return;
                         }
 
@@ -414,17 +446,30 @@ include("sidebar.php");
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success) {
-                                    // Set success message and show success modal
-                                    document.getElementById("successMessage").innerText = data.message; // Set success message
-                                    document.getElementById("successModal").classList.remove("hidden"); // Show success modal
-                                    // Optionally, you can redirect after a delay
+                                    document.getElementById("successMessage").innerText = data.message;
+                                    document.getElementById("successModal").classList.remove("hidden");
                                     setTimeout(() => {
-                                        window.location.href = "data_karyawan.php"; // Redirect setelah sukses
-                                    }, 2000); // Redirect after 2 seconds
+                                        window.location.href = "data_karyawan.php";
+                                    }, 2000);
                                 } else {
-                                    alert(data.message); // Show error message
+                                    errorMessage.innerText = data.message || "Terjadi kesalahan saat menyimpan data.";
+                                    errorModal.classList.remove("hidden");
                                 }
+                            })
+                            .catch(error => {
+                                console.error("Error:", error);
+                                errorMessage.innerText = "Gagal menghubungi server.";
+                                errorModal.classList.remove("hidden");
                             });
+                    }
+
+                    function closeModal() {
+                        document.getElementById("successModal").classList.add("hidden");
+                        window.location.href = "data_karyawan.php";
+                    }
+
+                    function closeErrorModal() {
+                        document.getElementById("errorModal").classList.add("hidden");
                     }
                 </script>
 
