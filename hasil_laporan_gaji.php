@@ -83,7 +83,7 @@ function formatRupiah($angka)
                                 <th class="border px-4 py-2">Nama Karyawan</th>
                                 <th class="border px-4 py-2">Jabatan</th>
                                 <th class="border px-4 py-2">Gaji Pokok</th>
-                                <th class="border px-4 py-2">Tunjangan Jabatan</th>
+                                <th class="border px-4 py-2">Fee Jabatan</th>
                                 <th class="border px-4 py-2">Total Gaji</th>
                             </tr>
                         </thead>
