@@ -46,6 +46,7 @@
                 $user = trim($_POST['username']);
                 $pass = trim($_POST['password']);
 
+
                 if (empty($user) || empty($pass)) {
                     echo '<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-4">
                 <p class="font-bold">Warning!</p>
@@ -61,6 +62,8 @@
                         $_SESSION['id'] = $d['idadmin'];
                         $_SESSION['username'] = $d['username'];
                         $_SESSION['namalengkap'] = $d['namalengkap'];
+                        $_SESSION['role'] = $d['role']; 
+            
                         header('Location: ./dashboard.php');
                         exit;
                     } else {

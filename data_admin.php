@@ -28,6 +28,23 @@ include("sidebar.php");
             </div>
         </div>
 
+        <!-- Modal Hapus Akun Sendiri -->
+        <div id="selfDeleteModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+                <h2 class="text-lg font-bold text-red-700">Hapus Akun Anda</h2>
+                <p class="text-gray-600 mt-2">Masukkan password Anda untuk melanjutkan.</p>
+                <input type="password" id="confirmPassword" class="w-full mt-4 px-4 py-2 border rounded"
+                    placeholder="Password">
+                <div class="mt-4 flex justify-between">
+                    <button onclick="closeSelfDeleteModal()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Batal</button>
+                    <button onclick="submitSelfDelete()"
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal Error -->
         <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
             <div class="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -88,20 +105,29 @@ include("sidebar.php");
                                     $usernameLogin = $_SESSION['username']; // Ambil username yang sedang login
                                     $sql = mysqli_query($konek, "SELECT * FROM admin ORDER BY idadmin ASC");
                                     while ($d = mysqli_fetch_array($sql)) {
+                                        $isSelf = ($d['username'] === $_SESSION['username']);
+                                        $isSuperadmin = isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin';
+
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
         <td class='py-4 px-6 text-center font-bold'>$no</td>
         <td class='py-4 px-6 font-bold'>{$d['username']}</td>
         <td class='py-4 px-6 font-bold'>{$d['namalengkap']}</td>
         <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>";
 
-                                        // Hanya tampilkan tombol jika admin sedang login adalah admin yang sedang ditampilkan
-                                        if ($d['username'] === $usernameLogin) {
+                                        if ($isSuperadmin || $isSelf) {
                                             echo "<a href='data_admin.php?view=edit&id={$d['idadmin']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
                 <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-              </a>
-              <a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
               </a>";
+
+                                            if ($isSelf) {
+                                                echo "<a href='#' onclick='openSelfDeleteModal()' class='bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 flex items-center justify-center'>
+                    <ion-icon name='person-remove-outline' class='mr-1'></ion-icon> Hapus Akun Saya
+                  </a>";
+                                            } else {
+                                                echo "<a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                    <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+                  </a>";
+                                            }
                                         } else {
                                             echo "<span class='text-gray-400 italic'>Tidak tersedia</span>";
                                         }
@@ -109,17 +135,20 @@ include("sidebar.php");
                                         echo "</td></tr>";
                                         $no++;
                                     }
+
                                     ?>
 
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-6 flex justify-center">
-                            <a href="data_admin.php?view=tambah"
-                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
-                                <ion-icon name="person-add-outline" class="mr-1"></ion-icon> Tambah Admin
-                            </a>
-                        </div>
+                        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin'): ?>
+                            <div class="mt-6 flex justify-center">
+                                <a href="data_admin.php?view=tambah"
+                                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                                    <ion-icon name="person-add-outline" class="mr-1"></ion-icon> Tambah Admin
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <!-- END Tabel Section -->
                 </div>
@@ -404,6 +433,34 @@ include("sidebar.php");
             document.getElementById('cancelDelete').onclick = function () {
                 document.getElementById('deleteModal').classList.add('hidden'); // Hide delete modal
             };
+
+            function openSelfDeleteModal() {
+                document.getElementById("selfDeleteModal").classList.remove("hidden");
+            }
+
+            function closeSelfDeleteModal() {
+                document.getElementById("selfDeleteModal").classList.add("hidden");
+            }
+
+            function submitSelfDelete() {
+                const password = document.getElementById("confirmPassword").value;
+
+                fetch("aksi_admin.php?act=delete_self", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `password=${encodeURIComponent(password)}`
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            window.location.href = "logout.php";
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+            }
+
         </script>
         <?php include 'footer.php'; ?>
     </div>

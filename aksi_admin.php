@@ -68,10 +68,14 @@ elseif ($act == 'update') {
 // FUNGSI: HAPUS ADMIN
 // ==============================
 elseif ($act == 'delete') {
-    session_start(); // Tambahkan ini kalau belum ada di atas
-    $id = $_GET['id'];
+    session_start();
+    include("koneksi.php");
 
-    // Ambil data admin dari DB
+    $id = $_GET['id'];
+    $adminLogin = $_SESSION['username'];
+    $roleLogin = $_SESSION['role'];
+
+    // Ambil data admin yang akan dihapus
     $cek = mysqli_query($konek, "SELECT * FROM admin WHERE idadmin='$id'");
     if (mysqli_num_rows($cek) == 0) {
         echo json_encode(["success" => false, "message" => "Admin tidak ditemukan!"]);
@@ -79,18 +83,43 @@ elseif ($act == 'delete') {
     }
 
     $data = mysqli_fetch_assoc($cek);
-    $adminLogin = $_SESSION['username']; // Ambil username yang sedang login
+    $usernameTarget = $data['username'];
 
-    // Cegah jika ingin menghapus admin lain
-    if ($data['username'] !== $adminLogin) {
-        echo json_encode(["success" => false, "message" => "Tidak diizinkan menghapus admin lain!"]);
+    // Cegah jika bukan superadmin dan ingin hapus akun orang lain
+    if ($usernameTarget !== $adminLogin && $roleLogin !== 'superadmin') {
+        echo json_encode(["success" => false, "message" => "Anda tidak memiliki izin untuk menghapus akun ini!"]);
         exit;
     }
 
-    // Hapus admin
+    // Hapus data admin
     mysqli_query($konek, "DELETE FROM admin WHERE idadmin='$id'");
     echo json_encode(["success" => true, "message" => "Admin berhasil dihapus!"]);
     exit;
 }
+
+// ==============================
+// FUNGSI: HAPUS AKUN SENDIRI (dengan verifikasi password)
+// ==============================
+elseif ($act == 'delete_self') {
+    session_start();
+    include("koneksi.php");
+
+    $username = $_SESSION['username'];
+    $passwordInput = $_POST['password'];
+
+    $query = mysqli_query($konek, "SELECT * FROM admin WHERE username='$username'");
+    $data = mysqli_fetch_assoc($query);
+
+    if (!$data || !password_verify($passwordInput, $data['password'])) {
+        echo json_encode(["success" => false, "message" => "Password salah. Akun tidak dihapus."]);
+        exit;
+    }
+
+    mysqli_query($konek, "DELETE FROM admin WHERE username='$username'");
+    session_destroy(); // Auto logout
+    echo json_encode(["success" => true, "message" => "Akun Anda berhasil dihapus."]);
+    exit;
+}
+
 
 ?>
