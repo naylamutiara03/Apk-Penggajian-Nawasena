@@ -68,16 +68,29 @@ elseif ($act == 'update') {
 // FUNGSI: HAPUS ADMIN
 // ==============================
 elseif ($act == 'delete') {
+    session_start(); // Tambahkan ini kalau belum ada di atas
     $id = $_GET['id'];
 
+    // Ambil data admin dari DB
     $cek = mysqli_query($konek, "SELECT * FROM admin WHERE idadmin='$id'");
     if (mysqli_num_rows($cek) == 0) {
         echo json_encode(["success" => false, "message" => "Admin tidak ditemukan!"]);
         exit;
     }
 
+    $data = mysqli_fetch_assoc($cek);
+    $adminLogin = $_SESSION['username']; // Ambil username yang sedang login
+
+    // Cegah jika ingin menghapus admin lain
+    if ($data['username'] !== $adminLogin) {
+        echo json_encode(["success" => false, "message" => "Tidak diizinkan menghapus admin lain!"]);
+        exit;
+    }
+
+    // Hapus admin
     mysqli_query($konek, "DELETE FROM admin WHERE idadmin='$id'");
     echo json_encode(["success" => true, "message" => "Admin berhasil dihapus!"]);
     exit;
 }
+
 ?>

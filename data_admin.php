@@ -85,24 +85,32 @@ include("sidebar.php");
                                 <tbody class="text-gray-700 text-sm">
                                     <?php
                                     $no = 1;
+                                    $usernameLogin = $_SESSION['username']; // Ambil username yang sedang login
                                     $sql = mysqli_query($konek, "SELECT * FROM admin ORDER BY idadmin ASC");
                                     while ($d = mysqli_fetch_array($sql)) {
                                         echo "<tr class='border-b border-gray-200 hover:bg-blue-100'>
-            <td class='py-4 px-6 text-center font-bold'>$no</td>
-            <td class='py-4 px-6 font-bold'>{$d['username']}</td>
-            <td class='py-4 px-6 font-bold'>{$d['namalengkap']}</td>
-            <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>
-                <a href='data_admin.php?view=edit&id={$d['idadmin']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
-                    <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
-                </a>
-                <a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
-                    <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
-                </a>
-            </td>
-        </tr>";
+        <td class='py-4 px-6 text-center font-bold'>$no</td>
+        <td class='py-4 px-6 font-bold'>{$d['username']}</td>
+        <td class='py-4 px-6 font-bold'>{$d['namalengkap']}</td>
+        <td class='py-4 px-6 text-center flex flex-col lg:flex-row gap-2 justify-center'>";
+
+                                        // Hanya tampilkan tombol jika admin sedang login adalah admin yang sedang ditampilkan
+                                        if ($d['username'] === $usernameLogin) {
+                                            echo "<a href='data_admin.php?view=edit&id={$d['idadmin']}' class='bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex items-center justify-center'>
+                <ion-icon name='pencil-outline' class='mr-1'></ion-icon> Edit
+              </a>
+              <a href='#' onclick=\"openDeleteModal('aksi_admin.php?act=delete&id={$d['idadmin']}')\" class='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center justify-center'>
+                <ion-icon name='trash-outline' class='mr-1'></ion-icon> Hapus
+              </a>";
+                                        } else {
+                                            echo "<span class='text-gray-400 italic'>Tidak tersedia</span>";
+                                        }
+
+                                        echo "</td></tr>";
                                         $no++;
                                     }
                                     ?>
+
                                 </tbody>
                             </table>
                         </div>
