@@ -54,6 +54,9 @@
               </div>';
                 } else {
                     // Ambil data admin berdasarkan username
+                    $user = mysqli_real_escape_string($konek, $_POST['username']); // Escape input username
+                    $pass = $_POST['password'];
+
                     $sqlLogin = mysqli_query($konek, "SELECT * FROM admin WHERE username='$user'");
                     $d = mysqli_fetch_assoc($sqlLogin);
 
@@ -62,8 +65,8 @@
                         $_SESSION['id'] = $d['idadmin'];
                         $_SESSION['username'] = $d['username'];
                         $_SESSION['namalengkap'] = $d['namalengkap'];
-                        $_SESSION['role'] = $d['role']; 
-            
+                        $_SESSION['role'] = $d['role'];
+
                         header('Location: ./dashboard.php');
                         exit;
                     } else {
