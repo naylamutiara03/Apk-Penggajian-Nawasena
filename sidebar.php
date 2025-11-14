@@ -140,6 +140,34 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             </a>
         </div>
 
+        <!-- Menu Lembur -->
+        <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
+<?php echo ($is_lembur_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
+            onclick="toggleDropdown('submenuLembur', 'arrowLembur')">
+            <ion-icon name="time-outline" class="text-xl"></ion-icon>
+            <div class="flex justify-between w-full items-center">
+                <span class="text-[15px] ml-4 text-gray-200 font-bold">Lembur</span>
+                <span class="text-sm <?php echo ($is_lembur_active) ? 'rotate-180' : ''; ?>" id="arrowLembur">
+                    <ion-icon name="chevron-down-outline"></ion-icon>
+                </span>
+            </div>
+        </div>
+
+        <!-- Submenu Lembur -->
+        <div id="submenuLembur" class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
+<?php echo ($is_lembur_active) ? '' : 'hidden'; ?>">
+            <a href="lembur_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+<?php echo ($current_page == 'lembur_karyawan.php') ? 'bg-blue-600' : ''; ?>">
+                Lembur Karyawan
+            </a>
+
+            <a href="lembur_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+<?php echo ($current_page == 'lembur_tukang.php') ? 'bg-blue-600' : ''; ?>">
+                Lembur Tukang
+            </a>
+        </div>
+
+
 
         <!-- Menu Laporan -->
         <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
