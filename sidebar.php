@@ -16,7 +16,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $is_transaksi_active = in_array($current_page, ['data_absensi.php', 'data_gaji.php']);
 $master_data_pages = ['data_karyawan.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
 $laporan_pages = ['laporan.php', 'laporan_gaji_karyawan.php', 'slip_gaji.php'];
+$lembur_pages = ['lembur_karyawan.php', 'lembur_tukang.php'];
 $is_laporan_active = in_array($current_page, $laporan_pages);
+$is_lembur_active = in_array($current_page, $lembur_pages);
 $is_master_data_active = in_array($current_page, $master_data_pages);
 ?>
 
@@ -153,17 +155,14 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
             </div>
         </div>
 
-        <!-- Submenu Lembur -->
+        <!-- Submenu for Lembur -->
         <div id="submenuLembur" class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
-<?php echo ($is_lembur_active) ? '' : 'hidden'; ?>">
-            <a href="lembur_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
-<?php echo ($current_page == 'lembur_karyawan.php') ? 'bg-blue-600' : ''; ?>">
-                Lembur Karyawan
+<?php echo ($is_lembur_active) ? '' : 'hidden'; ?>"> <a href="lembur_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+<?php echo ($current_page == 'lembur_karyawan.php') ? 'bg-blue-600' : ''; ?>"> Lembur Karyawan
             </a>
 
             <a href="lembur_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
-<?php echo ($current_page == 'lembur_tukang.php') ? 'bg-blue-600' : ''; ?>">
-                Lembur Tukang
+<?php echo ($current_page == 'lembur_tukang.php') ? 'bg-blue-600' : ''; ?>"> Lembur Tukang
             </a>
         </div>
 
