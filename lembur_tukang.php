@@ -144,7 +144,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
 <html lang="id">
 
 <head>
-    <title>Data Lembur Tukang</title>
+    <title>Data Shift Tukang</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -166,7 +166,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                     </div>
                     <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Konfirmasi Hapus</h3>
                     <div class="mt-2 px-7 py-3">
-                        <p class="text-sm text-gray-500">Apakah Anda yakin ingin menghapus data lembur ini secara
+                        <p class="text-sm text-gray-500">Apakah Anda yakin ingin menghapus data shift ini secara
                             permanen?</p>
                     </div>
                     <div class="items-center px-4 py-3">
@@ -266,13 +266,13 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
             </div>
         </div>
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold ml-2">Data Lembur Tukang</h1>
+            <h1 class="text-2xl font-bold ml-2">Data Shift Tukang</h1>
             <span class="text-gray-500 mr-2"><?php echo date('d F Y'); ?></span>
         </div>
         <?php if ($view == 'tambah'): ?>
             <div class="flex justify-center">
                 <div class="bg-white p-6 mt-4 shadow-lg rounded-lg w-full max-w-7xl">
-                    <h2 class="text-2xl font-bold mb-4">Input Data Lembur Tukang</h2>
+                    <h2 class="text-2xl font-bold mb-4">Input Data Shift Tukang</h2>
                     <hr class="mb-4">
 
                     <form method="POST" action="aksi_lembur.php?act=tambah" id="lembur_form">
@@ -282,7 +282,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="mb-4">
                                 <label for="tgl_lembur" class="block text-sm font-medium text-gray-700">Tanggal
-                                    Lembur:</label>
+                                    Shift:</label>
                                 <input type="date" name="tgl_lembur" id="tgl_lembur" value="<?= date('Y-m-d'); ?>" required
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             </div>
@@ -321,7 +321,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                         </div>
 
                         <div id="shift_options_container_parent" class="mt-6 border p-4 rounded-lg bg-gray-50">
-                            <h3 class="text-lg font-semibold mb-3">Pilih Shift Lembur</h3>
+                            <h3 class="text-lg font-semibold mb-3">Pilih Shift</h3>
                             <div id="shift_options_container">
                                 <?php
                                 foreach ($default_shift_prices as $key => $harga) {
@@ -353,7 +353,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                         </div>
 
                         <div class="mt-6 p-4 bg-blue-100 rounded-lg">
-                            <p class="text-xl font-bold text-blue-800">Total Harga Lembur:
+                            <p class="text-xl font-bold text-blue-800">Total Harga Shift:
                                 <span id="total_harga_info"><?= formatRupiah(0); ?></span>
                             </p>
                         </div>
@@ -376,7 +376,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
 =========================== -->
         <?php elseif ($view == 'edit' && isset($_GET['id'])): ?>
             <div class="p-6">
-                <h2 class="text-2xl font-bold mb-6 text-indigo-600">📝 Edit Data Lembur Tukang (ID: <?= $id_edit; ?>)</h2>
+                <h2 class="text-2xl font-bold mb-6 text-indigo-600">📝 Edit Data Shift Tukang (ID: <?= $id_edit; ?>)</h2>
 
                 <form action="aksi_lembur.php?act=edit" method="POST" class="bg-white p-6 rounded-lg shadow-lg">
 
@@ -404,7 +404,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Tanggal Lembur:</label>
+                            <label class="block text-sm font-medium text-gray-700">Tanggal Shift:</label>
                             <input type="date" name="tgl_lembur" id="tgl_lembur" required value="<?= $tgl_lembur_lama; ?>"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500">
                         </div>
@@ -426,7 +426,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                     <!-- ==================
      SHIFT LIST 
 =================== -->
-                    <h3 class="text-lg font-semibold border-b pb-2 mb-4">Pilih Shift Lembur</h3>
+                    <h3 class="text-lg font-semibold border-b pb-2 mb-4">Pilih Shift</h3>
                     <div id="shifts-container" class="space-y-2 mb-6 p-4 border rounded-md bg-gray-50">
                         <p class="text-sm text-gray-500">Pilih tukang terlebih dahulu...</p>
                     </div>
@@ -572,7 +572,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                     </script>
 
                     <div class="mt-6 border-t pt-4">
-                        <h4 class="text-xl font-bold">Total Harga Lembur:
+                        <h4 class="text-xl font-bold">Total Harga Shift:
                             <span id="total_harga_display" class="text-blue-600">
                                 <?= "Rp " . number_format($total_harga_lembur_lama, 0, ',', '.'); ?>
                             </span>
@@ -694,7 +694,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                                         No</th>
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Tanggal Lembur</th>
+                                        Tanggal Shift</th>
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Minggu Ke-</th>
@@ -777,7 +777,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
         <?php else: ?>
 
             <div class="bg-white p-6 mt-4 shadow-lg rounded-lg w-full max-w-7xl mb-6">
-                <h2 class="text-xl font-bold mb-3">Filter Data Lembur</h2>
+                <h2 class="text-xl font-bold mb-3">Filter Data Shift</h2>
                 <form method="GET" action="lembur_tukang.php" class="flex flex-col md:flex-row gap-4 items-end">
 
                     <div class="w-full md:w-1/3">
@@ -863,9 +863,9 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                                         <tr>
                                             <th class="py-4 px-6 text-center">No</th>
                                             <th class="py-4 px-6 text-left">Nama Tukang</th>
-                                            <th class="py-4 px-6 text-left">Tanggal Lembur</th>
-                                            <th class="py-4 px-6 text-left">Jam Lembur</th>
-                                            <th class="py-4 px-6 text-left">Harga Lembur</th>
+                                            <th class="py-4 px-6 text-left">Tanggal Shift</th>
+                                            <th class="py-4 px-6 text-left">Jam Shift</th>
+                                            <th class="py-4 px-6 text-left">Harga Shift</th>
                                             <th class="py-4 px-6 text-center">Aksi</th>
                                         </tr>
                                     </thead>
@@ -927,7 +927,7 @@ endif; // <--- Menggunakan endif untuk menutup if ($view == 'edit')
                             <div class="mt-6 flex justify-center">
                                 <a href="lembur_tukang.php?view=tambah"
                                     class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
-                                    <ion-icon name="add-circle-outline" class="mr-1"></ion-icon> Tambah Lembur
+                                    <ion-icon name="add-circle-outline" class="mr-1"></ion-icon> Tambah Data
                                 </a>
                             </div>
                         </div>
