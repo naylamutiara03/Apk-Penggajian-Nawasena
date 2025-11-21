@@ -13,7 +13,7 @@ $username = $_SESSION["username"] ?? "User";
 
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
-$is_transaksi_active = in_array($current_page, ['data_absensi.php', 'data_gaji.php']);
+$is_transaksi_active = in_array($current_page, ['data_absensi.php', 'data_gaji.php', 'absensi_karyawan.php']);
 $master_data_pages = ['data_karyawan.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
 $laporan_pages = ['laporan.php', 'laporan_gaji_karyawan.php', 'slip_gaji.php'];
 $lembur_pages = ['lembur_karyawan.php', 'lembur_tukang.php', 'total_hitungan.php'];
@@ -132,44 +132,53 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
         <!-- Submenu Transaksi -->
         <div class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
 <?php echo ($is_transaksi_active) ? '' : 'hidden'; ?>" id="submenuTransaksi">
+
             <a href="data_absensi.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
     <?php echo ($current_page == 'data_absensi.php') ? 'bg-blue-600' : ''; ?>">
                 Data Absensi Tukang
             </a>
+
+            <!-- Tambahan Baru -->
+            <a href="absensi_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
+    <?php echo ($current_page == 'absensi_karyawan.php') ? 'bg-blue-600' : ''; ?>">
+                Data Absensi Karyawan
+            </a>
+
             <a href="data_gaji.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
     <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-600' : ''; ?>">
                 Data Gaji Tukang
             </a>
         </div>
 
+
         <!-- Menu Lembur -->
-      <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
+        <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer 
 <?php echo ($is_lembur_active) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?> text-white"
-        onclick="toggleDropdown('submenuLembur', 'arrowLembur')">
-        <ion-icon name="time-outline" class="text-xl"></ion-icon>
-        <div class="flex justify-between w-full items-center">
-            <span class="text-[15px] ml-4 text-gray-200 font-bold">Lembur & Shift</span>
-            <span class="text-sm <?php echo ($is_lembur_active) ? 'rotate-180' : ''; ?>" id="arrowLembur">
-                <ion-icon name="chevron-down-outline"></ion-icon>
-            </span>
+            onclick="toggleDropdown('submenuLembur', 'arrowLembur')">
+            <ion-icon name="time-outline" class="text-xl"></ion-icon>
+            <div class="flex justify-between w-full items-center">
+                <span class="text-[15px] ml-4 text-gray-200 font-bold">Lembur & Shift</span>
+                <span class="text-sm <?php echo ($is_lembur_active) ? 'rotate-180' : ''; ?>" id="arrowLembur">
+                    <ion-icon name="chevron-down-outline"></ion-icon>
+                </span>
+            </div>
         </div>
-    </div>
 
-    <div id="submenuLembur" class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
-<?php echo ($is_lembur_active) ? '' : 'hidden'; ?>"> 
-        
-        <a href="lembur_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+        <div id="submenuLembur" class="text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold 
+<?php echo ($is_lembur_active) ? '' : 'hidden'; ?>">
+
+            <a href="lembur_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
 <?php echo ($current_page == 'lembur_karyawan.php') ? 'bg-blue-600' : ''; ?>"> Lembur Karyawan
-        </a>
+            </a>
 
-        <a href="lembur_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+            <a href="lembur_tukang.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
 <?php echo ($current_page == 'lembur_tukang.php') ? 'bg-blue-600' : ''; ?>"> Shift Tukang
-        </a>
-        
-        <a href="total_hitungan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
+            </a>
+
+            <a href="total_hitungan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link
 <?php echo ($current_page == 'total_hitungan.php') ? 'bg-blue-600' : ''; ?>"> Total Hitungan Tukang
-        </a>
-    </div>
+            </a>
+        </div>
 
 
 
