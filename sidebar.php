@@ -13,7 +13,7 @@ $username = $_SESSION["username"] ?? "User";
 
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
-$is_transaksi_active = in_array($current_page, ['data_absensi.php', 'data_gaji.php', 'absensi_karyawan.php']);
+$is_transaksi_active = in_array($current_page, ['data_absensi.php', 'data_gaji.php', 'absensi_karyawan.php', 'keterlambatan_karyawan.php']);
 $master_data_pages = ['data_karyawan.php', 'data_jabatan.php', 'data_tukang.php', 'data_admin.php'];
 $laporan_pages = ['laporan.php', 'laporan_gaji_karyawan.php', 'slip_gaji.php'];
 $lembur_pages = ['lembur_karyawan.php', 'lembur_tukang.php', 'total_hitungan.php'];
@@ -148,6 +148,12 @@ $is_master_data_active = in_array($current_page, $master_data_pages);
     <?php echo ($current_page == 'data_gaji.php') ? 'bg-blue-600' : ''; ?>">
                 Data Gaji Tukang
             </a>
+
+            <a href="keterlambatan_karyawan.php" class="block cursor-pointer p-2 rounded-md mt-1 hover:bg-blue-600 loading-link 
+<?php echo ($current_page == 'keterlambatan_karyawan.php') ? 'bg-blue-600' : ''; ?>">
+                Data Keterlambatan Karyawan
+            </a>
+
         </div>
 
 
