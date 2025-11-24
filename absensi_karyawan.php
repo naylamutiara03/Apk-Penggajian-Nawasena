@@ -134,9 +134,24 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
         </div>
 
 
-        <!-- FILTER BULAN TAHUN -->
+        <!-- FILTER BULAN TAHUN + TANGGAL -->
         <div class="bg-white p-4 rounded-xl shadow mb-4">
             <form method="GET" class="flex flex-wrap gap-3 items-center">
+
+                <!-- FILTER HARI (1 s/d max hari di bulan tsb) -->
+                <select name="hari" class="border p-2 rounded-lg">
+                    <option value="">-- Semua Tanggal --</option>
+                    <?php
+                    // Tentukan jumlah hari sesuai bulan & tahun yang dipilih
+                    $maxHari = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+                    $hariDipilih = isset($_GET['hari']) ? $_GET['hari'] : "";
+                    for ($h = 1; $h <= $maxHari; $h++) {
+                        $selHari = ($hariDipilih == $h) ? "selected" : "";
+                        echo "<option value='$h' $selHari>$h</option>";
+                    }
+                    ?>
+                </select>
+
                 <select name="bulan" class="border p-2 rounded-lg">
                     <?php
                     $bulanArr = [
@@ -177,6 +192,7 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
             </form>
         </div>
 
+
         <!-- TABEL DATA -->
         <div class="bg-white p-6 rounded-2xl shadow">
             <table class="w-full text-sm text-center border-collapse">
@@ -194,12 +210,15 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
                 <tbody>
                     <?php
                     $q = mysqli_query($konek, "
-                    SELECT a.*, k.nama_karyawan 
-                    FROM absensi_karyawan a
-                    JOIN karyawan k ON a.id_karyawan = k.id
-                    WHERE MONTH(a.tgl_absen)='$bulan' AND YEAR(a.tgl_absen)='$tahun'
-                    ORDER BY a.tgl_absen DESC
-                ");
+    SELECT a.*, k.nama_karyawan 
+    FROM absensi_karyawan a
+    JOIN karyawan k ON a.id_karyawan = k.id
+    WHERE MONTH(a.tgl_absen)='$bulan' 
+    AND YEAR(a.tgl_absen)='$tahun'
+    " . (!empty($_GET['hari']) ? " AND DAY(a.tgl_absen)='{$_GET['hari']}'" : "") . "
+    ORDER BY a.tgl_absen DESC
+");
+
                     $no = 1;
                     while ($d = mysqli_fetch_assoc($q)) {
                         // CEK KETERANGAN TELAT
