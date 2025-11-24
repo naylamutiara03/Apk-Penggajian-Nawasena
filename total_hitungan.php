@@ -126,19 +126,26 @@ $bulan_arr = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 
 
         <!-- Title -->
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-indigo-700">📊 Total Lembur Tukang</h1>
+            <h1 class="text-3xl font-bold text-indigo-700">📊 Total Shift Tukang</h1>
             <span class="text-gray-500"><?= date('d F Y'); ?></span>
         </div>
 
         <!-- Filter -->
         <div class="bg-white p-6 rounded-lg shadow mb-6">
-            <h2 class="text-xl font-semibold mb-4 border-b pb-2">Filter Data</h2>
+
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold border-b pb-1">Filter Data</h2>
+                <p class="text-sm text-gray-500 italic">
+                    <span class="font-semibold text-red-500">Notes:</span> pilih Tahun dan Bulan saja untuk melihat
+                    seluruh data di bulan tersebut.
+                </p>
+            </div>
 
             <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
 
                 <div>
                     <label class="text-sm font-medium">Nama Tukang:</label>
-                    <select name="nama" class="w-full border rounded p-2">
+                    <select name="nama" class="w-full border rounded p-2 focus:ring focus:ring-indigo-300">
                         <option value="">-- Pilih Tukang --</option>
                         <?php while ($t = mysqli_fetch_assoc($list_tukang)): ?>
                             <option value="<?= $t['id']; ?>" <?= ($filter_tukang == $t['id']) ? 'selected' : ''; ?>>
@@ -150,7 +157,7 @@ $bulan_arr = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 
 
                 <div>
                     <label class="text-sm font-medium">Tahun:</label>
-                    <select name="tahun" class="w-full border rounded p-2">
+                    <select name="tahun" class="w-full border rounded p-2 focus:ring focus:ring-indigo-300">
                         <option value="">-- Pilih Tahun --</option>
                         <?php foreach ($available_years as $y): ?>
                             <option value="<?= $y; ?>" <?= ($filter_tahun == $y) ? 'selected' : ''; ?>><?= $y; ?></option>
@@ -160,10 +167,9 @@ $bulan_arr = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 
 
                 <div>
                     <label class="text-sm font-medium">Bulan:</label>
-                    <select name="bulan" class="w-full border rounded p-2">
+                    <select name="bulan" class="w-full border rounded p-2 focus:ring focus:ring-indigo-300">
                         <option value="">-- Semua Bulan --</option>
-                        <?php
-                        foreach ($bulan_arr as $b => $n): ?>
+                        <?php foreach ($bulan_arr as $b => $n): ?>
                             <option value="<?= $b; ?>" <?= ($filter_bulan == $b) ? 'selected' : ''; ?>><?= $n; ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -171,7 +177,7 @@ $bulan_arr = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 
 
                 <div>
                     <label class="text-sm font-medium">Minggu Ke:</label>
-                    <select name="minggu" class="w-full border rounded p-2">
+                    <select name="minggu" class="w-full border rounded p-2 focus:ring focus:ring-indigo-300">
                         <option value="">-- Semua Minggu --</option>
                         <?php for ($i = 1; $i <= 5; $i++): ?>
                             <option value="<?= $i; ?>" <?= ($filter_minggu == $i) ? 'selected' : ''; ?>>Minggu ke-<?= $i; ?>
@@ -180,19 +186,42 @@ $bulan_arr = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 
                     </select>
                 </div>
 
-                <div class="flex gap-2 items-end">
-                    <button type="submit"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Filter</button>
-                    <a href="total_hitungan.php"
-                        class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">Reset</a>
+                <!-- Buttons -->
+                <div class="flex flex-wrap gap-2 items-end">
 
-                    <?php if ($data_ada): ?>
-                        <a href="export_hitungan_excel.php?nama=<?= $filter_tukang ?>&bulan=<?= $filter_bulan ?>&tahun=<?= $filter_tahun ?>&minggu=<?= $filter_minggu ?>"
-                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Export Excel</a>
-                    <?php endif; ?>
+                    <button type="submit"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm">
+                        Filter
+                    </button>
+
+                    <a href="total_hitungan.php"
+                        class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 shadow-sm">
+                        Reset
+                    </a>
+
+                    <!-- === EXPORT EXCEL === -->
+                    <?php
+                    // Export Per Bulan (Semua Tukang)
+                    if (!empty($filter_bulan) && !empty($filter_tahun) && empty($filter_tukang) && empty($filter_minggu)) { ?>
+                        <a href="export_hitungan_bulan.php?bulan=<?= $filter_bulan ?>&tahun=<?= $filter_tahun ?>"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm">
+                            Export Excel Bulanan
+                        </a>
+                    <?php } ?>
+
+                    <?php
+                    // Export Per Tukang + Minggu
+                    if (!empty($filter_bulan) && !empty($filter_tahun) && !empty($filter_tukang) && !empty($filter_minggu)) { ?>
+                        <a href="export_hitungan_minggu.php?nama=<?= $filter_tukang ?>&bulan=<?= $filter_bulan ?>&tahun=<?= $filter_tahun ?>&minggu=<?= $filter_minggu ?>"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm">
+                            Export Excel Per Minggu
+                        </a>
+                    <?php } ?>
+
                 </div>
             </form>
         </div>
+
 
         <!-- INFO RANGE -->
         <?php if ($data_ada): ?>
