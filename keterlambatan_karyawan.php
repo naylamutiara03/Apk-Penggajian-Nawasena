@@ -102,67 +102,57 @@ $username = $_SESSION['username'];
 
                 <tbody>
                     <?php
-                    $where = "";
-                    if (isset($_GET['bulan']) && isset($_GET['tahun'])) {
+                    // Filter query
+                    $where = "WHERE a.keterangan_telat='Telat'";
+
+                    if (!empty($_GET['bulan']) && !empty($_GET['tahun'])) {
                         $bulan = $_GET['bulan'];
                         $tahun = $_GET['tahun'];
-                        $where = "WHERE MONTH(a.tgl_absen)='$bulan' AND YEAR(a.tgl_absen)='$tahun'";
+                        $where .= " AND MONTH(a.tgl_absen)='$bulan' AND YEAR(a.tgl_absen)='$tahun'";
                     }
 
                     $query = mysqli_query($konek, "
-    SELECT a.*, k.nama_karyawan, j.gapok 
-    FROM absensi_karyawan a
-    JOIN karyawan k ON a.id_karyawan = k.id
-    JOIN jabatan j ON k.id_jabatan = j.id
-    $where AND a.keterangan_telat = 'Telat'
-    ORDER BY a.tgl_absen DESC
-");
-
+                        SELECT a.*, k.nama_karyawan, j.gapok 
+                        FROM absensi_karyawan a
+                        JOIN karyawan k ON a.id_karyawan = k.id
+                        JOIN jabatan j ON k.id_jabatan = j.id
+                        $where 
+                        ORDER BY a.tgl_absen DESC
+                    ");
 
                     $no = 1;
                     $total_potongan = 0;
 
                     while ($d = mysqli_fetch_assoc($query)) {
 
-                        $gapok = $d['gapok'];
-                        $per_hari = $gapok / 20;
-                        $per_jam = $per_hari / 8;
-                        $per_menit = $per_jam / 60;
+                        // Hitung gaji per menit
+                        $per_menit = ($d['gapok'] / 20) / 8 / 60;
 
+                        // Ambil telat sudah tersimpan atau hitung ulang
                         $telat = $d['telat_menit'];
-
-                        if ($telat == "" || $telat == null || $telat == 0) {
-                            // Hitung berdasarkan jam datang, misal jam masuk standar 09:00
-                            $jam_masuk_standar = strtotime("09:00:00");
-                            $jam_datang = strtotime($d['jam_masuk']);
-
-                            if ($jam_datang > $jam_masuk_standar) {
-                                $telat = ($jam_datang - $jam_masuk_standar) / 60;
-                            } else {
-                                $telat = 0;
-                            }
+                        if (!$telat || $telat <= 0) {
+                            $telat = max(0, (strtotime($d['jam_masuk']) - strtotime("09:00:00")) / 60);
                         }
 
-                        $potongan = $telat * $per_menit;
-                        $potongan = round($potongan, -3);
-
+                        $potongan = round($telat * $per_menit, -3);
                         $total_potongan += $potongan;
-                        ?>
+                    ?>
                         <tr class="text-center">
                             <td class="border px-4 py-1"><?= $no++; ?></td>
                             <td class="border px-4 py-1"><?= $d['nama_karyawan']; ?></td>
                             <td class="border px-4 py-1"><?= $d['tgl_absen']; ?></td>
                             <td class="border px-4 py-1"><?= $d['keterangan_telat']; ?></td>
-                            <td class="border px-4 py-1"><?= $telat; ?> menit</td>
-                            <td class="border px-4 py-1 font-semibold text-red-600">Rp
-                                <?= number_format($potongan, 0, ',', '.'); ?>
+                            <td class="border px-4 py-1"><?= ceil($telat); ?> menit</td>
+                            <td class="border px-4 py-1 font-semibold text-red-600">
+                                Rp <?= number_format($potongan, 0, ',', '.'); ?>
                             </td>
                         </tr>
                     <?php } ?>
 
                     <tr class="bg-gray-100 font-bold">
                         <td colspan="5" class="border px-4 py-2 text-right">Total Potongan Semua Karyawan</td>
-                        <td class="border px-4 py-2 text-red-700">Rp <?= number_format($total_potongan, 0, ',', '.'); ?>
+                        <td class="border px-4 py-2 text-red-700">
+                            Rp <?= number_format($total_potongan, 0, ',', '.'); ?>
                         </td>
                     </tr>
                 </tbody>

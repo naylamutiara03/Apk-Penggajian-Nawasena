@@ -1,138 +1,157 @@
 <?php
+session_start();
+include("koneksi.php");
 include("sidebar.php");
 
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit;
+    header("Location: login.php"); exit;
 }
 
-$username = $_SESSION['username'];
-$koneksi = new mysqli("localhost", "root", "", "penggajian");
+// Variabel GET
+$bulan = $_GET['bulan'];
+$tahun = $_GET['tahun'];
 
-$bulan = $_GET['bulan'] ?? '';
-$tahun = $_GET['tahun'] ?? '';
-
-function formatRupiah($angka)
-{
-    return "Rp. " . number_format($angka, 0, ',', '.');
-}
+$bulan_nama = [
+    "01"=>"Januari","02"=>"Februari","03"=>"Maret","04"=>"April","05"=>"Mei","06"=>"Juni",
+    "07"=>"Juli","08"=>"Agustus","09"=>"September","10"=>"Oktober","11"=>"November","12"=>"Desember"
+];
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <title>Hasil Laporan Gaji Karyawan</title>
+    <title>Laporan Gaji Karyawan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #laporan, #laporan * {
-                visibility: visible;
-            }
-            .no-print {
-                display: none !important;
-            }
-            #laporan {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-        }
-    </style>
 </head>
+
 <body class="bg-gray-100">
-    <div class="p-6 lg:ml-[300px]">
-        <div class="bg-white p-4 rounded shadow mb-6">
-            <div class="flex flex-col lg:flex-row justify-between items-center">
-                <h1 class="text-2xl font-bold text-center lg:text-left">PT. Nawasena Sinergi Gemilang</h1>
-                <div class="flex items-center mt-4 lg:mt-0">
-                    <span class="mr-4">Selamat Datang, <strong><?= htmlspecialchars($username); ?></strong></span>
-                    <ion-icon name="person-circle-outline" class="text-4xl text-gray-500"></ion-icon>
-                </div>
-            </div>
-        </div>
+<div class="p-6 lg:ml-[300px] flex-grow">
 
-        <?php ob_start(); ?>
-        <div id="laporan" class="bg-white p-6 rounded shadow">
-            <h2 class="text-xl font-bold text-center mb-4">Laporan Gaji Karyawan</h2>
-            <p><strong>Bulan:</strong> <?= date('F', mktime(0, 0, 0, $bulan, 10)); ?> <?= $tahun; ?></p>
-            <hr class="my-4">
-
-            <?php
-            $query = $koneksi->query("
-                SELECT 
-                    k.nama_karyawan,
-                    j.jabatan,
-                    j.gapok,
-                    j.tunjangan_jabatan,
-                    (j.gapok + j.tunjangan_jabatan) AS total_gaji
-                FROM karyawan k
-                JOIN jabatan j ON k.id_jabatan = j.id
-                ORDER BY k.nama_karyawan ASC
-            ");
-
-            if ($query->num_rows > 0):
-            ?>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border border-gray-300 text-sm">
-                        <thead class="bg-gray-200">
-                            <tr>
-                                <th class="border px-4 py-2">Nama Karyawan</th>
-                                <th class="border px-4 py-2">Jabatan</th>
-                                <th class="border px-4 py-2">Gaji Pokok</th>
-                                <th class="border px-4 py-2">Fee Jabatan</th>
-                                <th class="border px-4 py-2">Total Gaji</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $totalKeseluruhan = 0;
-                            while ($row = $query->fetch_assoc()):
-                                $totalKeseluruhan += $row['total_gaji'];
-                            ?>
-                            <tr class="text-center">
-                                <td class="border px-4 py-2"><?= htmlspecialchars($row['nama_karyawan']); ?></td>
-                                <td class="border px-4 py-2"><?= htmlspecialchars($row['jabatan']); ?></td>
-                                <td class="border px-4 py-2"><?= formatRupiah($row['gapok']); ?></td>
-                                <td class="border px-4 py-2"><?= formatRupiah($row['tunjangan_jabatan']); ?></td>
-                                <td class="border px-4 py-2 font-semibold text-green-600"><?= formatRupiah($row['total_gaji']); ?></td>
-                            </tr>
-                            <?php endwhile; ?>
-                            <tr class="bg-gray-100 font-bold text-center">
-                                <td colspan="4" class="border px-4 py-2">Total Gaji Seluruh Karyawan</td>
-                                <td class="border px-4 py-2 text-green-700"><?= formatRupiah($totalKeseluruhan); ?></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <p class="text-red-500 mt-4">Data tidak ditemukan.</p>
-            <?php endif; ?>
-        </div>
-        <?php
-        $html_laporan = ob_get_clean();
-        $_SESSION['html_laporan'] = $html_laporan;
-        echo $html_laporan;
-        ?>
-
-        <!-- Tombol Aksi -->
-        <div class="mt-6 flex justify-between items-center no-print">
-            <a href="laporan_gaji_karyawan.php" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow">
-                ← Kembali
-            </a>
-            <?php if ($query->num_rows > 0): ?>
-                <a href="download_laporan_gaji.php?bulan=<?= $bulan ?>&tahun=<?= $tahun ?>" 
-                   class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded shadow">
-                    ⬇ Download Laporan Gaji (PDF)
-                </a>
-            <?php endif; ?>
-        </div>
+    <!-- HEADER -->
+    <div class="bg-white px-4 py-3 rounded shadow mb-6 text-center">
+        <h1 class="text-2xl font-bold">LAPORAN GAJI KARYAWAN</h1>
+        <p class="mt-1 text-gray-700 font-semibold">
+            Bulan: <?= $bulan_nama[$bulan] ?> <?= $tahun ?>
+        </p>
     </div>
 
-    <!-- Ionicon CDN -->
-    <script src="https://unpkg.com/ionicons@5.5.2/dist/ionicons.js"></script>
+    <!-- Tombol -->
+    <div class="flex justify-between mb-5">
+        <a href="laporan_gaji_karyawan.php"
+           class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+           ← Kembali
+        </a>
+        <a href="export_gaji_excel.php?bulan=<?= $bulan ?>&tahun=<?= $tahun ?>"
+           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+           Export Excel
+        </a>
+    </div>
+
+<?php
+// ======================== DATA KARYAWAN ========================
+$karyawan = $konek->query("SELECT * FROM karyawan ORDER BY nama_karyawan ASC");
+
+while ($data = $karyawan->fetch_assoc()):
+$id_karyawan = $data['id'];
+
+// gaji pokok
+$get_jab = $konek->query("SELECT gapok FROM jabatan WHERE id='{$data['id_jabatan']}'")->fetch_assoc();
+$gaji_pokok = $get_jab ? $get_jab['gapok'] : 0;
+
+// Gaji per menit
+$gaji_per_menit = $gaji_pokok / (20 * 8 * 60);
+
+// Ambil absensi bulan & tahun
+$absensi = $konek->query("
+    SELECT * FROM absensi_karyawan
+    WHERE id_karyawan='$id_karyawan'
+    AND MONTH(tgl_absen)='$bulan'
+    AND YEAR(tgl_absen)='$tahun'
+    AND jam_masuk IS NOT NULL AND jam_keluar IS NOT NULL
+    ORDER BY tgl_absen ASC
+");
+
+$total_potongan = 0;
+$total_lembur = 0;
+?>
+
+<!-- CARD PER KARYAWAN -->
+<div class="bg-white shadow rounded-lg p-6 mb-6 border border-gray-200">
+
+    <!-- Nama -->
+    <div class="flex justify-between mb-3">
+        <h2 class="text-xl font-bold text-blue-700"><?= $data['nama_karyawan'] ?></h2>
+        <span class="text-lg font-semibold text-green-700">
+            Gaji Pokok: Rp <?= number_format($gaji_pokok,0,',','.') ?>
+        </span>
+    </div>
+
+    <!-- TABEL GAJI -->
+    <table class="w-full text-sm border border-gray-300">
+        <thead class="bg-gray-200 font-semibold text-gray-800">
+            <tr>
+                <th class="border p-2">Tanggal</th>
+                <th class="border p-2">Telat</th>
+                <th class="border p-2">Potongan</th>
+                <th class="border p-2">Lembur</th>
+                <th class="border p-2">Uang Lembur</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        <?php if ($absensi->num_rows == 0): ?>
+            <tr><td colspan="5" class="text-center text-gray-500 p-3">Tidak ada absensi bulan ini.</td></tr>
+        <?php endif; ?>
+
+        <?php while ($row = $absensi->fetch_assoc()):
+            // HITUNG TELAT
+            $telat = $row['telat_menit'];
+            if (!$telat || $telat <= 0) {
+                $telat = max(0,(strtotime($row['jam_masuk']) - strtotime("09:00:00"))/60);
+            }
+            $telat = round($telat);
+            $pot_telat = round($telat * $gaji_per_menit,-3);
+            $total_potongan += $pot_telat;
+
+            // HITUNG LEMBUR
+            $jam_keluar = strtotime($row['jam_keluar']);
+            $awal_lembur = strtotime("18:31:00");
+            $max_lembur = strtotime("22:00:00");
+
+            if ($jam_keluar <= $awal_lembur) { $lembur = 0; }
+            else {
+                if ($jam_keluar > $max_lembur) $jam_keluar = $max_lembur;
+                $lembur = floor(($jam_keluar - $awal_lembur)/60);
+            }
+            $uang_lembur = round($lembur * $gaji_per_menit,-3);
+            $total_lembur += $uang_lembur;
+        ?>
+            <tr class="text-center">
+                <td class="border p-2"><?= $row['tgl_absen'] ?></td>
+                <td class="border p-2"><?= $telat ?> menit</td>
+                <td class="border p-2 text-red-600">Rp <?= number_format($pot_telat,0,',','.') ?></td>
+                <td class="border p-2"><?= $lembur ?> menit</td>
+                <td class="border p-2 text-green-600">Rp <?= number_format($uang_lembur,0,',','.') ?></td>
+            </tr>
+        <?php endwhile; ?>
+
+        </tbody>
+    </table>
+
+    <!-- TOTAL -->
+    <div class="mt-4 font-bold text-lg">
+        <p>Total Potongan: <span class="text-red-600">Rp <?= number_format($total_potongan,0,',','.') ?></span></p>
+        <p>Total Uang Lembur: <span class="text-green-600">Rp <?= number_format($total_lembur,0,',','.') ?></span></p>
+        <p class="mt-2 text-blue-800">Gaji Akhir:
+            <span class="text-black font-extrabold">
+                Rp <?= number_format(($gaji_pokok + $total_lembur - $total_potongan),0,',','.') ?>
+            </span>
+        </p>
+    </div>
+</div>
+
+<?php endwhile; ?>
+
+<?php include("footer.php"); ?>
+</div>
 </body>
 </html>
